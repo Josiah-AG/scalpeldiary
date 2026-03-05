@@ -19,16 +19,20 @@ Residents receive automated push notifications at specific times to keep them in
 Title: 📋 Duty Alert: Tomorrow
 
 Message:
-You have duty tomorrow (Thursday, March 6):
-Night Call, Emergency Room
+You have Duty tomorrow EOPD role
+```
 
-Be prepared!
+Or if multiple duties:
+```
+Title: 📋 Duty Alert: Tomorrow
+
+Message:
+You have Duty tomorrow EOPD, Senior, Consultation role
 ```
 
 **What's Included:**
-- All duties assigned for tomorrow
-- The date of the duty
-- Reminder to be prepared
+- Duty category names (EOPD, Senior, Consultation, etc.)
+- Simple, clear format
 
 **Note:** Only sent if the resident has duties scheduled for the next day
 
@@ -107,10 +111,7 @@ Your rotation for April is: Cardiothoracic Surgery. Get ready!
 ```
 📋 Duty Alert: Tomorrow
 
-You have duty tomorrow (Thursday, March 6):
-Night Call
-
-Be prepared!
+You have Duty tomorrow EOPD role
 ```
 
 ### **Thursday, March 6, 2026**
@@ -140,10 +141,7 @@ Be prepared!
 ```
 📋 Duty Alert: Tomorrow
 
-You have duty tomorrow (Tuesday, April 1):
-Emergency Room Coverage
-
-Be prepared!
+You have Duty tomorrow Senior, Consultation role
 ```
 
 **11:00 PM (End of Month):**
