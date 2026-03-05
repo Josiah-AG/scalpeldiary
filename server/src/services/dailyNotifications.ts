@@ -33,7 +33,7 @@ export async function sendNextDayDutyNotifications() {
         await sendPushNotification(
           resident.id,
           '📋 Duty Alert: Tomorrow',
-          `You are on duty at ${dutyRoles}`,
+          `You are on duty tomorrow at ${dutyRoles}`,
           '/'
         );
         console.log(`Sent duty notification to ${resident.email} for tomorrow`);
