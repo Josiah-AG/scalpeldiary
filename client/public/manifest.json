@@ -9,15 +9,10 @@
   "orientation": "portrait-primary",
   "icons": [
     {
-      "src": "/icon.svg",
+      "src": "/favicon2.svg",
       "sizes": "any",
       "type": "image/svg+xml",
       "purpose": "any maskable"
-    },
-    {
-      "src": "/favicon2.svg",
-      "sizes": "any",
-      "type": "image/svg+xml"
     }
   ],
   "categories": ["medical", "education", "productivity"],

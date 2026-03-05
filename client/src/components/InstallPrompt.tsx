@@ -16,12 +16,6 @@ export default function InstallPrompt() {
       return;
     }
 
-    // Check if user has dismissed the prompt before
-    const dismissed = localStorage.getItem('pwa-install-dismissed');
-    if (dismissed) {
-      return;
-    }
-
     const handler = (e: Event) => {
       e.preventDefault();
       setDeferredPrompt(e as BeforeInstallPromptEvent);
@@ -54,7 +48,7 @@ export default function InstallPrompt() {
 
   const handleDismiss = () => {
     setShowPrompt(false);
-    localStorage.setItem('pwa-install-dismissed', 'true');
+    // Don't save to localStorage - allow prompt to show again next time
   };
 
   if (!showPrompt || !deferredPrompt) {
