@@ -5,6 +5,7 @@ import { LogOut, Calendar, FileText, BarChart3, Star, Settings, PlusCircle, Clip
 import api from '../api/axios';
 import Logo from './Logo';
 import RoleSwitcher from './RoleSwitcher';
+import NotificationPopup from './NotificationPopup';
 
 interface LayoutProps {
   children: ReactNode;
@@ -210,6 +211,9 @@ export default function Layout({ children, title }: LayoutProps) {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-blue-50">
+      {/* Notification Popup */}
+      <NotificationPopup />
+      
       {/* Modern Header */}
       <nav className="bg-gradient-to-r from-blue-600 to-blue-700 text-white shadow-xl sticky top-0 z-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
