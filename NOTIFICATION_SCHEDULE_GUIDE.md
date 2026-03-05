@@ -19,7 +19,7 @@ Residents receive automated push notifications at specific times to keep them in
 Title: 📋 Duty Alert: Tomorrow
 
 Message:
-You have Duty tomorrow EOPD role
+You are on duty at EOPD
 ```
 
 Or if multiple duties:
@@ -27,12 +27,12 @@ Or if multiple duties:
 Title: 📋 Duty Alert: Tomorrow
 
 Message:
-You have Duty tomorrow EOPD, Senior, Consultation role
+You are on duty at EOPD, Senior, Consultation
 ```
 
 **What's Included:**
 - Duty category names (EOPD, Senior, Consultation, etc.)
-- Simple, clear format
+- Same format as dashboard display
 
 **Note:** Only sent if the resident has duties scheduled for the next day
 
@@ -111,7 +111,7 @@ Your rotation for April is: Cardiothoracic Surgery. Get ready!
 ```
 📋 Duty Alert: Tomorrow
 
-You have Duty tomorrow EOPD role
+You are on duty at EOPD
 ```
 
 ### **Thursday, March 6, 2026**
@@ -141,7 +141,7 @@ You have Duty tomorrow EOPD role
 ```
 📋 Duty Alert: Tomorrow
 
-You have Duty tomorrow Senior, Consultation role
+You are on duty at Senior, Consultation
 ```
 
 **11:00 PM (End of Month):**
