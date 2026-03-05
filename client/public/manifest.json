@@ -1,0 +1,25 @@
+{
+  "name": "ScalpelDiary - Surgical Training Log",
+  "short_name": "ScalpelDiary",
+  "description": "Comprehensive surgical training log management system for residents and supervisors",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#3b82f6",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/favicon2.svg",
+      "sizes": "any",
+      "type": "image/svg+xml"
+    }
+  ],
+  "categories": ["medical", "education", "productivity"],
+  "screenshots": []
+}

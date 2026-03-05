@@ -2,6 +2,7 @@ import { useEffect } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { useAuthStore } from './store/authStore';
 import api from './api/axios';
+import InstallPrompt from './components/InstallPrompt';
 import LandingPage from './pages/LandingPage';
 import Login from './pages/Login';
 import ResidentDashboard from './pages/resident/Dashboard';
@@ -41,6 +42,20 @@ import SupervisorAssignPresentation from './pages/supervisor/AssignPresentation'
 function App() {
   const { user, setAuth, token } = useAuthStore();
 
+  // Register service worker for PWA
+  useEffect(() => {
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker
+        .register('/sw.js')
+        .then((registration) => {
+          console.log('Service Worker registered:', registration);
+        })
+        .catch((error) => {
+          console.log('Service Worker registration failed:', error);
+        });
+    }
+  }, []);
+
   // Refresh user data on mount/reload
   useEffect(() => {
     const refreshUserData = async () => {
@@ -61,6 +76,7 @@ function App() {
   if (!user) {
     return (
       <BrowserRouter>
+        <InstallPrompt />
         <Routes>
           <Route path="/" element={<LandingPage />} />
           <Route path="/login" element={<Login />} />
@@ -72,6 +88,7 @@ function App() {
 
   return (
     <BrowserRouter>
+      <InstallPrompt />
       <Routes>
         {user.role === 'RESIDENT' && (
           <>
