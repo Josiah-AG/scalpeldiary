@@ -8,8 +8,6 @@ import { format, startOfMonth, endOfMonth, eachDayOfInterval, isSameDay } from '
 export default function MasterDashboard() {
   const [users, setUsers] = useState<any[]>([]);
   const [showMasters, setShowMasters] = useState(false);
-  const [migrationStatus, setMigrationStatus] = useState<string>('');
-  const [isMigrating, setIsMigrating] = useState(false);
   const [showRotationsModal, setShowRotationsModal] = useState(false);
   const [showActivitiesModal, setShowActivitiesModal] = useState(false);
   const navigate = useNavigate();
@@ -23,50 +21,6 @@ export default function MasterDashboard() {
     setUsers(response.data);
   };
 
-  const runPresentationAssignmentsMigration = async () => {
-    if (!confirm('Run Presentation Assignments Migration? This will create/update the presentation_assignments table.')) {
-      return;
-    }
-
-    setIsMigrating(true);
-    setMigrationStatus('Running migration...');
-
-    try {
-      const response = await api.post('/migrations/run-presentation-assignments-migration');
-      if (response.data.success) {
-        setMigrationStatus('✅ Migration completed successfully!');
-      } else {
-        setMigrationStatus('❌ Migration failed: ' + response.data.message);
-      }
-    } catch (error: any) {
-      setMigrationStatus('❌ Migration failed: ' + (error.response?.data?.details || error.message));
-    } finally {
-      setIsMigrating(false);
-    }
-  };
-
-  const fixScheduledDateNullable = async () => {
-    if (!confirm('Fix scheduled_date column to be nullable? This will allow creating assignments without a scheduled date.')) {
-      return;
-    }
-
-    setIsMigrating(true);
-    setMigrationStatus('Running fix...');
-
-    try {
-      const response = await api.post('/migrations/fix-scheduled-date-nullable');
-      if (response.data.success) {
-        setMigrationStatus('✅ Fix completed successfully!');
-      } else {
-        setMigrationStatus('❌ Fix failed: ' + response.data.message);
-      }
-    } catch (error: any) {
-      setMigrationStatus('❌ Fix failed: ' + (error.response?.data?.details || error.message));
-    } finally {
-      setIsMigrating(false);
-    }
-  };
-
   const residents = users.filter((u) => u.role === 'RESIDENT');
   const supervisors = users.filter((u) => u.role === 'SUPERVISOR');
   const masters = users.filter((u) => u.role === 'MASTER');
@@ -75,45 +29,6 @@ export default function MasterDashboard() {
 
   return (
     <Layout title="Master Dashboard">
-      {/* Migration Section */}
-      <div className="bg-gradient-to-r from-purple-500 to-purple-600 text-white p-6 rounded-xl shadow-lg mb-6">
-        <h3 className="text-xl font-bold mb-3">Database Migrations</h3>
-        <p className="text-purple-100 text-sm mb-4">
-          Run these migrations to set up or fix the Presentation Assignment System
-        </p>
-        <div className="flex flex-wrap gap-3">
-          <button
-            onClick={runPresentationAssignmentsMigration}
-            disabled={isMigrating}
-            className={`px-6 py-3 rounded-lg font-semibold shadow-md transition-all ${
-              isMigrating
-                ? 'bg-gray-400 cursor-not-allowed'
-                : 'bg-white text-purple-600 hover:bg-purple-50'
-            }`}
-          >
-            {isMigrating ? 'Running...' : 'Run Presentation Assignments Migration'}
-          </button>
-          <button
-            onClick={fixScheduledDateNullable}
-            disabled={isMigrating}
-            className={`px-6 py-3 rounded-lg font-semibold shadow-md transition-all ${
-              isMigrating
-                ? 'bg-gray-400 cursor-not-allowed'
-                : 'bg-white text-purple-600 hover:bg-purple-50'
-            }`}
-          >
-            {isMigrating ? 'Running...' : 'Fix Scheduled Date (Nullable)'}
-          </button>
-        </div>
-        {migrationStatus && (
-          <div className={`mt-4 p-4 rounded-lg ${
-            migrationStatus.includes('✅') ? 'bg-green-500' : 'bg-red-500'
-          }`}>
-            <p className="text-white font-medium">{migrationStatus}</p>
-          </div>
-        )}
-      </div>
-
       {/* Main Metrics */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6 mb-8">
         {/* Residents Card */}
