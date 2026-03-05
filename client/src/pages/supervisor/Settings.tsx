@@ -4,7 +4,7 @@ import { useAuthStore } from '../../store/authStore';
 import api from '../../api/axios';
 
 export default function SupervisorSettings() {
-  const { user, setUser } = useAuthStore();
+  const { user, setAuth, token } = useAuthStore();
   const [profilePicture, setProfilePicture] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [currentPassword, setCurrentPassword] = useState('');
@@ -36,7 +36,9 @@ export default function SupervisorSettings() {
       const response = await api.post('/users/profile-picture', formData, {
         headers: { 'Content-Type': 'multipart/form-data' }
       });
-      setUser({ ...user!, profilePicture: response.data.profilePicture });
+      if (user && token) {
+        setAuth({ ...user }, token);
+      }
       setMessage('Profile picture updated successfully!');
       setError('');
       setProfilePicture(null);
@@ -85,9 +87,9 @@ export default function SupervisorSettings() {
           
           <div className="flex items-center space-x-6 mb-4">
             <div className="w-24 h-24 rounded-full bg-gray-200 flex items-center justify-center overflow-hidden">
-              {previewUrl || user?.profilePicture ? (
+              {previewUrl ? (
                 <img 
-                  src={previewUrl || user?.profilePicture} 
+                  src={previewUrl} 
                   alt="Profile" 
                   className="w-full h-full object-cover"
                 />
