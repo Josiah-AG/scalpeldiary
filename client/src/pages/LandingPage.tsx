@@ -12,7 +12,7 @@ export default function LandingPage() {
           <div className="flex justify-between items-center">
             <div className="flex items-center space-x-3">
               <img 
-                src="/logo-sd.svg" 
+                src="/logo-sd.svg?v=2" 
                 alt="ScalpelDiary Logo" 
                 width="44" 
                 height="44"
@@ -111,7 +111,7 @@ export default function LandingPage() {
           <div className="flex flex-col md:flex-row justify-between items-center border-t border-gray-800 pt-8">
             <div className="flex items-center space-x-3 mb-4 md:mb-0">
               <img 
-                src="/logo-sd.svg" 
+                src="/logo-sd.svg?v=2" 
                 alt="ScalpelDiary Logo" 
                 width="36" 
                 height="36"
