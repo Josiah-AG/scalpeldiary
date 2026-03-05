@@ -1,15 +1,65 @@
 import { query } from '../database/db';
 import { sendPushNotification } from '../routes/notifications';
 
-// Function to send daily schedule notifications
-export async function sendDailyScheduleNotifications() {
+// Function to send next day duty notifications (previous day at 5 PM UTC)
+export async function sendNextDayDutyNotifications() {
   try {
-    console.log('Running daily schedule notifications...');
+    console.log('Running next day duty notifications...');
+    
+    const today = new Date();
+    const tomorrow = new Date(today);
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    const tomorrowStr = tomorrow.toISOString().split('T')[0]; // YYYY-MM-DD
+    
+    // Get all residents with their duties for tomorrow
+    const residents = await query(`
+      SELECT DISTINCT u.id, u.name, u.email
+      FROM users u
+      WHERE u.role = 'RESIDENT'
+    `);
+
+    for (const resident of residents.rows) {
+      // Check for duties tomorrow
+      const duties = await query(`
+        SELECT md.*, dc.name as duty_name, dc.color
+        FROM monthly_duties md
+        JOIN duty_categories dc ON md.duty_category_id = dc.id
+        WHERE md.resident_id = $1 AND md.duty_date = $2
+      `, [resident.id, tomorrowStr]);
+
+      if (duties.rows.length > 0) {
+        const dutyNames = duties.rows.map(d => d.duty_name).join(', ');
+        const tomorrowDate = tomorrow.toLocaleDateString('en-US', { 
+          weekday: 'long', 
+          month: 'long', 
+          day: 'numeric' 
+        });
+        
+        await sendPushNotification(
+          resident.id,
+          '📋 Duty Alert: Tomorrow',
+          `You have duty tomorrow (${tomorrowDate}):\n${dutyNames}\n\nBe prepared!`,
+          '/'
+        );
+        console.log(`Sent duty notification to ${resident.email} for tomorrow`);
+      }
+    }
+
+    console.log('Next day duty notifications completed');
+  } catch (error) {
+    console.error('Error sending duty notifications:', error);
+  }
+}
+
+// Function to send morning schedule notifications (activities and rotation)
+export async function sendMorningScheduleNotifications() {
+  try {
+    console.log('Running morning schedule notifications...');
     
     const today = new Date();
     const todayStr = today.toISOString().split('T')[0]; // YYYY-MM-DD
     
-    // Get all residents with their duties and activities for today
+    // Get all residents with their activities for today
     const residents = await query(`
       SELECT DISTINCT u.id, u.name, u.email
       FROM users u
@@ -19,19 +69,6 @@ export async function sendDailyScheduleNotifications() {
     for (const resident of residents.rows) {
       const notifications: string[] = [];
       
-      // Check for duties today
-      const duties = await query(`
-        SELECT md.*, dc.name as duty_name, dc.color
-        FROM monthly_duties md
-        JOIN duty_categories dc ON md.duty_category_id = dc.id
-        WHERE md.resident_id = $1 AND md.duty_date = $2
-      `, [resident.id, todayStr]);
-
-      if (duties.rows.length > 0) {
-        const dutyNames = duties.rows.map(d => d.duty_name).join(', ');
-        notifications.push(`📋 Duty Today: ${dutyNames}`);
-      }
-
       // Check for activities today
       const activities = await query(`
         SELECT da.*, ac.name as activity_name, ac.color
@@ -42,7 +79,7 @@ export async function sendDailyScheduleNotifications() {
 
       if (activities.rows.length > 0) {
         const activityNames = activities.rows.map(a => a.activity_name).join(', ');
-        notifications.push(`🏥 Activities: ${activityNames}`);
+        notifications.push(`🏥 Activities Today: ${activityNames}`);
       }
 
       // Get current rotation
@@ -64,17 +101,17 @@ export async function sendDailyScheduleNotifications() {
         const message = notifications.join('\n');
         await sendPushNotification(
           resident.id,
-          '🌅 Good Morning! Your Schedule for Today',
+          '🌅 Good Morning! Your Schedule',
           message,
           '/'
         );
-        console.log(`Sent daily notification to ${resident.email}`);
+        console.log(`Sent morning notification to ${resident.email}`);
       }
     }
 
-    console.log('Daily schedule notifications completed');
+    console.log('Morning schedule notifications completed');
   } catch (error) {
-    console.error('Error sending daily notifications:', error);
+    console.error('Error sending morning notifications:', error);
   }
 }
 
@@ -142,9 +179,14 @@ export function startNotificationScheduler() {
     const now = new Date();
     const hour = now.getUTCHours(); // Use UTC hours
     
-    // Send daily notifications at 4:00 AM UTC (7:00 AM EAT - East Africa Time)
+    // Send duty notifications for next day at 5:00 PM UTC (8:00 PM EAT)
+    if (hour === 17) {
+      await sendNextDayDutyNotifications();
+    }
+    
+    // Send morning schedule (activities + rotation) at 4:00 AM UTC (7:00 AM EAT)
     if (hour === 4) {
-      await sendDailyScheduleNotifications();
+      await sendMorningScheduleNotifications();
     }
     
     // Send monthly reminders at 8:00 PM UTC (11:00 PM EAT)
@@ -160,9 +202,12 @@ export function startNotificationScheduler() {
     const hour = now.getUTCHours();
     console.log(`Current UTC hour: ${hour}`);
     
-    // Only send if it's actually 4 AM UTC
+    // Check which notifications should run based on current hour
+    if (hour === 17) {
+      await sendNextDayDutyNotifications();
+    }
     if (hour === 4) {
-      await sendDailyScheduleNotifications();
+      await sendMorningScheduleNotifications();
     }
   }, 5000); // 5 seconds after startup
 }
