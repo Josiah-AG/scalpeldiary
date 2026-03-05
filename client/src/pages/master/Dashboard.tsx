@@ -10,8 +10,6 @@ export default function MasterDashboard() {
   const [showMasters, setShowMasters] = useState(false);
   const [showRotationsModal, setShowRotationsModal] = useState(false);
   const [showActivitiesModal, setShowActivitiesModal] = useState(false);
-  const [pushNotifStatus, setPushNotifStatus] = useState<string>('');
-  const [isSettingUpPush, setIsSettingUpPush] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -23,28 +21,6 @@ export default function MasterDashboard() {
     setUsers(response.data);
   };
 
-  const setupPushNotifications = async () => {
-    if (!confirm('Set up Push Notifications? This will create the push_subscriptions table in the database.')) {
-      return;
-    }
-
-    setIsSettingUpPush(true);
-    setPushNotifStatus('Setting up push notifications...');
-
-    try {
-      const response = await api.post('/migrations/add-push-subscriptions');
-      if (response.data.success) {
-        setPushNotifStatus('✅ ' + response.data.message);
-      } else {
-        setPushNotifStatus('❌ Setup failed: ' + response.data.message);
-      }
-    } catch (error: any) {
-      setPushNotifStatus('❌ Setup failed: ' + (error.response?.data?.details || error.message));
-    } finally {
-      setIsSettingUpPush(false);
-    }
-  };
-
   const residents = users.filter((u) => u.role === 'RESIDENT');
   const supervisors = users.filter((u) => u.role === 'SUPERVISOR');
   const masters = users.filter((u) => u.role === 'MASTER');
@@ -53,32 +29,6 @@ export default function MasterDashboard() {
 
   return (
     <Layout title="Master Dashboard">
-      {/* Push Notifications Setup */}
-      <div className="bg-gradient-to-r from-green-500 to-green-600 text-white p-6 rounded-xl shadow-lg mb-6">
-        <h3 className="text-xl font-bold mb-3">🔔 Push Notifications Setup</h3>
-        <p className="text-green-100 text-sm mb-4">
-          Enable push notifications to send real-time alerts to users' phones and desktops
-        </p>
-        <button
-          onClick={setupPushNotifications}
-          disabled={isSettingUpPush}
-          className={`px-6 py-3 rounded-lg font-semibold shadow-md transition-all ${
-            isSettingUpPush
-              ? 'bg-gray-400 cursor-not-allowed'
-              : 'bg-white text-green-600 hover:bg-green-50'
-          }`}
-        >
-          {isSettingUpPush ? 'Setting up...' : 'Setup Push Notifications'}
-        </button>
-        {pushNotifStatus && (
-          <div className={`mt-4 p-4 rounded-lg ${
-            pushNotifStatus.includes('✅') ? 'bg-green-700' : 'bg-red-500'
-          }`}>
-            <p className="text-white font-medium">{pushNotifStatus}</p>
-          </div>
-        )}
-      </div>
-
       {/* Main Metrics */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6 mb-8">
         {/* Residents Card */}
