@@ -21,9 +21,9 @@ export default function Logo({ className = '', size = 'md', color = 'white', sho
   const colors = colorClasses[color];
 
   return (
-    <div className={`flex items-center space-x-2 ${className}`}>
+    <div className={`flex items-center space-x-3 ${className}`}>
       <img 
-        src="/favicon2.svg" 
+        src="/logo-scd.svg" 
         alt="ScalpelDiary Logo" 
         width={dimensions.icon} 
         height={dimensions.icon}

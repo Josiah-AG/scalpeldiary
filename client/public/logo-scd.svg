@@ -1,0 +1,20 @@
+<svg width="200" height="200" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background Circle -->
+  <circle cx="100" cy="100" r="95" fill="#1e40af" stroke="#3b82f6" stroke-width="3"/>
+  
+  <!-- Inner Circle -->
+  <circle cx="100" cy="100" r="80" fill="#2563eb" opacity="0.3"/>
+  
+  <!-- Scalpel Design Element -->
+  <path d="M 70 60 L 130 60 L 125 80 L 75 80 Z" fill="#60a5fa" opacity="0.5"/>
+  <rect x="95" y="80" width="10" height="40" fill="#93c5fd" opacity="0.6"/>
+  
+  <!-- SCD Text -->
+  <text x="100" y="145" font-family="Arial, sans-serif" font-size="56" font-weight="bold" fill="#ffffff" text-anchor="middle">
+    SCD
+  </text>
+  
+  <!-- Subtle Cross/Medical Symbol -->
+  <path d="M 100 30 L 100 50" stroke="#60a5fa" stroke-width="3" opacity="0.4"/>
+  <path d="M 90 40 L 110 40" stroke="#60a5fa" stroke-width="3" opacity="0.4"/>
+</svg>

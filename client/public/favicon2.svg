@@ -1,1 +1,23 @@
-<?xml version="1.0" encoding="UTF-8" standalone="no"?><!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd"><svg width="100%" height="100%" viewBox="0 0 33 33" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" xml:space="preserve" xmlns:serif="http://www.serif.com/" style="fill-rule:evenodd;clip-rule:evenodd;stroke-linejoin:round;stroke-miterlimit:2;"><rect x="0" y="0" width="33" height="33" style="fill:#000000;"/><g id="Background"><path d="M14.189,4.738c2.538,-2.111 5.319,-4.285 5.788,-4.651c0.158,-0.123 0.705,-0.079 0.805,-0.079c11.621,-0 11.771,-0.007 11.7,0.064c-0.042,0.043 -4.499,3.607 -4.89,3.921c-19.66,15.726 -19.565,15.804 -21.327,17.126c-0.08,0.06 -0.331,-0.144 -0.354,-0.163c-5.388,-4.387 -5.484,-4.301 -5.898,-4.723c-0.046,-0.047 -0.041,-0.085 1.277,-1.144c11.862,-9.529 11.86,-9.529 12.899,-10.352l-0,0Z" style="fill:#fcfdfd;"/><path d="M21.722,23.59c-0.092,0.14 0.09,0.207 0.956,0.911c0.672,0.546 1.688,1.363 1.835,1.481c1.933,1.554 1.929,1.549 3.479,2.801c4.445,3.593 4.476,3.6 4.453,3.623c-0.031,0.031 -12.289,0.015 -12.318,0.008c-0.185,-0.041 -7.037,-5.589 -7.644,-6.08c-3.025,-2.449 -3.413,-2.658 -3.361,-2.759c0.061,-0.119 7.286,-5.866 7.923,-6.373c2.822,-2.244 2.8,-2.283 2.926,-2.291c0.034,-0.002 12.447,-0.001 12.448,-0.001c0.125,0.034 -0.308,0.34 -0.383,0.401c-3.438,2.76 -6.875,5.52 -10.313,8.28l-0,-0Z" style="fill:#f7f7f7;"/><path d="M29.144,1.352c-0.01,0.01 -0.01,0.01 -20.224,16.292c-1.709,1.377 -1.712,1.407 -1.907,1.41c-0.22,0.003 -2.552,0.031 -2.752,-0.009c-0.133,-0.027 -0.105,-0.071 -0.065,-1.411c0.005,-0.165 0.123,-0.194 3.703,-3.088c0.884,-0.715 1.007,-0.717 0.929,-1.173c-0.066,-0.389 -0.006,-0.393 -0.356,-3.148c-0.016,-0.126 3.275,-3.573 8.913,-6.064c6.197,-2.738 11.793,-2.913 11.787,-2.841c-0.003,0.033 -0.017,0.02 -0.028,0.033l-0,-0Z" style="fill:#063cdf;"/></g></svg>
+<svg width="512" height="512" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg">
+  <!-- Black Background -->
+  <rect width="512" height="512" fill="#000000"/>
+  
+  <!-- Outer Circle -->
+  <circle cx="256" cy="256" r="220" fill="#1e40af" stroke="#3b82f6" stroke-width="8"/>
+  
+  <!-- Inner Glow Circle -->
+  <circle cx="256" cy="256" r="190" fill="#2563eb" opacity="0.3"/>
+  
+  <!-- Scalpel Design Element (Top) -->
+  <path d="M 180 150 L 332 150 L 320 200 L 192 200 Z" fill="#60a5fa" opacity="0.5"/>
+  <rect x="240" y="200" width="32" height="100" fill="#93c5fd" opacity="0.6"/>
+  
+  <!-- SCD Text - Bold and Clear -->
+  <text x="256" y="380" font-family="Arial, sans-serif" font-size="140" font-weight="bold" fill="#ffffff" text-anchor="middle">
+    SCD
+  </text>
+  
+  <!-- Medical Cross Symbol (Top) -->
+  <path d="M 256 80 L 256 120" stroke="#60a5fa" stroke-width="8" opacity="0.5"/>
+  <path d="M 236 100 L 276 100" stroke="#60a5fa" stroke-width="8" opacity="0.5"/>
+</svg>

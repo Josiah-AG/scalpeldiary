@@ -12,7 +12,7 @@ export default function LandingPage() {
           <div className="flex justify-between items-center">
             <div className="flex items-center space-x-3 cursor-pointer" onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}>
               <img 
-                src="/favicon2.svg" 
+                src="/logo-scd.svg" 
                 alt="ScalpelDiary Logo" 
                 width="40" 
                 height="40"
@@ -260,7 +260,7 @@ export default function LandingPage() {
           <div className="flex flex-col md:flex-row justify-between items-center border-t border-gray-800 pt-8">
             <div className="flex items-center space-x-3 mb-4 md:mb-0">
               <img 
-                src="/favicon2.svg" 
+                src="/logo-scd.svg" 
                 alt="ScalpelDiary Logo" 
                 width="36" 
                 height="36"
