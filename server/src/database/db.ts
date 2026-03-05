@@ -1,10 +1,11 @@
 import { Pool } from 'pg';
+import dotenv from 'dotenv';
+
+dotenv.config({ path: '../.env' });
 
 const pool = new Pool({
-  host: 'localhost',
-  port: 5432,
-  database: 'scalpeldiary',
-  user: 'josiah-ag',
+  connectionString: process.env.DATABASE_URL,
+  ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false
 });
 
 export const query = (text: string, params?: any[]) => pool.query(text, params);
