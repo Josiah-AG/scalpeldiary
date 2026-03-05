@@ -7,7 +7,7 @@ export default function LandingPage() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-blue-50">
       {/* Header */}
-      <header className="fixed top-0 left-0 right-0 bg-white/80 backdrop-blur-lg z-50 border-b border-gray-200/50">
+      <header className="fixed top-0 left-0 right-0 bg-gradient-to-r from-blue-600 to-blue-700 z-50 shadow-lg">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
           <div className="flex justify-between items-center">
             <div className="flex items-center space-x-3">
@@ -19,13 +19,13 @@ export default function LandingPage() {
                 className="flex-shrink-0"
               />
               <div>
-                <h1 className="text-xl font-bold text-gray-900">ScalpelDiary</h1>
-                <p className="text-[10px] text-gray-600">Shaping Tomorrow's Surgeons</p>
+                <h1 className="text-xl font-bold text-white">ScalpelDiary</h1>
+                <p className="text-[10px] text-blue-100">Shaping Tomorrow's Surgeons</p>
               </div>
             </div>
             <button
               onClick={() => navigate('/login')}
-              className="bg-blue-600 text-white px-6 py-2.5 rounded-lg font-semibold hover:bg-blue-700 transition-all hover:shadow-lg hover:scale-105"
+              className="bg-white text-blue-600 px-6 py-2.5 rounded-lg font-semibold hover:bg-blue-50 transition-all hover:shadow-lg hover:scale-105"
             >
               Sign In
             </button>
@@ -77,28 +77,28 @@ export default function LandingPage() {
 
             {/* Feature Cards */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-5xl mx-auto pt-16 animate-fade-in-up" style={{ animationDelay: '0.3s' }}>
-              <div className="bg-white/60 backdrop-blur-sm p-6 rounded-2xl border border-gray-200/50 hover:shadow-xl transition-all hover:scale-105 group">
-                <div className="bg-blue-100 w-12 h-12 rounded-xl flex items-center justify-center mb-4 group-hover:bg-blue-600 transition-colors">
-                  <Activity className="text-blue-600 group-hover:text-white transition-colors" size={24} />
+              <div className="bg-gradient-to-br from-blue-50 to-blue-100 p-6 rounded-2xl border border-blue-200 hover:shadow-xl transition-all hover:scale-105 group">
+                <div className="bg-blue-600 w-12 h-12 rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+                  <Activity className="text-white" size={24} />
                 </div>
                 <h3 className="text-lg font-semibold text-gray-900 mb-2">Procedure Tracking</h3>
-                <p className="text-gray-600 text-sm">Comprehensive surgical log management with real-time feedback</p>
+                <p className="text-gray-700 text-sm">Comprehensive surgical log management with real-time feedback</p>
               </div>
 
-              <div className="bg-white/60 backdrop-blur-sm p-6 rounded-2xl border border-gray-200/50 hover:shadow-xl transition-all hover:scale-105 group">
-                <div className="bg-indigo-100 w-12 h-12 rounded-xl flex items-center justify-center mb-4 group-hover:bg-indigo-600 transition-colors">
-                  <Users className="text-indigo-600 group-hover:text-white transition-colors" size={24} />
+              <div className="bg-gradient-to-br from-green-50 to-green-100 p-6 rounded-2xl border border-green-200 hover:shadow-xl transition-all hover:scale-105 group">
+                <div className="bg-green-600 w-12 h-12 rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+                  <Users className="text-white" size={24} />
                 </div>
                 <h3 className="text-lg font-semibold text-gray-900 mb-2">Collaboration</h3>
-                <p className="text-gray-600 text-sm">Seamless communication between residents and supervisors</p>
+                <p className="text-gray-700 text-sm">Seamless communication between residents and supervisors</p>
               </div>
 
-              <div className="bg-white/60 backdrop-blur-sm p-6 rounded-2xl border border-gray-200/50 hover:shadow-xl transition-all hover:scale-105 group">
-                <div className="bg-purple-100 w-12 h-12 rounded-xl flex items-center justify-center mb-4 group-hover:bg-purple-600 transition-colors">
-                  <BarChart3 className="text-purple-600 group-hover:text-white transition-colors" size={24} />
+              <div className="bg-gradient-to-br from-purple-50 to-purple-100 p-6 rounded-2xl border border-purple-200 hover:shadow-xl transition-all hover:scale-105 group">
+                <div className="bg-purple-600 w-12 h-12 rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+                  <BarChart3 className="text-white" size={24} />
                 </div>
                 <h3 className="text-lg font-semibold text-gray-900 mb-2">Analytics</h3>
-                <p className="text-gray-600 text-sm">Data-driven insights to track progress and performance</p>
+                <p className="text-gray-700 text-sm">Data-driven insights to track progress and performance</p>
               </div>
             </div>
           </div>
@@ -106,10 +106,10 @@ export default function LandingPage() {
       </section>
 
       {/* Footer */}
-      <footer className="bg-white border-t border-gray-200">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          <div className="flex flex-col md:flex-row justify-between items-center gap-4">
-            <div className="flex items-center space-x-3">
+      <footer className="bg-gray-900 text-white py-12">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex flex-col md:flex-row justify-between items-center border-t border-gray-800 pt-8">
+            <div className="flex items-center space-x-3 mb-4 md:mb-0">
               <img 
                 src="/logo-sd.svg" 
                 alt="ScalpelDiary Logo" 
@@ -118,11 +118,11 @@ export default function LandingPage() {
                 className="flex-shrink-0"
               />
               <div>
-                <p className="font-semibold text-gray-900">ScalpelDiary</p>
-                <p className="text-xs text-gray-600">Shaping Tomorrow's Surgeons</p>
+                <p className="font-bold text-lg">ScalpelDiary</p>
+                <p className="text-xs text-gray-400">Shaping Tomorrow's Surgeons</p>
               </div>
             </div>
-            <p className="text-gray-600 text-sm">
+            <p className="text-gray-400 text-sm">
               © 2025 ScalpelDiary. All rights reserved.
             </p>
           </div>
