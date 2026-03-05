@@ -566,4 +566,50 @@ router.post('/setup-chief-resident', authenticate, async (req: AuthRequest, res)
   }
 });
 
+// Add push subscriptions table
+router.post('/add-push-subscriptions', authenticate, async (req: AuthRequest, res) => {
+  // Check if user is Master
+  if (req.user!.role !== 'MASTER') {
+    return res.status(403).json({ error: 'Only Master accounts can run migrations' });
+  }
+
+  try {
+    console.log('Creating push_subscriptions table...');
+    
+    // Create push_subscriptions table
+    await query(`
+      CREATE TABLE IF NOT EXISTS push_subscriptions (
+        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        user_id UUID REFERENCES users(id) ON DELETE CASCADE,
+        endpoint TEXT NOT NULL,
+        p256dh TEXT NOT NULL,
+        auth TEXT NOT NULL,
+        created_at TIMESTAMP DEFAULT NOW(),
+        updated_at TIMESTAMP DEFAULT NOW(),
+        UNIQUE(user_id, endpoint)
+      )
+    `);
+    console.log('✅ Created push_subscriptions table');
+    
+    // Create index
+    await query(`
+      CREATE INDEX IF NOT EXISTS idx_push_subscriptions_user 
+      ON push_subscriptions(user_id)
+    `);
+    console.log('✅ Created index on push_subscriptions');
+    
+    res.json({ 
+      success: true, 
+      message: 'Push subscriptions table created successfully! Push notifications are now ready to use.'
+    });
+  } catch (error: any) {
+    console.error('Migration error:', error);
+    res.status(500).json({ 
+      success: false,
+      error: 'Migration failed', 
+      details: error.message 
+    });
+  }
+});
+
 export default router;
