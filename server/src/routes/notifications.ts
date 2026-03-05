@@ -5,17 +5,25 @@ import webpush from 'web-push';
 
 const router = Router();
 
-// Configure web-push with VAPID keys
-const vapidKeys = {
-  publicKey: process.env.VAPID_PUBLIC_KEY || 'BEl62iUYgUivxIkv69yViEuiBIa-Ib37J8xQmrpcPBblQjBITjdmeaWdndBAGqhXWM6EmgBkXnOmHGhGlXe-QZs',
-  privateKey: process.env.VAPID_PRIVATE_KEY || 'UUxE4puxxJykA5Lh6-Qg-Yz-Iq-Iq-Iq-Iq-Iq-Iq-Iq'
-};
+// Configure web-push with VAPID keys (optional)
+let pushNotificationsEnabled = false;
 
-webpush.setVapidDetails(
-  process.env.VAPID_EMAIL || 'mailto:admin@scalpeldiary.com',
-  vapidKeys.publicKey,
-  vapidKeys.privateKey
-);
+try {
+  const vapidPublicKey = process.env.VAPID_PUBLIC_KEY;
+  const vapidPrivateKey = process.env.VAPID_PRIVATE_KEY;
+  const vapidEmail = process.env.VAPID_EMAIL || 'mailto:admin@scalpeldiary.com';
+
+  if (vapidPublicKey && vapidPrivateKey) {
+    webpush.setVapidDetails(vapidEmail, vapidPublicKey, vapidPrivateKey);
+    pushNotificationsEnabled = true;
+    console.log('✅ Push notifications enabled');
+  } else {
+    console.log('⚠️  Push notifications disabled - VAPID keys not configured');
+  }
+} catch (error) {
+  console.error('⚠️  Failed to configure push notifications:', error);
+  console.log('Push notifications will be disabled');
+}
 
 // Get notifications for user
 router.get('/', authenticate, async (req: AuthRequest, res) => {
@@ -33,6 +41,13 @@ router.get('/', authenticate, async (req: AuthRequest, res) => {
 // Subscribe to push notifications
 router.post('/subscribe', authenticate, async (req: AuthRequest, res) => {
   try {
+    if (!pushNotificationsEnabled) {
+      return res.status(503).json({ 
+        error: 'Push notifications are not configured on the server',
+        message: 'Contact administrator to enable push notifications'
+      });
+    }
+
     const { subscription } = req.body;
     
     if (!subscription || !subscription.endpoint || !subscription.keys) {
@@ -62,6 +77,11 @@ router.post('/subscribe', authenticate, async (req: AuthRequest, res) => {
 
 // Send push notification to user (internal use)
 export async function sendPushNotification(userId: string, title: string, body: string, url?: string) {
+  if (!pushNotificationsEnabled) {
+    console.log('Push notifications disabled - skipping notification');
+    return;
+  }
+
   try {
     // Get all subscriptions for the user
     const result = await query(
