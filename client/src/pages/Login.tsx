@@ -38,17 +38,37 @@ export default function Login() {
       {/* Mobile Header with Logo */}
       <div className="lg:hidden bg-gradient-to-r from-blue-600 to-blue-700 p-6 relative overflow-hidden">
         <div className="absolute top-0 right-0 w-64 h-64 bg-blue-500 rounded-full opacity-10 -mr-32 -mt-32"></div>
-        <div className="relative z-10 flex items-center justify-between">
-          <div className="cursor-pointer" onClick={() => navigate('/')}>
-            <Logo size="md" color="white" showTagline={true} />
+        <div className="relative z-10">
+          <div className="flex items-center justify-between mb-6">
+            <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-4 inline-block border border-white/20">
+              <div className="flex items-center space-x-3">
+                <div className="bg-white rounded-xl p-2 shadow-lg">
+                  <img 
+                    src="/logo-sd.svg?v=2" 
+                    alt="ScalpelDiary Logo" 
+                    width="40" 
+                    height="40"
+                    className="flex-shrink-0"
+                  />
+                </div>
+                <div>
+                  <div className="text-xl font-bold text-white leading-tight">
+                    ScalpelDiary
+                  </div>
+                  <div className="text-[10px] text-blue-100 leading-tight">
+                    Shaping Tomorrow's Surgeons
+                  </div>
+                </div>
+              </div>
+            </div>
+            <button
+              onClick={() => navigate('/')}
+              className="flex items-center space-x-2 text-white hover:text-blue-100 transition-colors"
+            >
+              <ArrowLeft size={18} />
+              <span className="text-sm">Back</span>
+            </button>
           </div>
-          <button
-            onClick={() => navigate('/')}
-            className="flex items-center space-x-2 text-white hover:text-blue-100 transition-colors"
-          >
-            <ArrowLeft size={18} />
-            <span className="text-sm">Back</span>
-          </button>
         </div>
       </div>
 
@@ -67,8 +87,27 @@ export default function Login() {
             <span>Back to Home</span>
           </button>
           
-          <div className="cursor-pointer" onClick={() => navigate('/')}>
-            <Logo size="lg" color="white" showTagline={true} />
+          {/* Enhanced Logo Container */}
+          <div className="bg-white/10 backdrop-blur-sm rounded-3xl p-8 inline-block border border-white/20 shadow-2xl cursor-pointer hover:bg-white/15 transition-all" onClick={() => navigate('/')}>
+            <div className="flex items-center space-x-4">
+              <div className="bg-white rounded-2xl p-4 shadow-lg">
+                <img 
+                  src="/logo-sd.svg?v=2" 
+                  alt="ScalpelDiary Logo" 
+                  width="64" 
+                  height="64"
+                  className="flex-shrink-0"
+                />
+              </div>
+              <div>
+                <div className="text-3xl font-bold text-white leading-tight">
+                  ScalpelDiary
+                </div>
+                <div className="text-sm text-blue-100 leading-tight mt-1">
+                  Shaping Tomorrow's Surgeons
+                </div>
+              </div>
+            </div>
           </div>
         </div>
 
@@ -82,7 +121,7 @@ export default function Login() {
         </div>
 
         <div className="relative z-10 text-blue-200 text-sm">
-          © 2024 ScalpelDiary. All rights reserved.
+          © 2025 ScalpelDiary. All rights reserved.
         </div>
       </div>
 
