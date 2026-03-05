@@ -96,6 +96,10 @@ router.get('/', authenticate, async (req: AuthRequest, res) => {
       );
     }
 
+    if (!result) {
+      return res.status(500).json({ error: 'Failed to fetch assignments' });
+    }
+
     res.json(result.rows);
   } catch (error: any) {
     console.error('Failed to fetch assignments:', error);
