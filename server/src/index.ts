@@ -14,6 +14,7 @@ import dutiesRoutes from './routes/duties';
 import activitiesRoutes from './routes/activities';
 import presentationAssignmentsRoutes from './routes/presentation-assignments';
 import { errorHandler } from './middleware/errorHandler';
+import { startNotificationScheduler } from './services/dailyNotifications';
 
 dotenv.config({ path: '../.env' });
 
@@ -74,4 +75,8 @@ app.listen(PORT, () => {
   console.log(`🚀 Server running on port ${PORT}`);
   console.log(`📝 Environment: ${process.env.NODE_ENV || 'development'}`);
   console.log(`🌐 CORS enabled for: ${allowedOrigins.join(', ')}`);
+  
+  // Start the notification scheduler
+  startNotificationScheduler();
+  console.log('⏰ Notification scheduler started');
 });
