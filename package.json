@@ -1,0 +1,17 @@
+{
+  "name": "scalpel-diary",
+  "version": "1.0.0",
+  "description": "Surgical log management application",
+  "scripts": {
+    "dev:client": "cd client && npm run dev",
+    "dev:server": "cd server && npm run dev",
+    "build:client": "cd client && npm run build",
+    "build:server": "cd server && npm run build",
+    "install:all": "npm install && cd client && npm install && cd ../server && npm install",
+    "db:migrate": "cd server && npm run db:migrate",
+    "db:seed": "cd server && npm run db:seed"
+  },
+  "keywords": ["surgical", "log", "medical", "residency"],
+  "author": "",
+  "license": "MIT"
+}
