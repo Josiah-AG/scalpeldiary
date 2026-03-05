@@ -225,7 +225,24 @@ export default function Layout({ children, title }: LayoutProps) {
                 </svg>
               </button>
               
-              <Logo size="sm" color="white" showTagline={false} />
+              <div className="bg-white/10 backdrop-blur-sm rounded-xl px-3 py-1.5 border border-white/20">
+                <div className="flex items-center space-x-2">
+                  <div className="bg-white rounded-lg p-1.5 shadow-md">
+                    <img 
+                      src="/logo-sd.svg?v=2" 
+                      alt="ScalpelDiary Logo" 
+                      width="28" 
+                      height="28"
+                      className="flex-shrink-0"
+                    />
+                  </div>
+                  <div>
+                    <div className="font-bold text-sm text-white leading-tight">
+                      ScalpelDiary
+                    </div>
+                  </div>
+                </div>
+              </div>
               {isReadOnlyMode && (
                 <span className="hidden sm:inline-block px-3 py-1 bg-yellow-500 text-white text-xs font-semibold rounded-full">
                   READ ONLY MODE
@@ -311,7 +328,22 @@ export default function Layout({ children, title }: LayoutProps) {
             <aside className="fixed top-0 left-0 h-full w-64 bg-white shadow-2xl z-50 md:hidden overflow-y-auto">
               {/* Close Button */}
               <div className="flex justify-between items-center p-4 border-b border-gray-200">
-                <Logo size="sm" color="blue" showTagline={false} />
+                <div className="flex items-center space-x-2">
+                  <div className="bg-blue-600 rounded-lg p-1.5 shadow-md">
+                    <img 
+                      src="/logo-sd.svg?v=2" 
+                      alt="ScalpelDiary Logo" 
+                      width="28" 
+                      height="28"
+                      className="flex-shrink-0"
+                    />
+                  </div>
+                  <div>
+                    <div className="font-bold text-sm text-blue-600 leading-tight">
+                      ScalpelDiary
+                    </div>
+                  </div>
+                </div>
                 <button
                   onClick={() => setShowMobileSidebar(false)}
                   className="p-2 rounded-lg hover:bg-gray-100 transition-colors"

@@ -10,17 +10,21 @@ export default function LandingPage() {
       <header className="fixed top-0 left-0 right-0 bg-gradient-to-r from-blue-600 to-blue-700 z-50 shadow-lg">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
           <div className="flex justify-between items-center">
-            <div className="flex items-center space-x-3">
-              <img 
-                src="/logo-sd.svg?v=2" 
-                alt="ScalpelDiary Logo" 
-                width="44" 
-                height="44"
-                className="flex-shrink-0"
-              />
-              <div>
-                <h1 className="text-xl font-bold text-white">ScalpelDiary</h1>
-                <p className="text-[10px] text-blue-100">Shaping Tomorrow's Surgeons</p>
+            <div className="bg-white/10 backdrop-blur-sm rounded-2xl px-4 py-2 border border-white/20">
+              <div className="flex items-center space-x-3">
+                <div className="bg-white rounded-xl p-2 shadow-lg">
+                  <img 
+                    src="/logo-sd.svg?v=2" 
+                    alt="ScalpelDiary Logo" 
+                    width="48" 
+                    height="48"
+                    className="flex-shrink-0"
+                  />
+                </div>
+                <div>
+                  <h1 className="text-xl font-bold text-white">ScalpelDiary</h1>
+                  <p className="text-[10px] text-blue-100">Shaping Tomorrow's Surgeons</p>
+                </div>
               </div>
             </div>
             <button
