@@ -2,8 +2,111 @@ import { Router } from 'express';
 import { query } from '../database/db';
 import { authenticate, AuthRequest } from '../middleware/auth';
 import { fixScheduledDateNullable } from '../database/fix-scheduled-date-nullable';
+import runComprehensiveMigration from '../database/comprehensive-migration';
 
 const router = Router();
+
+// ============================================
+// COMPREHENSIVE MIGRATION - Run ALL migrations at once
+// ============================================
+router.post('/run-comprehensive', authenticate, async (req: AuthRequest, res) => {
+  if (req.user!.role !== 'MASTER') {
+    return res.status(403).json({ error: 'Only Master accounts can run migrations' });
+  }
+
+  try {
+    console.log('🚀 Starting comprehensive database migration via API...');
+    
+    const result = await runComprehensiveMigration();
+    
+    console.log('✅ Comprehensive migration completed successfully');
+    
+    res.json({ 
+      success: true, 
+      message: 'Comprehensive migration completed successfully! All database tables and columns are now up to date.',
+      details: result
+    });
+  } catch (error: any) {
+    console.error('❌ Comprehensive migration failed:', error);
+    res.status(500).json({ 
+      success: false, 
+      error: 'Migration failed', 
+      details: error.message,
+      stack: process.env.NODE_ENV === 'development' ? error.stack : undefined
+    });
+  }
+});
+
+// Check comprehensive migration status
+router.get('/status', authenticate, async (req: AuthRequest, res) => {
+  if (req.user!.role !== 'MASTER') {
+    return res.status(403).json({ error: 'Only Master accounts can check migration status' });
+  }
+
+  try {
+    const checks = {
+      user_columns: false,
+      presentations_table: false,
+      push_subscriptions_table: false,
+      chief_resident_tables: false,
+      surgical_logs_columns: false
+    };
+
+    // Check user columns
+    try {
+      await query('SELECT is_chief_resident, institution, specialty, profile_picture, is_suspended, has_management_access, is_senior FROM users LIMIT 1');
+      checks.user_columns = true;
+    } catch (e) {}
+
+    // Check presentations table
+    try {
+      await query('SELECT 1 FROM presentations LIMIT 1');
+      checks.presentations_table = true;
+    } catch (e) {}
+
+    // Check push_subscriptions table
+    try {
+      await query('SELECT 1 FROM push_subscriptions LIMIT 1');
+      checks.push_subscriptions_table = true;
+    } catch (e) {}
+
+    // Check chief resident tables
+    try {
+      await query('SELECT 1 FROM rotation_categories LIMIT 1');
+      await query('SELECT 1 FROM academic_years LIMIT 1');
+      await query('SELECT 1 FROM yearly_rotations LIMIT 1');
+      await query('SELECT 1 FROM duty_categories LIMIT 1');
+      await query('SELECT 1 FROM monthly_duties LIMIT 1');
+      await query('SELECT 1 FROM activity_categories LIMIT 1');
+      await query('SELECT 1 FROM daily_activities LIMIT 1');
+      await query('SELECT 1 FROM presentation_assignments LIMIT 1');
+      checks.chief_resident_tables = true;
+    } catch (e) {}
+
+    // Check surgical_logs columns
+    try {
+      await query('SELECT procedure_category, remark FROM surgical_logs LIMIT 1');
+      checks.surgical_logs_columns = true;
+    } catch (e) {}
+
+    const allComplete = Object.values(checks).every(v => v);
+
+    res.json({
+      status: allComplete ? 'complete' : 'incomplete',
+      checks,
+      message: allComplete 
+        ? 'All migrations are complete' 
+        : 'Some migrations are missing. Click "Run Comprehensive Migration" to update the database.',
+      needsMigration: !allComplete
+    });
+  } catch (error: any) {
+    console.error('Status check failed:', error);
+    res.status(500).json({ 
+      error: 'Failed to check migration status',
+      details: error.message
+    });
+  }
+});
 
 // Run Chief Resident migration (Master only)
 router.post('/run-chief-resident-migration', authenticate, async (req: AuthRequest, res) => {

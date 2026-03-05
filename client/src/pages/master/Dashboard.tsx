@@ -10,15 +10,50 @@ export default function MasterDashboard() {
   const [showMasters, setShowMasters] = useState(false);
   const [showRotationsModal, setShowRotationsModal] = useState(false);
   const [showActivitiesModal, setShowActivitiesModal] = useState(false);
+  const [migrationStatus, setMigrationStatus] = useState<any>(null);
+  const [runningMigration, setRunningMigration] = useState(false);
+  const [migrationResult, setMigrationResult] = useState<any>(null);
   const navigate = useNavigate();
 
   useEffect(() => {
     fetchUsers();
+    checkMigrationStatus();
   }, []);
 
   const fetchUsers = async () => {
     const response = await api.get('/users');
     setUsers(response.data);
+  };
+
+  const checkMigrationStatus = async () => {
+    try {
+      const response = await api.get('/migrations/status');
+      setMigrationStatus(response.data);
+    } catch (error) {
+      console.error('Failed to check migration status:', error);
+    }
+  };
+
+  const runMigration = async () => {
+    if (!confirm('This will run a comprehensive database migration. Continue?')) {
+      return;
+    }
+
+    setRunningMigration(true);
+    setMigrationResult(null);
+
+    try {
+      const response = await api.post('/migrations/run-comprehensive');
+      setMigrationResult({ success: true, message: response.data.message });
+      await checkMigrationStatus(); // Refresh status
+      alert('Migration completed successfully!');
+    } catch (error: any) {
+      const errorMsg = error.response?.data?.details || error.response?.data?.error || 'Migration failed';
+      setMigrationResult({ success: false, message: errorMsg });
+      alert(`Migration failed: ${errorMsg}`);
+    } finally {
+      setRunningMigration(false);
+    }
   };
 
   const residents = users.filter((u) => u.role === 'RESIDENT');
@@ -29,6 +64,82 @@ export default function MasterDashboard() {
 
   return (
     <Layout title="Master Dashboard">
+      {/* Migration Status Banner */}
+      {migrationStatus && migrationStatus.needsMigration && (
+        <div className="mb-6 bg-gradient-to-r from-yellow-50 to-orange-50 border-2 border-yellow-400 rounded-xl p-6 shadow-lg">
+          <div className="flex items-start justify-between">
+            <div className="flex-1">
+              <div className="flex items-center space-x-3 mb-3">
+                <div className="p-2 bg-yellow-400 rounded-lg">
+                  <Activity className="w-6 h-6 text-white" />
+                </div>
+                <h3 className="text-lg font-bold text-gray-900">Database Migration Required</h3>
+              </div>
+              <p className="text-gray-700 mb-4">
+                {migrationStatus.message}
+              </p>
+              <div className="grid grid-cols-2 md:grid-cols-5 gap-2 mb-4 text-sm">
+                <div className={`flex items-center space-x-2 ${migrationStatus.checks.user_columns ? 'text-green-600' : 'text-red-600'}`}>
+                  <span>{migrationStatus.checks.user_columns ? '✓' : '✗'}</span>
+                  <span>User Columns</span>
+                </div>
+                <div className={`flex items-center space-x-2 ${migrationStatus.checks.presentations_table ? 'text-green-600' : 'text-red-600'}`}>
+                  <span>{migrationStatus.checks.presentations_table ? '✓' : '✗'}</span>
+                  <span>Presentations</span>
+                </div>
+                <div className={`flex items-center space-x-2 ${migrationStatus.checks.push_subscriptions_table ? 'text-green-600' : 'text-red-600'}`}>
+                  <span>{migrationStatus.checks.push_subscriptions_table ? '✓' : '✗'}</span>
+                  <span>Push Notifications</span>
+                </div>
+                <div className={`flex items-center space-x-2 ${migrationStatus.checks.chief_resident_tables ? 'text-green-600' : 'text-red-600'}`}>
+                  <span>{migrationStatus.checks.chief_resident_tables ? '✓' : '✗'}</span>
+                  <span>Chief Resident</span>
+                </div>
+                <div className={`flex items-center space-x-2 ${migrationStatus.checks.surgical_logs_columns ? 'text-green-600' : 'text-red-600'}`}>
+                  <span>{migrationStatus.checks.surgical_logs_columns ? '✓' : '✗'}</span>
+                  <span>Log Columns</span>
+                </div>
+              </div>
+              <button
+                onClick={runMigration}
+                disabled={runningMigration}
+                className="bg-gradient-to-r from-yellow-500 to-orange-500 text-white px-6 py-3 rounded-lg font-semibold hover:from-yellow-600 hover:to-orange-600 disabled:from-gray-400 disabled:to-gray-500 transition-all shadow-md hover:shadow-lg disabled:cursor-not-allowed flex items-center space-x-2"
+              >
+                {runningMigration ? (
+                  <>
+                    <svg className="animate-spin h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                    <span>Running Migration...</span>
+                  </>
+                ) : (
+                  <>
+                    <Activity className="w-5 h-5" />
+                    <span>Run Comprehensive Migration</span>
+                  </>
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Migration Success Banner */}
+      {migrationStatus && !migrationStatus.needsMigration && (
+        <div className="mb-6 bg-gradient-to-r from-green-50 to-emerald-50 border-2 border-green-400 rounded-xl p-4 shadow-md">
+          <div className="flex items-center space-x-3">
+            <div className="p-2 bg-green-400 rounded-lg">
+              <Activity className="w-5 h-5 text-white" />
+            </div>
+            <div>
+              <h3 className="font-bold text-gray-900">Database Up to Date</h3>
+              <p className="text-sm text-gray-700">All migrations are complete</p>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Main Metrics */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6 mb-8">
         {/* Residents Card */}
