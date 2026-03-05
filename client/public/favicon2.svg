@@ -2,22 +2,56 @@
   <!-- Black Background -->
   <rect width="512" height="512" fill="#000000"/>
   
-  <!-- Outer Circle -->
-  <circle cx="256" cy="256" r="220" fill="#1e40af" stroke="#3b82f6" stroke-width="8"/>
+  <defs>
+    <linearGradient id="sGradientIcon" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#4FC3F7;stop-opacity:1" />
+      <stop offset="50%" style="stop-color:#0277BD;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#01579B;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="dGradientIcon" x1="100%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#4FC3F7;stop-opacity:1" />
+      <stop offset="50%" style="stop-color:#0288D1;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#01579B;stop-opacity:1" />
+    </linearGradient>
+  </defs>
   
-  <!-- Inner Glow Circle -->
-  <circle cx="256" cy="256" r="190" fill="#2563eb" opacity="0.3"/>
+  <!-- S Letter - scaled and centered -->
+  <path d="M 80 130 
+           L 230 130 
+           L 230 180
+           L 130 180
+           L 130 230
+           L 230 230
+           L 230 380
+           L 80 380
+           L 80 330
+           L 180 330
+           L 180 280
+           L 80 280
+           Z" 
+        fill="url(#sGradientIcon)" />
   
-  <!-- Scalpel Design Element (Top) -->
-  <path d="M 180 150 L 332 150 L 320 200 L 192 200 Z" fill="#60a5fa" opacity="0.5"/>
-  <rect x="240" y="200" width="32" height="100" fill="#93c5fd" opacity="0.6"/>
+  <!-- D Letter with curve - scaled and centered -->
+  <path d="M 250 130
+           L 340 130
+           Q 430 130 430 210
+           L 430 300
+           Q 430 380 340 380
+           L 250 380
+           Z
+           M 300 180
+           L 300 330
+           L 340 330
+           Q 380 330 380 300
+           L 380 210
+           Q 380 180 340 180
+           Z" 
+        fill="url(#dGradientIcon)" />
   
-  <!-- SCD Text - Bold and Clear -->
-  <text x="256" y="380" font-family="Arial, sans-serif" font-size="140" font-weight="bold" fill="#ffffff" text-anchor="middle">
-    SCD
-  </text>
-  
-  <!-- Medical Cross Symbol (Top) -->
-  <path d="M 256 80 L 256 120" stroke="#60a5fa" stroke-width="8" opacity="0.5"/>
-  <path d="M 236 100 L 276 100" stroke="#60a5fa" stroke-width="8" opacity="0.5"/>
+  <!-- Swoosh connecting element -->
+  <path d="M 200 350 Q 255 365 310 350" 
+        stroke="#4FC3F7" 
+        stroke-width="8" 
+        fill="none" 
+        opacity="0.6"/>
 </svg>

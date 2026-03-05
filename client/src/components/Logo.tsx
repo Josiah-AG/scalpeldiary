@@ -23,7 +23,7 @@ export default function Logo({ className = '', size = 'md', color = 'white', sho
   return (
     <div className={`flex items-center space-x-3 ${className}`}>
       <img 
-        src="/logo-scd.svg" 
+        src="/logo-sd.svg" 
         alt="ScalpelDiary Logo" 
         width={dimensions.icon} 
         height={dimensions.icon}
