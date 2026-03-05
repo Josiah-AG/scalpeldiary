@@ -400,26 +400,57 @@ export default function Dashboard() {
                   if (hasActivity) {
                     // Show detail modal
                     const modal = document.createElement('div');
-                    modal.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50';
+                    modal.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50 animate-fadeIn';
+                    modal.onclick = () => modal.remove();
                     modal.innerHTML = `
-                      <div class="bg-white rounded-lg p-4 md:p-6 max-w-md w-full">
-                        <div class="flex justify-between items-start mb-4">
-                          <h3 class="text-lg md:text-xl font-bold">${format(day, 'MMMM d, yyyy')}</h3>
-                          <button onclick="this.closest('.fixed').remove()" class="text-gray-500 hover:text-gray-700 text-2xl">×</button>
+                      <div class="bg-white rounded-xl shadow-2xl max-w-sm w-full animate-slideUp" onclick="event.stopPropagation()">
+                        <div class="bg-gradient-to-r from-blue-600 to-blue-700 px-6 py-4 rounded-t-xl">
+                          <div class="flex justify-between items-center">
+                            <h3 class="text-lg font-bold text-white">${format(day, 'MMMM d, yyyy')}</h3>
+                            <button onclick="this.closest('.fixed').remove()" class="text-white hover:bg-white/20 rounded-lg p-1 transition-colors">
+                              <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                              </svg>
+                            </button>
+                          </div>
+                          <p class="text-blue-100 text-sm mt-1">${['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'][day.getDay()]}</p>
                         </div>
-                        <div class="space-y-3">
+                        <div class="p-6 space-y-4">
                           ${dayData.procedures > 0 ? `
-                            <div class="flex items-center space-x-2">
-                              <div class="w-3 h-3 rounded-full bg-blue-600"></div>
-                              <span class="font-semibold">${dayData.procedures} Procedure${dayData.procedures > 1 ? 's' : ''}</span>
+                            <div class="bg-blue-50 border-l-4 border-blue-600 rounded-r-lg p-4">
+                              <div class="flex items-center space-x-3">
+                                <div class="bg-blue-600 rounded-lg p-2">
+                                  <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path>
+                                  </svg>
+                                </div>
+                                <div>
+                                  <p class="font-bold text-blue-900 text-lg">${dayData.procedures} Procedure${dayData.procedures > 1 ? 's' : ''}</p>
+                                  <p class="text-blue-700 text-sm">Logged on this day</p>
+                                </div>
+                              </div>
                             </div>
                           ` : ''}
                           ${dayData.presentations > 0 ? `
-                            <div class="flex items-center space-x-2">
-                              <div class="w-3 h-3 rounded-full bg-green-600"></div>
-                              <span class="font-semibold">${dayData.presentations} Presentation${dayData.presentations > 1 ? 's' : ''}</span>
+                            <div class="bg-green-50 border-l-4 border-green-600 rounded-r-lg p-4">
+                              <div class="flex items-center space-x-3">
+                                <div class="bg-green-600 rounded-lg p-2">
+                                  <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z"></path>
+                                  </svg>
+                                </div>
+                                <div>
+                                  <p class="font-bold text-green-900 text-lg">${dayData.presentations} Presentation${dayData.presentations > 1 ? 's' : ''}</p>
+                                  <p class="text-green-700 text-sm">Given on this day</p>
+                                </div>
+                              </div>
                             </div>
                           ` : ''}
+                        </div>
+                        <div class="bg-gray-50 px-6 py-4 rounded-b-xl border-t border-gray-200">
+                          <button onclick="this.closest('.fixed').remove()" class="w-full bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 transition-colors font-medium">
+                            Close
+                          </button>
                         </div>
                       </div>
                     `;
@@ -483,144 +514,9 @@ export default function Dashboard() {
             </div>
           </div>
           
-          {/* Content Grid - Horizontal Scroll on Mobile */}
+          {/* Content Grid - Mobile Optimized */}
           <div className="p-4 md:p-8">
-            {/* Mobile: Horizontal scroll, Desktop: Grid */}
-            <div className="md:hidden overflow-x-auto -mx-4 px-4">
-              <div className="flex space-x-4 pb-2" style={{ minWidth: 'min-content' }}>
-                {/* Current Rotation Card */}
-                <div 
-                  onClick={handleRotationCardClick}
-                  className="group relative bg-gradient-to-br from-blue-50 to-indigo-50 rounded-lg p-4 border-2 border-blue-200 hover:border-blue-400 transition-all hover:shadow-lg cursor-pointer flex-shrink-0"
-                  style={{ width: '280px' }}
-                >
-                  <div className="absolute top-0 right-0 w-24 h-24 bg-blue-200 rounded-full opacity-10 -mr-12 -mt-12"></div>
-                  <div className="relative">
-                    <div className="flex items-center space-x-2 mb-3">
-                      <div className="bg-blue-600 rounded-lg p-1.5">
-                        <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                        </svg>
-                      </div>
-                      <h4 className="text-sm font-bold text-gray-800">Current Rotation</h4>
-                    </div>
-                    {todayOverview.rotation ? (
-                      <div className="space-y-2">
-                        <div 
-                          className="inline-block px-3 py-1.5 rounded-lg font-bold text-sm shadow-sm"
-                          style={{ 
-                            backgroundColor: todayOverview.rotation.color || '#3B82F6',
-                            color: 'white'
-                          }}
-                        >
-                          {todayOverview.rotation.category_name}
-                        </div>
-                        <p className="text-xs text-gray-500 mt-2">Tap to view schedule</p>
-                      </div>
-                    ) : (
-                      <div className="flex items-center space-x-2 text-gray-400">
-                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 12H4" />
-                        </svg>
-                        <span className="text-xs font-medium">No rotation assigned</span>
-                      </div>
-                    )}
-                  </div>
-                </div>
-
-                {/* Today's Duty Card */}
-                <div 
-                  onClick={handleDutyCardClick}
-                  className="group relative bg-gradient-to-br from-amber-50 to-orange-50 rounded-lg p-4 border-2 border-amber-200 hover:border-amber-400 transition-all hover:shadow-lg cursor-pointer flex-shrink-0"
-                  style={{ width: '280px' }}
-                >
-                  <div className="absolute top-0 right-0 w-24 h-24 bg-amber-200 rounded-full opacity-10 -mr-12 -mt-12"></div>
-                  <div className="relative">
-                    <div className="flex items-center space-x-2 mb-3">
-                      <div className="bg-amber-600 rounded-lg p-1.5">
-                        <svg className="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 20 20">
-                          <path fillRule="evenodd" d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z" clipRule="evenodd" />
-                        </svg>
-                      </div>
-                      <h4 className="text-sm font-bold text-gray-800">Today's Duty</h4>
-                    </div>
-                    
-                    <div className="space-y-2">
-                      {todayOverview.duties && todayOverview.duties.length > 0 ? (
-                        <>
-                          {todayOverview.duties.map((duty: any, idx: number) => (
-                            <div 
-                              key={`duty-${idx}`} 
-                              className="bg-gradient-to-r from-amber-500 to-orange-500 text-white rounded-lg px-3 py-2 shadow-md"
-                            >
-                              <p className="font-bold text-xs">You are on duty at</p>
-                              <p className="font-bold text-base mt-0.5">{duty.category_name || duty.duty_category_name}</p>
-                            </div>
-                          ))}
-                          <p className="text-xs text-gray-500 mt-2">Tap to view schedule</p>
-                        </>
-                      ) : (
-                        <>
-                          <div className="bg-gray-100 text-gray-600 rounded-lg px-3 py-2">
-                            <p className="font-bold text-base">No Duty</p>
-                          </div>
-                          <p className="text-xs text-gray-500 mt-2">Tap to view schedule</p>
-                        </>
-                      )}
-                    </div>
-                  </div>
-                </div>
-
-                {/* Today's Activities Card */}
-                <div 
-                  onClick={handleActivityCardClick}
-                  className="group relative bg-gradient-to-br from-purple-50 to-pink-50 rounded-lg p-4 border-2 border-purple-200 hover:border-purple-400 transition-all hover:shadow-lg cursor-pointer flex-shrink-0"
-                  style={{ width: '280px' }}
-                >
-                  <div className="absolute top-0 right-0 w-24 h-24 bg-purple-200 rounded-full opacity-10 -mr-12 -mt-12"></div>
-                  <div className="relative">
-                    <div className="flex items-center space-x-2 mb-3">
-                      <div className="bg-purple-600 rounded-lg p-1.5">
-                        <Activity className="w-4 h-4 text-white" />
-                      </div>
-                      <h4 className="text-sm font-bold text-gray-800">Today's Activities</h4>
-                    </div>
-                    
-                    <div className="space-y-2">
-                      {todayOverview.activities && todayOverview.activities.length > 0 ? (
-                        <>
-                          {todayOverview.activities.map((activity: any, idx: number) => (
-                            <div 
-                              key={`activity-${idx}`} 
-                              className="bg-white border-2 border-purple-200 rounded-lg px-3 py-2 hover:border-purple-400 transition-colors"
-                            >
-                              <div className="flex items-center space-x-2">
-                                <div className="w-1.5 h-1.5 rounded-full bg-purple-500"></div>
-                                <p className="text-xs font-semibold text-purple-700">{activity.category_name || activity.activity_category_name}</p>
-                              </div>
-                            </div>
-                          ))}
-                          <p className="text-xs text-gray-500 mt-2">Tap to view schedule</p>
-                        </>
-                      ) : (
-                        <>
-                          <div className="flex items-center space-x-2 text-gray-400">
-                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 12H4" />
-                            </svg>
-                            <span className="text-xs font-medium">No activities</span>
-                          </div>
-                          <p className="text-xs text-gray-500 mt-2">Tap to view schedule</p>
-                        </>
-                      )}
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* Desktop: Grid layout */}
-            <div className="hidden md:grid md:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6">
               {/* Current Rotation Card */}
               <div 
                 onClick={handleRotationCardClick}
