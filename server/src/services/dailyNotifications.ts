@@ -28,17 +28,12 @@ export async function sendNextDayDutyNotifications() {
       `, [resident.id, tomorrowStr]);
 
       if (duties.rows.length > 0) {
-        const dutyNames = duties.rows.map(d => d.duty_name).join(', ');
-        const tomorrowDate = tomorrow.toLocaleDateString('en-US', { 
-          weekday: 'long', 
-          month: 'long', 
-          day: 'numeric' 
-        });
+        const dutyRoles = duties.rows.map(d => d.duty_name).join(', ');
         
         await sendPushNotification(
           resident.id,
           '📋 Duty Alert: Tomorrow',
-          `You have duty tomorrow (${tomorrowDate}):\n${dutyNames}\n\nBe prepared!`,
+          `You have Duty tomorrow ${dutyRoles} role`,
           '/'
         );
         console.log(`Sent duty notification to ${resident.email} for tomorrow`);
