@@ -11,6 +11,7 @@ export default function MasterDashboard() {
   const [showRotationsModal, setShowRotationsModal] = useState(false);
   const [showActivitiesModal, setShowActivitiesModal] = useState(false);
   const [sortBy, setSortBy] = useState<'name' | 'created'>('created');
+  const [runningMigration, setRunningMigration] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -20,6 +21,27 @@ export default function MasterDashboard() {
   const fetchUsers = async () => {
     const response = await api.get('/users');
     setUsers(response.data);
+  };
+
+  const runMigration = async () => {
+    if (!confirm('This will run the comprehensive database migration. This is safe to run multiple times. Continue?')) {
+      return;
+    }
+
+    setRunningMigration(true);
+
+    try {
+      const response = await api.post('/migrations/run-comprehensive');
+      alert('✅ Migration completed successfully!\n\n' + response.data.message);
+      // Refresh the page to reflect any changes
+      window.location.reload();
+    } catch (error: any) {
+      const errorMsg = error.response?.data?.details || error.response?.data?.error || 'Migration failed';
+      alert('❌ Migration failed:\n\n' + errorMsg);
+      console.error('Migration error:', error);
+    } finally {
+      setRunningMigration(false);
+    }
   };
 
   const residents = users.filter((u) => u.role === 'RESIDENT');
@@ -39,6 +61,41 @@ export default function MasterDashboard() {
 
   return (
     <Layout title="Master Dashboard">
+      {/* Database Migration Button */}
+      <div className="mb-6 bg-gradient-to-r from-blue-50 to-indigo-50 border-2 border-blue-300 rounded-xl p-4 shadow-md">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center space-x-3">
+            <div className="p-2 bg-blue-500 rounded-lg">
+              <Activity className="w-6 h-6 text-white" />
+            </div>
+            <div>
+              <h3 className="font-bold text-gray-900">Database Migration</h3>
+              <p className="text-sm text-gray-600">Run this if you're experiencing database errors or after updates</p>
+            </div>
+          </div>
+          <button
+            onClick={runMigration}
+            disabled={runningMigration}
+            className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white px-6 py-3 rounded-lg font-semibold hover:from-blue-700 hover:to-indigo-700 disabled:from-gray-400 disabled:to-gray-500 transition-all shadow-md hover:shadow-lg disabled:cursor-not-allowed flex items-center space-x-2"
+          >
+            {runningMigration ? (
+              <>
+                <svg className="animate-spin h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+                <span>Running...</span>
+              </>
+            ) : (
+              <>
+                <Activity className="w-5 h-5" />
+                <span>Run Migration</span>
+              </>
+            )}
+          </button>
+        </div>
+      </div>
+
       {/* Main Metrics */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6 mb-8">
         {/* Residents Card */}
