@@ -216,44 +216,42 @@ export default function Layout({ children, title }: LayoutProps) {
       
       {/* Modern Header */}
       <nav className="bg-gradient-to-r from-blue-600 to-blue-700 text-white shadow-xl sticky top-0 z-50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between h-14 sm:h-16">
-            <div className="flex items-center space-x-2 sm:space-x-4">
+        <div className="max-w-7xl mx-auto px-2 sm:px-4 lg:px-8">
+          <div className="flex justify-between items-center h-14 sm:h-16">
+            <div className="flex items-center space-x-1 sm:space-x-2 md:space-x-4 flex-1 min-w-0">
               {/* Mobile Menu Button */}
               <button
                 onClick={() => setShowMobileSidebar(true)}
-                className="md:hidden p-2 rounded-lg hover:bg-blue-800 transition-colors"
+                className="md:hidden p-1.5 sm:p-2 rounded-lg hover:bg-blue-800 transition-colors flex-shrink-0"
               >
-                <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg className="w-5 h-5 sm:w-6 sm:h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
                 </svg>
               </button>
               
-              <div className="bg-white/10 backdrop-blur-sm rounded-xl px-3 py-1.5 border border-white/20">
-                <div className="flex items-center space-x-2">
-                  <div className="bg-white rounded-lg p-1.5 shadow-md">
+              <div className="bg-white/10 backdrop-blur-sm rounded-lg sm:rounded-xl px-2 py-1 sm:px-3 sm:py-1.5 border border-white/20 flex-shrink-0">
+                <div className="flex items-center space-x-1.5 sm:space-x-2">
+                  <div className="bg-white rounded-md sm:rounded-lg p-1 sm:p-1.5 shadow-md flex-shrink-0">
                     <img 
                       src="/logo-sd.svg?v=2" 
-                      alt="ScalpelDiary Logo" 
-                      width="28" 
-                      height="28"
-                      className="flex-shrink-0"
+                      alt="SD" 
+                      className="w-5 h-5 sm:w-6 sm:h-6 md:w-7 md:h-7"
                     />
                   </div>
-                  <div>
-                    <div className="font-bold text-sm text-white leading-tight">
+                  <div className="hidden sm:block">
+                    <div className="font-bold text-xs sm:text-sm text-white leading-tight">
                       ScalpelDiary
                     </div>
                   </div>
                 </div>
               </div>
               {isReadOnlyMode && (
-                <span className="hidden sm:inline-block px-3 py-1 bg-yellow-500 text-white text-xs font-semibold rounded-full">
-                  READ ONLY MODE
+                <span className="hidden sm:inline-block px-2 sm:px-3 py-0.5 sm:py-1 bg-yellow-500 text-white text-xs font-semibold rounded-full flex-shrink-0">
+                  READ ONLY
                 </span>
               )}
             </div>
-            <div className="flex items-center space-x-2 sm:space-x-4">
+            <div className="flex items-center space-x-1 sm:space-x-2 md:space-x-4 flex-shrink-0">
               {isReadOnlyMode && (
                 <button
                   onClick={handleBackToSupervisor}

@@ -483,9 +483,144 @@ export default function Dashboard() {
             </div>
           </div>
           
-          {/* Content Grid - Horizontal on Mobile */}
+          {/* Content Grid - Horizontal Scroll on Mobile */}
           <div className="p-4 md:p-8">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6">
+            {/* Mobile: Horizontal scroll, Desktop: Grid */}
+            <div className="md:hidden overflow-x-auto -mx-4 px-4">
+              <div className="flex space-x-4 pb-2" style={{ minWidth: 'min-content' }}>
+                {/* Current Rotation Card */}
+                <div 
+                  onClick={handleRotationCardClick}
+                  className="group relative bg-gradient-to-br from-blue-50 to-indigo-50 rounded-lg p-4 border-2 border-blue-200 hover:border-blue-400 transition-all hover:shadow-lg cursor-pointer flex-shrink-0"
+                  style={{ width: '280px' }}
+                >
+                  <div className="absolute top-0 right-0 w-24 h-24 bg-blue-200 rounded-full opacity-10 -mr-12 -mt-12"></div>
+                  <div className="relative">
+                    <div className="flex items-center space-x-2 mb-3">
+                      <div className="bg-blue-600 rounded-lg p-1.5">
+                        <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                        </svg>
+                      </div>
+                      <h4 className="text-sm font-bold text-gray-800">Current Rotation</h4>
+                    </div>
+                    {todayOverview.rotation ? (
+                      <div className="space-y-2">
+                        <div 
+                          className="inline-block px-3 py-1.5 rounded-lg font-bold text-sm shadow-sm"
+                          style={{ 
+                            backgroundColor: todayOverview.rotation.color || '#3B82F6',
+                            color: 'white'
+                          }}
+                        >
+                          {todayOverview.rotation.category_name}
+                        </div>
+                        <p className="text-xs text-gray-500 mt-2">Tap to view schedule</p>
+                      </div>
+                    ) : (
+                      <div className="flex items-center space-x-2 text-gray-400">
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 12H4" />
+                        </svg>
+                        <span className="text-xs font-medium">No rotation assigned</span>
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                {/* Today's Duty Card */}
+                <div 
+                  onClick={handleDutyCardClick}
+                  className="group relative bg-gradient-to-br from-amber-50 to-orange-50 rounded-lg p-4 border-2 border-amber-200 hover:border-amber-400 transition-all hover:shadow-lg cursor-pointer flex-shrink-0"
+                  style={{ width: '280px' }}
+                >
+                  <div className="absolute top-0 right-0 w-24 h-24 bg-amber-200 rounded-full opacity-10 -mr-12 -mt-12"></div>
+                  <div className="relative">
+                    <div className="flex items-center space-x-2 mb-3">
+                      <div className="bg-amber-600 rounded-lg p-1.5">
+                        <svg className="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 20 20">
+                          <path fillRule="evenodd" d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z" clipRule="evenodd" />
+                        </svg>
+                      </div>
+                      <h4 className="text-sm font-bold text-gray-800">Today's Duty</h4>
+                    </div>
+                    
+                    <div className="space-y-2">
+                      {todayOverview.duties && todayOverview.duties.length > 0 ? (
+                        <>
+                          {todayOverview.duties.map((duty: any, idx: number) => (
+                            <div 
+                              key={`duty-${idx}`} 
+                              className="bg-gradient-to-r from-amber-500 to-orange-500 text-white rounded-lg px-3 py-2 shadow-md"
+                            >
+                              <p className="font-bold text-xs">You are on duty at</p>
+                              <p className="font-bold text-base mt-0.5">{duty.category_name || duty.duty_category_name}</p>
+                            </div>
+                          ))}
+                          <p className="text-xs text-gray-500 mt-2">Tap to view schedule</p>
+                        </>
+                      ) : (
+                        <>
+                          <div className="bg-gray-100 text-gray-600 rounded-lg px-3 py-2">
+                            <p className="font-bold text-base">No Duty</p>
+                          </div>
+                          <p className="text-xs text-gray-500 mt-2">Tap to view schedule</p>
+                        </>
+                      )}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Today's Activities Card */}
+                <div 
+                  onClick={handleActivityCardClick}
+                  className="group relative bg-gradient-to-br from-purple-50 to-pink-50 rounded-lg p-4 border-2 border-purple-200 hover:border-purple-400 transition-all hover:shadow-lg cursor-pointer flex-shrink-0"
+                  style={{ width: '280px' }}
+                >
+                  <div className="absolute top-0 right-0 w-24 h-24 bg-purple-200 rounded-full opacity-10 -mr-12 -mt-12"></div>
+                  <div className="relative">
+                    <div className="flex items-center space-x-2 mb-3">
+                      <div className="bg-purple-600 rounded-lg p-1.5">
+                        <Activity className="w-4 h-4 text-white" />
+                      </div>
+                      <h4 className="text-sm font-bold text-gray-800">Today's Activities</h4>
+                    </div>
+                    
+                    <div className="space-y-2">
+                      {todayOverview.activities && todayOverview.activities.length > 0 ? (
+                        <>
+                          {todayOverview.activities.map((activity: any, idx: number) => (
+                            <div 
+                              key={`activity-${idx}`} 
+                              className="bg-white border-2 border-purple-200 rounded-lg px-3 py-2 hover:border-purple-400 transition-colors"
+                            >
+                              <div className="flex items-center space-x-2">
+                                <div className="w-1.5 h-1.5 rounded-full bg-purple-500"></div>
+                                <p className="text-xs font-semibold text-purple-700">{activity.category_name || activity.activity_category_name}</p>
+                              </div>
+                            </div>
+                          ))}
+                          <p className="text-xs text-gray-500 mt-2">Tap to view schedule</p>
+                        </>
+                      ) : (
+                        <>
+                          <div className="flex items-center space-x-2 text-gray-400">
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 12H4" />
+                            </svg>
+                            <span className="text-xs font-medium">No activities</span>
+                          </div>
+                          <p className="text-xs text-gray-500 mt-2">Tap to view schedule</p>
+                        </>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Desktop: Grid layout */}
+            <div className="hidden md:grid md:grid-cols-3 gap-6">
               {/* Current Rotation Card */}
               <div 
                 onClick={handleRotationCardClick}
