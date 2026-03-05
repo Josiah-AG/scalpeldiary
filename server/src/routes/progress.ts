@@ -1,5 +1,5 @@
 import express from 'express';
-import { calculateYearProgress } from '../../shared/procedureUtils';
+import { calculateYearProgress } from '../../../shared/procedureUtils';
 import db from '../database/db';
 import { authenticate, AuthRequest } from '../middleware/auth';
 
