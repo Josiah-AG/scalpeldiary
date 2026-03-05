@@ -9,6 +9,7 @@
     "start": "node dist/index.js",
     "db:migrate": "tsx src/database/migrate.ts",
     "db:seed": "tsx src/database/seed.ts",
+    "db:delete-old-master": "tsx src/database/delete-old-master.ts",
     "db:add-procedure-category": "tsx src/database/add-procedure-category.ts",
     "db:add-push-subscriptions": "tsx src/database/add-push-subscriptions.ts",
     "generate-vapid-keys": "tsx src/utils/generate-vapid-keys.ts"
