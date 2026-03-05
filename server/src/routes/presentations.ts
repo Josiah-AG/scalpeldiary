@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import { query } from '../database/db';
 import { authenticate, authorize, AuthRequest } from '../middleware/auth';
+import { sendNotification } from '../utils/notifications';
 
 const router = Router();
 
@@ -247,6 +248,14 @@ router.post('/:presentationId/rate', authenticate, async (req: AuthRequest, res)
     if (result.rows.length === 0) {
       return res.status(404).json({ error: 'Presentation not found or unauthorized' });
     }
+
+    // Send notification to the resident
+    const presentation = result.rows[0];
+    await sendNotification(
+      presentation.resident_id,
+      `Your presentation "${presentation.title}" has been ${rating ? 'rated' : 'commented on'}`,
+      presentationId
+    );
 
     res.json(result.rows[0]);
   } catch (error) {

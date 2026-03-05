@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import { query } from '../database/db';
 import { authenticate, AuthRequest } from '../middleware/auth';
+import { sendNotification } from '../utils/notifications';
 
 const router = Router();
 
@@ -36,6 +37,13 @@ router.post('/', authenticate, async (req: AuthRequest, res) => {
         title, type, presenter_id, moderator_id, scheduled_date, description, created_by, status
       ) VALUES ($1, $2, $3, $4, $5, $6, $7, 'assigned') RETURNING *`,
       [title, type, presenter_id, moderator_id, scheduled_date || null, description, req.user!.id]
+    );
+
+    // Send notification to the resident who was assigned the presentation
+    await sendNotification(
+      presenter_id,
+      `You have been assigned a new presentation: ${title}`,
+      result.rows[0].id
     );
 
     res.status(201).json(result.rows[0]);
