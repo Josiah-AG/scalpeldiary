@@ -3,6 +3,7 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { useAuthStore } from './store/authStore';
 import api from './api/axios';
 import InstallPrompt from './components/InstallPrompt';
+import NotificationPermission from './components/NotificationPermission';
 import LandingPage from './pages/LandingPage';
 import Login from './pages/Login';
 import ResidentDashboard from './pages/resident/Dashboard';
@@ -89,6 +90,7 @@ function App() {
   return (
     <BrowserRouter>
       <InstallPrompt />
+      <NotificationPermission />
       <Routes>
         {user.role === 'RESIDENT' && (
           <>
