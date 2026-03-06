@@ -76,7 +76,7 @@ app.listen(PORT, () => {
   console.log(`🚀 Server running on port ${PORT}`);
   console.log(`📝 Environment: ${process.env.NODE_ENV || 'development'}`);
   console.log(`🌐 CORS enabled for: ${allowedOrigins.join(', ')}`);
-  console.log(`✅ Presentation notifications and mobile fixes deployed`);
+  console.log(`✅ Unified ratings done page with tabs deployed`);
   
   // Start the notification scheduler
   startNotificationScheduler();
