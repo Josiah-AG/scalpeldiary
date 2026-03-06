@@ -1,7 +1,7 @@
 import { query } from '../database/db';
 import { sendPushNotification } from '../routes/notifications';
 
-// Function to send next day duty notifications (previous day at 5 PM UTC)
+// Function to send next day duty notifications (8 PM EAT / 5 PM UTC)
 export async function sendNextDayDutyNotifications() {
   try {
     console.log('Running next day duty notifications...');
@@ -33,7 +33,7 @@ export async function sendNextDayDutyNotifications() {
         await sendPushNotification(
           resident.id,
           '📋 Duty Alert: Tomorrow',
-          `You are on duty tomorrow at ${dutyRoles}`,
+          `You are on duty tomorrow: ${dutyRoles}`,
           '/'
         );
         console.log(`Sent duty notification to ${resident.email} for tomorrow`);
@@ -46,10 +46,10 @@ export async function sendNextDayDutyNotifications() {
   }
 }
 
-// Function to send morning schedule notifications (activities and rotation)
-export async function sendMorningScheduleNotifications() {
+// Function to send morning activity notifications (7 AM EAT / 4 AM UTC)
+export async function sendMorningActivityNotifications() {
   try {
-    console.log('Running morning schedule notifications...');
+    console.log('Running morning activity notifications...');
     
     const today = new Date();
     const todayStr = today.toISOString().split('T')[0]; // YYYY-MM-DD
@@ -62,8 +62,6 @@ export async function sendMorningScheduleNotifications() {
     `);
 
     for (const resident of residents.rows) {
-      const notifications: string[] = [];
-      
       // Check for activities today
       const activities = await query(`
         SELECT da.*, ac.name as activity_name, ac.color
@@ -74,43 +72,24 @@ export async function sendMorningScheduleNotifications() {
 
       if (activities.rows.length > 0) {
         const activityNames = activities.rows.map(a => a.activity_name).join(', ');
-        notifications.push(`🏥 Activities Today: ${activityNames}`);
-      }
-
-      // Get current rotation
-      const currentMonth = today.getMonth() + 1; // 1-12
-      const rotation = await query(`
-        SELECT yr.*, rc.name as rotation_name, rc.color, ay.year_name
-        FROM yearly_rotations yr
-        JOIN rotation_categories rc ON yr.rotation_category_id = rc.id
-        JOIN academic_years ay ON yr.academic_year_id = ay.id
-        WHERE yr.resident_id = $1 AND yr.month_number = $2 AND ay.is_active = true
-      `, [resident.id, currentMonth]);
-
-      if (rotation.rows.length > 0) {
-        notifications.push(`🔄 Current Rotation: ${rotation.rows[0].rotation_name}`);
-      }
-
-      // Send notification if there's anything scheduled
-      if (notifications.length > 0) {
-        const message = notifications.join('\n');
+        
         await sendPushNotification(
           resident.id,
-          '🌅 Good Morning! Your Schedule',
-          message,
+          '🌅 Good Morning! Today\'s Activities',
+          `🏥 Activities Today: ${activityNames}`,
           '/'
         );
-        console.log(`Sent morning notification to ${resident.email}`);
+        console.log(`Sent morning activity notification to ${resident.email}`);
       }
     }
 
-    console.log('Morning schedule notifications completed');
+    console.log('Morning activity notifications completed');
   } catch (error) {
     console.error('Error sending morning notifications:', error);
   }
 }
 
-// Function to send end-of-month rotation reminders
+// Function to send end-of-month rotation reminders (8 PM EAT / 5 PM UTC)
 export async function sendMonthlyRotationReminders() {
   try {
     console.log('Running monthly rotation reminders...');
@@ -151,8 +130,8 @@ export async function sendMonthlyRotationReminders() {
         
         await sendPushNotification(
           resident.id,
-          '📅 Upcoming Rotation Reminder',
-          `Your rotation for ${nextMonthName} is: ${rotationName}. Get ready!`,
+          '📅 Next Month\'s Rotation',
+          `Your rotation for ${nextMonthName}: ${rotationName}`,
           '/'
         );
         console.log(`Sent rotation reminder to ${resident.email}`);
@@ -174,18 +153,15 @@ export function startNotificationScheduler() {
     const now = new Date();
     const hour = now.getUTCHours(); // Use UTC hours
     
+    // Send morning activities at 4:00 AM UTC (7:00 AM EAT)
+    if (hour === 4) {
+      await sendMorningActivityNotifications();
+    }
+    
     // Send duty notifications for next day at 5:00 PM UTC (8:00 PM EAT)
+    // Also send monthly rotation reminders at same time (last day of month)
     if (hour === 17) {
       await sendNextDayDutyNotifications();
-    }
-    
-    // Send morning schedule (activities + rotation) at 4:00 AM UTC (7:00 AM EAT)
-    if (hour === 4) {
-      await sendMorningScheduleNotifications();
-    }
-    
-    // Send monthly reminders at 8:00 PM UTC (11:00 PM EAT)
-    if (hour === 20) {
       await sendMonthlyRotationReminders();
     }
   }, 60 * 60 * 1000); // Every hour
@@ -198,11 +174,12 @@ export function startNotificationScheduler() {
     console.log(`Current UTC hour: ${hour}`);
     
     // Check which notifications should run based on current hour
+    if (hour === 4) {
+      await sendMorningActivityNotifications();
+    }
     if (hour === 17) {
       await sendNextDayDutyNotifications();
-    }
-    if (hour === 4) {
-      await sendMorningScheduleNotifications();
+      await sendMonthlyRotationReminders();
     }
   }, 5000); // 5 seconds after startup
 }

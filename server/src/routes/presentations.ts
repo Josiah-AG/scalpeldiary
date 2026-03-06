@@ -254,7 +254,8 @@ router.post('/:presentationId/rate', authenticate, async (req: AuthRequest, res)
     await sendNotification(
       presentation.resident_id,
       `Your presentation "${presentation.title}" has been ${rating ? 'rated' : 'commented on'}`,
-      presentationId
+      presentationId,
+      'rated'
     );
 
     res.json(result.rows[0]);

@@ -75,7 +75,8 @@ router.post('/', authenticate, async (req: AuthRequest, res) => {
     await sendNotification(
       supervisorId,
       `New surgical log assigned to you by ${req.user!.email}`,
-      result.rows[0].id
+      result.rows[0].id,
+      'procedure'
     );
 
     res.status(201).json(result.rows[0]);
@@ -140,7 +141,8 @@ router.post('/:logId/rate', authenticate, async (req: AuthRequest, res) => {
     await sendNotification(
       log.resident_id,
       `Your surgical log has been ${rating ? 'rated' : 'commented on'}`,
-      logId
+      logId,
+      'rated'
     );
 
     res.json(result.rows[0]);

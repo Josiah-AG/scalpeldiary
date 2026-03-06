@@ -43,7 +43,8 @@ router.post('/', authenticate, async (req: AuthRequest, res) => {
     await sendNotification(
       presenter_id,
       `You have been assigned a new presentation: ${title}`,
-      result.rows[0].id
+      result.rows[0].id,
+      'presentation'
     );
 
     res.status(201).json(result.rows[0]);

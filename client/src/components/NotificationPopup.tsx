@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
-import { X, Bell } from 'lucide-react';
+import { X, Bell, Star, FileText, Activity } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import api from '../api/axios';
 import { format } from 'date-fns';
 
@@ -9,11 +10,13 @@ interface Notification {
   created_at: string;
   read: boolean;
   log_id?: string;
+  notification_type?: 'procedure' | 'presentation' | 'rated';
 }
 
 export default function NotificationPopup() {
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [showPopup, setShowPopup] = useState(false);
+  const navigate = useNavigate();
 
   useEffect(() => {
     fetchUnreadNotifications();
@@ -61,6 +64,55 @@ export default function NotificationPopup() {
     setShowPopup(false);
   };
 
+  const handleRateNow = async (notification: Notification) => {
+    // Mark as read
+    await markAsRead(notification.id);
+    
+    // Navigate to appropriate page
+    if (notification.notification_type === 'procedure') {
+      navigate('/unresponded-logs');
+    } else if (notification.notification_type === 'presentation') {
+      navigate('/unresponded-logs');
+    }
+  };
+
+  const getNotificationColor = (type?: string) => {
+    switch (type) {
+      case 'procedure':
+        return {
+          bg: 'bg-blue-50',
+          border: 'border-blue-500',
+          icon: Activity,
+          iconColor: 'text-blue-600',
+          buttonBg: 'bg-blue-600 hover:bg-blue-700'
+        };
+      case 'presentation':
+        return {
+          bg: 'bg-green-50',
+          border: 'border-green-500',
+          icon: FileText,
+          iconColor: 'text-green-600',
+          buttonBg: 'bg-green-600 hover:bg-green-700'
+        };
+      case 'rated':
+        return {
+          bg: 'bg-purple-50',
+          border: 'border-purple-500',
+          icon: Star,
+          iconColor: 'text-purple-600',
+          buttonBg: 'bg-purple-600 hover:bg-purple-700'
+        };
+      default:
+        return {
+          bg: 'bg-gray-50',
+          border: 'border-gray-500',
+          icon: Bell,
+          iconColor: 'text-gray-600',
+          buttonBg: 'bg-gray-600 hover:bg-gray-700'
+        };
+    }
+  };
+
   if (!showPopup || notifications.length === 0) {
     return null;
   }
@@ -92,29 +144,50 @@ export default function NotificationPopup() {
 
         {/* Notifications List */}
         <div className="overflow-y-auto max-h-[calc(80vh-180px)] p-4 space-y-3">
-          {notifications.map((notification) => (
-            <div
-              key={notification.id}
-              className="bg-blue-50 border-l-4 border-blue-500 rounded-lg p-4 hover:bg-blue-100 transition-colors"
-            >
-              <div className="flex justify-between items-start">
-                <div className="flex-1 pr-2">
-                  <p className="text-sm text-gray-800 font-medium">
-                    {notification.message}
-                  </p>
-                  <p className="text-xs text-gray-500 mt-1">
-                    {format(new Date(notification.created_at), 'MMM dd, yyyy h:mm a')}
-                  </p>
+          {notifications.map((notification) => {
+            const colorScheme = getNotificationColor(notification.notification_type);
+            const Icon = colorScheme.icon;
+            const isActionable = notification.notification_type === 'procedure' || notification.notification_type === 'presentation';
+            
+            return (
+              <div
+                key={notification.id}
+                className={`${colorScheme.bg} border-l-4 ${colorScheme.border} rounded-lg p-4 hover:shadow-md transition-all`}
+              >
+                <div className="flex items-start space-x-3">
+                  <div className={`${colorScheme.iconColor} mt-1`}>
+                    <Icon size={20} />
+                  </div>
+                  <div className="flex-1">
+                    <p className="text-sm text-gray-800 font-medium">
+                      {notification.message}
+                    </p>
+                    <p className="text-xs text-gray-500 mt-1">
+                      {format(new Date(notification.created_at), 'MMM dd, yyyy h:mm a')}
+                    </p>
+                    
+                    {/* Action Buttons */}
+                    <div className="flex items-center space-x-2 mt-3">
+                      {isActionable && (
+                        <button
+                          onClick={() => handleRateNow(notification)}
+                          className={`${colorScheme.buttonBg} text-white px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors`}
+                        >
+                          {notification.notification_type === 'procedure' ? 'Rate Procedure' : 'Rate Presentation'}
+                        </button>
+                      )}
+                      <button
+                        onClick={() => markAsRead(notification.id)}
+                        className="text-gray-600 hover:text-gray-800 text-xs font-semibold"
+                      >
+                        Dismiss
+                      </button>
+                    </div>
+                  </div>
                 </div>
-                <button
-                  onClick={() => markAsRead(notification.id)}
-                  className="text-blue-600 hover:text-blue-800 text-xs font-semibold whitespace-nowrap"
-                >
-                  Dismiss
-                </button>
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
 
         {/* Footer */}

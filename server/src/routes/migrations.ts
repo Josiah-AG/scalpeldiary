@@ -568,6 +568,56 @@ router.post('/fix-scheduled-date-nullable', authenticate, async (req: AuthReques
   }
 });
 
+// Add notification_type column to notifications table
+router.post('/add-notification-type', authenticate, async (req: AuthRequest, res) => {
+  // Check if user is Master
+  if (req.user!.role !== 'MASTER') {
+    return res.status(403).json({ error: 'Only Master accounts can run migrations' });
+  }
+
+  try {
+    console.log('Adding notification_type column to notifications table...');
+
+    // Check if column already exists
+    const checkColumn = await query(`
+      SELECT column_name 
+      FROM information_schema.columns 
+      WHERE table_name = 'notifications' 
+      AND column_name = 'notification_type'
+    `);
+
+    if (checkColumn.rows.length === 0) {
+      // Add notification_type column
+      await query(`
+        ALTER TABLE notifications 
+        ADD COLUMN notification_type VARCHAR(20)
+      `);
+      console.log('✅ Added notification_type column');
+      
+      res.json({ 
+        success: true, 
+        message: 'Successfully added notification_type column to notifications table',
+        alreadyExists: false
+      });
+    } else {
+      console.log('✅ notification_type column already exists');
+      
+      res.json({ 
+        success: true, 
+        message: 'notification_type column already exists',
+        alreadyExists: true
+      });
+    }
+  } catch (error: any) {
+    console.error('Migration failed:', error);
+    res.status(500).json({ 
+      success: false, 
+      error: 'Migration failed', 
+      details: error.message 
+    });
+  }
+});
+
 // Run chief resident setup (add color columns and ensure academic year)
 router.post('/setup-chief-resident', authenticate, async (req: AuthRequest, res) => {
   // Check if user is Master

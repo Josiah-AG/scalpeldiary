@@ -1,11 +1,12 @@
 import { ReactNode, useEffect, useState } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuthStore } from '../store/authStore';
-import { LogOut, Calendar, FileText, BarChart3, Star, Settings, PlusCircle, ClipboardList, UserCheck, CalendarDays, ClipboardCheck, Activity } from 'lucide-react';
+import { LogOut, Calendar, FileText, BarChart3, Star, Settings, PlusCircle, ClipboardList, UserCheck, CalendarDays, ClipboardCheck, Activity, Bell } from 'lucide-react';
 import api from '../api/axios';
 import Logo from './Logo';
 import RoleSwitcher from './RoleSwitcher';
 import NotificationPopup from './NotificationPopup';
+import NotificationBell from './NotificationBell';
 
 interface LayoutProps {
   children: ReactNode;
@@ -24,6 +25,8 @@ export default function Layout({ children, title }: LayoutProps) {
   const [assignedPresentationsCount, setAssignedPresentationsCount] = useState<number>(0);
   const [moderatorAssignmentsCount, setModeratorAssignmentsCount] = useState<number>(0);
   const [showMobileSidebar, setShowMobileSidebar] = useState(false);
+  const [unreadNotificationsCount, setUnreadNotificationsCount] = useState<number>(0);
+  const [showNotifications, setShowNotifications] = useState(false);
 
   useEffect(() => {
     if (user?.role === 'RESIDENT') {
@@ -35,6 +38,7 @@ export default function Layout({ children, title }: LayoutProps) {
       fetchModeratorAssignmentsCount();
     }
     fetchUserProfile();
+    fetchUnreadNotificationsCount();
   }, [user]);
 
   useEffect(() => {
@@ -103,6 +107,16 @@ export default function Layout({ children, title }: LayoutProps) {
       setModeratorAssignmentsCount(response.data.count);
     } catch (error) {
       console.error('Failed to fetch moderator assignments count');
+    }
+  };
+
+  const fetchUnreadNotificationsCount = async () => {
+    try {
+      const response = await api.get('/notifications');
+      const unread = response.data.filter((n: any) => !n.read);
+      setUnreadNotificationsCount(unread.length);
+    } catch (error) {
+      console.error('Failed to fetch unread notifications count');
     }
   };
 
@@ -255,11 +269,36 @@ export default function Layout({ children, title }: LayoutProps) {
               {isReadOnlyMode && (
                 <button
                   onClick={handleBackToSupervisor}
-                  className="hidden sm:flex items-center space-x-2 bg-white text-blue-600 px-3 py-1.5 rounded-lg hover:bg-blue-50 transition-colors text-sm font-medium"
+                  className="flex items-center space-x-1 sm:space-x-2 bg-white text-blue-600 px-2 sm:px-3 py-1.5 rounded-lg hover:bg-blue-50 transition-colors text-xs sm:text-sm font-medium"
                 >
-                  ← Back to Dashboard
+                  <span className="text-lg sm:text-base">←</span>
+                  <span className="hidden sm:inline">Back to Dashboard</span>
                 </button>
               )}
+              
+              {/* Notification Bell */}
+              {(user?.role === 'RESIDENT' || user?.role === 'SUPERVISOR') && (
+                <div className="relative">
+                  <button
+                    onClick={() => setShowNotifications(!showNotifications)}
+                    className="relative p-2 hover:bg-blue-800 rounded-lg transition-colors"
+                    aria-label="Notifications"
+                  >
+                    <Bell size={20} className="text-white" />
+                    {unreadNotificationsCount > 0 && (
+                      <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center">
+                        {unreadNotificationsCount > 9 ? '9+' : unreadNotificationsCount}
+                      </span>
+                    )}
+                  </button>
+                  <NotificationBell 
+                    show={showNotifications} 
+                    onClose={() => setShowNotifications(false)}
+                    onCountChange={setUnreadNotificationsCount}
+                  />
+                </div>
+              )}
+              
               {/* Profile Picture - Always visible */}
               {profilePicture ? (
                 <img
