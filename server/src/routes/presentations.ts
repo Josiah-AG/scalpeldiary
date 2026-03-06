@@ -57,8 +57,8 @@ router.post('/', authenticate, async (req: AuthRequest, res) => {
 
     const result = await query(
       `INSERT INTO presentations (
-        resident_id, year_id, date, title, venue, presentation_type, description, supervisor_id
-      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING *`,
+        resident_id, year_id, date, title, venue, presentation_type, description, supervisor_id, status
+      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, 'PENDING') RETURNING *`,
       [req.user!.id, yearId, date, title, venue, presentationType, description, supervisorId || null]
     );
 
@@ -245,7 +245,8 @@ router.post('/:presentationId/rate', authenticate, async (req: AuthRequest, res)
     const { presentationId } = req.params;
     const { rating, comment } = req.body;
 
-    const status = rating ? 'RATED' : 'COMMENTED';
+    // If no rating provided, mark as NOT_WITNESSED
+    const status = rating ? 'RATED' : 'NOT_WITNESSED';
     
     const result = await query(
       `UPDATE presentations 
@@ -261,9 +262,13 @@ router.post('/:presentationId/rate', authenticate, async (req: AuthRequest, res)
 
     // Send notification to the resident
     const presentation = result.rows[0];
+    const notificationMessage = rating 
+      ? `Your presentation "${presentation.title}" has been rated` 
+      : `Your presentation "${presentation.title}" was marked as not witnessed`;
+    
     await sendNotification(
       presentation.resident_id,
-      `Your presentation "${presentation.title}" has been ${rating ? 'rated' : 'commented on'}`,
+      notificationMessage,
       presentationId,
       'rated'
     );

@@ -16,9 +16,11 @@ router.get('/dashboard', authenticate, async (req: AuthRequest, res) => {
       [targetResidentId, yearId]
     );
 
-    // Average rating
+    // Average rating (exclude NOT_WITNESSED)
     const ratingResult = await query(
-      'SELECT AVG(rating) as avg_rating FROM surgical_logs WHERE resident_id = $1 AND year_id = $2 AND rating IS NOT NULL',
+      `SELECT AVG(rating) as avg_rating 
+       FROM surgical_logs 
+       WHERE resident_id = $1 AND year_id = $2 AND rating IS NOT NULL AND status != 'NOT_WITNESSED'`,
       [targetResidentId, yearId]
     );
 
@@ -116,18 +118,21 @@ router.get('/resident', authenticate, async (req: AuthRequest, res) => {
       [targetResidentId, yearId]
     );
 
-    // Average rating
+    // Average rating (exclude NOT_WITNESSED)
     const ratingResult = await query(
-      'SELECT AVG(rating) as avg_rating FROM surgical_logs WHERE resident_id = $1 AND year_id = $2 AND rating IS NOT NULL',
+      `SELECT AVG(rating) as avg_rating 
+       FROM surgical_logs 
+       WHERE resident_id = $1 AND year_id = $2 AND rating IS NOT NULL AND status != 'NOT_WITNESSED'`,
       [targetResidentId, yearId]
     );
 
-    // Senior supervisor rating (supervisors with SUPERVISOR role)
+    // Senior supervisor rating (supervisors with SUPERVISOR role, exclude NOT_WITNESSED)
     const seniorRatingResult = await query(
       `SELECT AVG(sl.rating) as avg_rating 
        FROM surgical_logs sl
        JOIN users u ON sl.supervisor_id = u.id
-       WHERE sl.resident_id = $1 AND sl.year_id = $2 AND sl.rating IS NOT NULL AND u.role = 'SUPERVISOR'`,
+       WHERE sl.resident_id = $1 AND sl.year_id = $2 AND sl.rating IS NOT NULL 
+       AND u.role = 'SUPERVISOR' AND sl.status != 'NOT_WITNESSED'`,
       [targetResidentId, yearId]
     );
 
@@ -147,9 +152,11 @@ router.get('/resident', authenticate, async (req: AuthRequest, res) => {
       [targetResidentId, yearId]
     );
 
-    // Average presentation rating
+    // Average presentation rating (exclude NOT_WITNESSED)
     const presentationRatingResult = await query(
-      'SELECT AVG(rating) as avg_rating FROM presentations WHERE resident_id = $1 AND year_id = $2 AND rating IS NOT NULL',
+      `SELECT AVG(rating) as avg_rating 
+       FROM presentations 
+       WHERE resident_id = $1 AND year_id = $2 AND rating IS NOT NULL AND status != 'NOT_WITNESSED'`,
       [targetResidentId, yearId]
     );
 

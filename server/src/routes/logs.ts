@@ -123,7 +123,8 @@ router.post('/:logId/rate', authenticate, async (req: AuthRequest, res) => {
     const { logId } = req.params;
     const { rating, comment } = req.body;
 
-    const status = rating ? 'RATED' : 'COMMENTED';
+    // If no rating provided, mark as NOT_WITNESSED
+    const status = rating ? 'RATED' : 'NOT_WITNESSED';
     
     const result = await query(
       `UPDATE surgical_logs 
@@ -139,9 +140,13 @@ router.post('/:logId/rate', authenticate, async (req: AuthRequest, res) => {
 
     // Notify resident
     const log = result.rows[0];
+    const notificationMessage = rating 
+      ? 'Your surgical log has been rated' 
+      : 'Your surgical log was marked as not witnessed';
+    
     await sendNotification(
       log.resident_id,
-      `Your surgical log has been ${rating ? 'rated' : 'commented on'}`,
+      notificationMessage,
       logId,
       'rated'
     );
