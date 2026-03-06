@@ -49,10 +49,10 @@ function App() {
       navigator.serviceWorker
         .register('/sw.js')
         .then((registration) => {
-          console.log('Service Worker registered:', registration);
+          // Service Worker registered successfully
         })
         .catch((error) => {
-          console.log('Service Worker registration failed:', error);
+          console.error('Service Worker registration failed:', error);
         });
     }
   }, []);

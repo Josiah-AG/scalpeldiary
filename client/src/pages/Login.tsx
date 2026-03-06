@@ -19,11 +19,8 @@ export default function Login() {
     setLoading(true);
 
     try {
-      console.log('Attempting login...');
       const response = await api.post('/auth/login', { email, password });
-      console.log('Login response:', response.data);
       setAuth(response.data.user, response.data.token);
-      console.log('Auth set, navigating...');
       navigate('/');
     } catch (err: any) {
       console.error('Login error:', err);

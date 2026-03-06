@@ -51,7 +51,6 @@ export default function Layout({ children, title }: LayoutProps) {
   const fetchUserProfile = async () => {
     try {
       const response = await api.get('/users/me');
-      console.log('User profile data:', response.data);
       setProfilePicture(response.data.profile_picture || '');
       setUserDetails(response.data);
     } catch (error) {

@@ -69,7 +69,7 @@ export default function NotificationPermission() {
         subscription: subscription.toJSON()
       });
 
-      console.log('Successfully subscribed to push notifications');
+      // Successfully subscribed to push notifications
     } catch (error) {
       console.error('Error subscribing to push notifications:', error);
     }
