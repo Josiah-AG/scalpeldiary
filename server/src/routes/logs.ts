@@ -3,6 +3,7 @@ import { query } from '../database/db';
 import { authenticate, authorize, AuthRequest } from '../middleware/auth';
 import { sendNotification } from '../utils/notifications';
 
+// Surgical logs routes
 const router = Router();
 
 // Get logs for resident
