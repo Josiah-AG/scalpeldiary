@@ -9,7 +9,7 @@ interface Procedure {
   procedure: string;
   procedure_type: string;
   surgery_role: string;
-  rating: number;
+  rating: number | null;
   comment: string;
   resident_name: string;
   resident_year: number;
@@ -18,6 +18,7 @@ interface Procedure {
   sex: string;
   diagnosis: string;
   place_of_practice: string;
+  status: string;
 }
 
 export default function AllRatedProcedures() {
@@ -46,7 +47,8 @@ export default function AllRatedProcedures() {
   return (
     <Layout title="All Rated Procedures">
       <div className="bg-white rounded-lg shadow overflow-hidden">
-        <div className="overflow-x-auto">
+        {/* Desktop Table View */}
+        <div className="hidden md:block overflow-x-auto">
           <table className="w-full">
             <thead className="bg-gradient-to-r from-blue-600 to-blue-700 text-white">
               <tr>
@@ -70,9 +72,15 @@ export default function AllRatedProcedures() {
                   <td className="px-4 py-3 text-sm">{proc.procedure_type}</td>
                   <td className="px-4 py-3 text-sm">{proc.surgery_role}</td>
                   <td className="px-4 py-3 text-sm">
-                    <span className="px-2 py-1 bg-green-100 text-green-800 rounded font-semibold">
-                      {proc.rating}
-                    </span>
+                    {proc.status === 'NOT_WITNESSED' ? (
+                      <span className="px-2 py-1 bg-gray-100 text-gray-600 rounded font-semibold">
+                        N/A
+                      </span>
+                    ) : (
+                      <span className="px-2 py-1 bg-green-100 text-green-800 rounded font-semibold">
+                        {proc.rating}
+                      </span>
+                    )}
                   </td>
                   <td className="px-4 py-3 text-sm">
                     <button
@@ -87,6 +95,38 @@ export default function AllRatedProcedures() {
               ))}
             </tbody>
           </table>
+        </div>
+
+        {/* Mobile Card View */}
+        <div className="md:hidden divide-y divide-gray-200">
+          {procedures.map((proc) => (
+            <div
+              key={proc.id}
+              onClick={() => viewDetails(proc)}
+              className="p-4 hover:bg-gray-50 cursor-pointer"
+            >
+              <div className="flex justify-between items-start mb-2">
+                <div className="flex-1">
+                  <h3 className="font-semibold text-gray-900">{proc.procedure}</h3>
+                  <p className="text-sm text-gray-600">{proc.resident_name} - Year {proc.resident_year}</p>
+                </div>
+                {proc.status === 'NOT_WITNESSED' ? (
+                  <span className="px-2 py-1 bg-gray-100 text-gray-600 rounded text-sm font-semibold ml-2">
+                    N/A
+                  </span>
+                ) : (
+                  <span className="px-2 py-1 bg-green-100 text-green-800 rounded text-sm font-semibold ml-2">
+                    {proc.rating}
+                  </span>
+                )}
+              </div>
+              <div className="space-y-1 text-sm text-gray-600">
+                <p><span className="font-medium">Date:</span> {new Date(proc.date).toLocaleDateString()}</p>
+                <p><span className="font-medium">Type:</span> {proc.procedure_type}</p>
+                <p><span className="font-medium">Role:</span> {proc.surgery_role}</p>
+              </div>
+            </div>
+          ))}
         </div>
       </div>
 
@@ -158,7 +198,11 @@ export default function AllRatedProcedures() {
 
                 <div className="border-t pt-4">
                   <p className="text-sm text-gray-500">Rating</p>
-                  <p className="text-2xl font-bold text-green-600">{selectedProcedure.rating}</p>
+                  {selectedProcedure.status === 'NOT_WITNESSED' ? (
+                    <p className="text-2xl font-bold text-gray-600">N/A (Not Witnessed)</p>
+                  ) : (
+                    <p className="text-2xl font-bold text-green-600">{selectedProcedure.rating}</p>
+                  )}
                 </div>
 
                 {selectedProcedure.comment && (

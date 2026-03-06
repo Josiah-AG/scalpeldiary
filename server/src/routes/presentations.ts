@@ -143,9 +143,11 @@ router.get('/stats', authenticate, async (req: AuthRequest, res) => {
       [targetResidentId, yearId]
     );
 
-    // Average rating
+    // Average rating (exclude NOT_WITNESSED)
     const ratingResult = await query(
-      'SELECT AVG(rating) as avg_rating FROM presentations WHERE resident_id = $1 AND year_id = $2 AND rating IS NOT NULL',
+      `SELECT AVG(rating) as avg_rating 
+       FROM presentations 
+       WHERE resident_id = $1 AND year_id = $2 AND rating IS NOT NULL AND status != 'NOT_WITNESSED'`,
       [targetResidentId, yearId]
     );
 
@@ -209,7 +211,7 @@ router.get('/rated', authenticate, async (req: AuthRequest, res) => {
        LEFT JOIN users u ON p.supervisor_id = u.id
        LEFT JOIN users res ON p.resident_id = res.id
        LEFT JOIN resident_years ry ON p.year_id = ry.id
-       WHERE p.supervisor_id = $1 AND p.rating IS NOT NULL
+       WHERE p.supervisor_id = $1 AND (p.status = 'RATED' OR p.status = 'NOT_WITNESSED')
        ORDER BY p.date DESC`,
       [req.user!.id]
     );

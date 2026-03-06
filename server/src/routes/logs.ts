@@ -169,7 +169,7 @@ router.get('/rated', authenticate, async (req: AuthRequest, res) => {
        LEFT JOIN users u ON sl.supervisor_id = u.id
        LEFT JOIN users res ON sl.resident_id = res.id
        LEFT JOIN resident_years ry ON sl.year_id = ry.id
-       WHERE sl.supervisor_id = $1 AND sl.status IN ('RATED', 'COMMENTED')
+       WHERE sl.supervisor_id = $1 AND sl.status IN ('RATED', 'COMMENTED', 'NOT_WITNESSED')
        ORDER BY sl.rated_at DESC`,
       [req.user!.id]
     );

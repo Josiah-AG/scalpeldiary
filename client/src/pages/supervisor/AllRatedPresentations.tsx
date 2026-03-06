@@ -10,10 +10,11 @@ interface Presentation {
   venue: string;
   presentation_type: string;
   description: string;
-  rating: number;
+  rating: number | null;
   comment: string;
   resident_name: string;
   resident_year: number;
+  status: string;
 }
 
 export default function AllRatedPresentations() {
@@ -42,7 +43,8 @@ export default function AllRatedPresentations() {
   return (
     <Layout title="All Rated Presentations">
       <div className="bg-white rounded-lg shadow overflow-hidden">
-        <div className="overflow-x-auto">
+        {/* Desktop Table View */}
+        <div className="hidden md:block overflow-x-auto">
           <table className="w-full">
             <thead className="bg-gradient-to-r from-green-600 to-green-700 text-white">
               <tr>
@@ -66,9 +68,15 @@ export default function AllRatedPresentations() {
                   <td className="px-4 py-3 text-sm">{pres.presentation_type}</td>
                   <td className="px-4 py-3 text-sm">{pres.venue}</td>
                   <td className="px-4 py-3 text-sm">
-                    <span className="px-2 py-1 bg-green-100 text-green-800 rounded font-semibold">
-                      {pres.rating}
-                    </span>
+                    {pres.status === 'NOT_WITNESSED' ? (
+                      <span className="px-2 py-1 bg-gray-100 text-gray-600 rounded font-semibold">
+                        N/A
+                      </span>
+                    ) : (
+                      <span className="px-2 py-1 bg-green-100 text-green-800 rounded font-semibold">
+                        {pres.rating}
+                      </span>
+                    )}
                   </td>
                   <td className="px-4 py-3 text-sm">
                     <button
@@ -83,6 +91,38 @@ export default function AllRatedPresentations() {
               ))}
             </tbody>
           </table>
+        </div>
+
+        {/* Mobile Card View */}
+        <div className="md:hidden divide-y divide-gray-200">
+          {presentations.map((pres) => (
+            <div
+              key={pres.id}
+              onClick={() => viewDetails(pres)}
+              className="p-4 hover:bg-gray-50 cursor-pointer"
+            >
+              <div className="flex justify-between items-start mb-2">
+                <div className="flex-1">
+                  <h3 className="font-semibold text-gray-900">{pres.title}</h3>
+                  <p className="text-sm text-gray-600">{pres.resident_name} - Year {pres.resident_year}</p>
+                </div>
+                {pres.status === 'NOT_WITNESSED' ? (
+                  <span className="px-2 py-1 bg-gray-100 text-gray-600 rounded text-sm font-semibold ml-2">
+                    N/A
+                  </span>
+                ) : (
+                  <span className="px-2 py-1 bg-green-100 text-green-800 rounded text-sm font-semibold ml-2">
+                    {pres.rating}
+                  </span>
+                )}
+              </div>
+              <div className="space-y-1 text-sm text-gray-600">
+                <p><span className="font-medium">Date:</span> {new Date(pres.date).toLocaleDateString()}</p>
+                <p><span className="font-medium">Type:</span> {pres.presentation_type}</p>
+                <p><span className="font-medium">Venue:</span> {pres.venue}</p>
+              </div>
+            </div>
+          ))}
         </div>
       </div>
 
@@ -135,7 +175,11 @@ export default function AllRatedPresentations() {
 
                 <div className="border-t pt-4">
                   <p className="text-sm text-gray-500">Rating</p>
-                  <p className="text-2xl font-bold text-green-600">{selectedPresentation.rating}</p>
+                  {selectedPresentation.status === 'NOT_WITNESSED' ? (
+                    <p className="text-2xl font-bold text-gray-600">N/A (Not Witnessed)</p>
+                  ) : (
+                    <p className="text-2xl font-bold text-green-600">{selectedPresentation.rating}</p>
+                  )}
                 </div>
 
                 {selectedPresentation.comment && (
