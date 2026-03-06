@@ -68,11 +68,11 @@ export default function NotificationPopup() {
     // Mark as read
     await markAsRead(notification.id);
     
-    // Navigate to appropriate page
+    // Navigate to appropriate page with correct tab
     if (notification.notification_type === 'procedure') {
-      navigate('/unresponded-logs');
+      navigate('/unresponded-logs', { state: { activeTab: 'procedures' } });
     } else if (notification.notification_type === 'presentation') {
-      navigate('/unresponded-logs');
+      navigate('/unresponded-logs', { state: { activeTab: 'presentations' } });
     }
   };
 

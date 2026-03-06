@@ -1,15 +1,19 @@
 import { useEffect, useState } from 'react';
+import { useLocation } from 'react-router-dom';
 import Layout from '../../components/Layout';
 import api from '../../api/axios';
 
 export default function UnrespondedLogs() {
+  const location = useLocation();
   const [logs, setLogs] = useState<any[]>([]);
   const [presentations, setPresentations] = useState<any[]>([]);
   const [selectedLog, setSelectedLog] = useState<any>(null);
   const [selectedPresentation, setSelectedPresentation] = useState<any>(null);
   const [rating, setRating] = useState('');
   const [comment, setComment] = useState('');
-  const [activeTab, setActiveTab] = useState<'procedures' | 'presentations'>('procedures');
+  const [activeTab, setActiveTab] = useState<'procedures' | 'presentations'>(
+    (location.state as any)?.activeTab || 'procedures'
+  );
 
   useEffect(() => {
     fetchLogs();
