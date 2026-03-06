@@ -175,8 +175,13 @@ export default function AllProcedures() {
     return log.rating > 50 ? 'bg-green-50' : 'bg-red-50';
   };
 
-  const getRatingBadge = (rating: number | null) => {
-    if (!rating) return <span className="px-3 py-1 rounded-full bg-gray-200 text-gray-700 font-semibold text-sm">Unrated</span>;
+  const getRatingBadge = (rating: number | null, status: string) => {
+    if (status === 'NOT_WITNESSED') {
+      return <span className="px-3 py-1 rounded-full bg-gray-200 text-gray-700 font-semibold text-sm">N/A</span>;
+    }
+    if (!rating) {
+      return <span className="px-3 py-1 rounded-full bg-gray-200 text-gray-700 font-semibold text-sm">Unrated</span>;
+    }
     const color = rating > 50 ? 'bg-green-500' : 'bg-red-500';
     return <span className={`px-3 py-1 rounded-full ${color} text-white font-semibold text-sm`}>{rating}/100</span>;
   };
@@ -339,7 +344,7 @@ export default function AllProcedures() {
                   <td className="px-6 py-4 text-sm">{log.surgery_role?.replace(/_/g, ' ')}</td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm">{log.place_of_practice}</td>
                   <td className="px-6 py-4 text-sm">{log.supervisor_name}</td>
-                  <td className="px-6 py-4 whitespace-nowrap">{getRatingBadge(log.rating)}</td>
+                  <td className="px-6 py-4 whitespace-nowrap">{getRatingBadge(log.rating, log.status)}</td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm space-x-3">
                     <button
                       onClick={() => setSelectedLog(log)}

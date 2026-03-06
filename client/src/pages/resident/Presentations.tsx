@@ -292,6 +292,9 @@ export default function Presentations() {
   };
 
   const getRatingBadge = (rating: number | null | undefined, status: string) => {
+    if (status === 'NOT_WITNESSED') {
+      return <span className="px-3 py-1 rounded-full bg-gray-200 text-gray-700 font-semibold text-sm">N/A</span>;
+    }
     if (!rating || status === 'PENDING') {
       return <span className="px-3 py-1 rounded-full bg-gray-200 text-gray-700 font-semibold text-sm">Unrated</span>;
     }

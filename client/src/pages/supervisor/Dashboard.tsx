@@ -81,7 +81,7 @@ export default function SupervisorDashboard() {
       {/* Metrics - Enhanced */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
         <button
-          onClick={() => navigate('/rated-procedures')}
+          onClick={() => navigate('/ratings-done')}
           className="bg-gradient-to-br from-blue-500 to-blue-600 text-white p-6 rounded-xl shadow-lg hover:shadow-2xl transition-all transform hover:scale-105"
         >
           <div className="flex items-center justify-between mb-4">
@@ -92,11 +92,11 @@ export default function SupervisorDashboard() {
           </div>
           <h3 className="text-sm font-medium opacity-90 mb-1">Total Surgeries Supervised</h3>
           <p className="text-4xl font-bold mb-2">{analytics?.totalSurgeries || 0}</p>
-          <p className="text-xs opacity-75">Click to view all rated procedures →</p>
+          <p className="text-xs opacity-75">Click to view all ratings done →</p>
         </button>
 
         <button
-          onClick={() => navigate('/rated-presentations')}
+          onClick={() => navigate('/ratings-done')}
           className="bg-gradient-to-br from-green-500 to-green-600 text-white p-6 rounded-xl shadow-lg hover:shadow-2xl transition-all transform hover:scale-105"
         >
           <div className="flex items-center justify-between mb-4">
@@ -107,7 +107,7 @@ export default function SupervisorDashboard() {
           </div>
           <h3 className="text-sm font-medium opacity-90 mb-1">Total Presentations Supervised</h3>
           <p className="text-4xl font-bold mb-2">{analytics?.totalPresentations || 0}</p>
-          <p className="text-xs opacity-75">Click to view all rated presentations →</p>
+          <p className="text-xs opacity-75">Click to view all ratings done →</p>
         </button>
 
         <button
