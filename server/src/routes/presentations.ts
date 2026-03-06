@@ -55,7 +55,8 @@ router.post('/', authenticate, async (req: AuthRequest, res) => {
   try {
     const { yearId, date, title, venue, presentationType, description, supervisorId } = req.body;
 
-    console.log('Creating presentation with supervisorId:', supervisorId);
+    console.log('=== CREATING PRESENTATION ===');
+    console.log('supervisorId:', supervisorId);
     console.log('User creating:', req.user!.name, req.user!.id);
 
     const result = await query(
@@ -65,16 +66,23 @@ router.post('/', authenticate, async (req: AuthRequest, res) => {
       [req.user!.id, yearId, date, title, venue, presentationType, description, supervisorId || null]
     );
 
+    console.log('Presentation created with ID:', result.rows[0].id);
+
     // Send notification to supervisor if assigned
     if (supervisorId) {
-      console.log('Sending notification to supervisor:', supervisorId);
-      await sendNotification(
-        supervisorId,
-        `New presentation assigned to you by ${req.user!.name}`,
-        result.rows[0].id,
-        'presentation'
-      );
-      console.log('Notification sent successfully');
+      console.log('Attempting to send notification to supervisor:', supervisorId);
+      try {
+        await sendNotification(
+          supervisorId,
+          `New presentation "${title}" assigned to you by ${req.user!.name}`,
+          result.rows[0].id,
+          'presentation'
+        );
+        console.log('✅ Notification sent successfully');
+      } catch (notifError) {
+        console.error('❌ Failed to send notification:', notifError);
+        // Don't fail the request if notification fails
+      }
     } else {
       console.log('No supervisorId provided, skipping notification');
     }
