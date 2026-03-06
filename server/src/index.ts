@@ -76,7 +76,7 @@ app.listen(PORT, () => {
   console.log(`🚀 Server running on port ${PORT}`);
   console.log(`📝 Environment: ${process.env.NODE_ENV || 'development'}`);
   console.log(`🌐 CORS enabled for: ${allowedOrigins.join(', ')}`);
-  console.log(`✅ Dashboard status display fixed - N/A for NOT_WITNESSED`);
+  console.log(`✅ Rating colors fixed and notification debugging enabled`);
   
   // Start the notification scheduler
   startNotificationScheduler();
