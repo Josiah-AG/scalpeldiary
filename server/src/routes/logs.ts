@@ -71,10 +71,10 @@ router.post('/', authenticate, async (req: AuthRequest, res) => {
        procedureType, procedureCategory || 'MINOR', placeOfPractice, surgeryRole, supervisorId, remark || null]
     );
 
-    // Send notification to supervisor
+    // Send notification to supervisor with resident name
     await sendNotification(
       supervisorId,
-      `New surgical log assigned to you by ${req.user!.email}`,
+      `New surgical log assigned to you by ${req.user!.name}`,
       result.rows[0].id,
       'procedure'
     );

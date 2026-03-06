@@ -618,6 +618,38 @@ router.post('/add-notification-type', authenticate, async (req: AuthRequest, res
   }
 });
 
+// Clear old notifications (mark as read)
+router.post('/clear-old-notifications', authenticate, async (req: AuthRequest, res) => {
+  // Check if user is Master
+  if (req.user!.role !== 'MASTER') {
+    return res.status(403).json({ error: 'Only Master accounts can clear notifications' });
+  }
+
+  try {
+    console.log('Clearing old notifications...');
+    
+    // Mark all unread notifications as read
+    const result = await query(
+      'UPDATE notifications SET read = true WHERE read = false'
+    );
+    
+    console.log(`✅ Marked ${result.rowCount} notifications as read`);
+    
+    res.json({ 
+      success: true, 
+      message: `Successfully marked ${result.rowCount} old notifications as read. New notifications will show resident names correctly.`,
+      count: result.rowCount
+    });
+  } catch (error: any) {
+    console.error('Failed to clear notifications:', error);
+    res.status(500).json({ 
+      success: false, 
+      error: 'Failed to clear notifications', 
+      details: error.message 
+    });
+  }
+});
+
 // Run chief resident setup (add color columns and ensure academic year)
 router.post('/setup-chief-resident', authenticate, async (req: AuthRequest, res) => {
   // Check if user is Master

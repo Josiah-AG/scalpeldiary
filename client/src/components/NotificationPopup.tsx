@@ -152,7 +152,8 @@ export default function NotificationPopup() {
             return (
               <div
                 key={notification.id}
-                className={`${colorScheme.bg} border-l-4 ${colorScheme.border} rounded-lg p-4 hover:shadow-md transition-all`}
+                onClick={() => isActionable && handleRateNow(notification)}
+                className={`${colorScheme.bg} border-l-4 ${colorScheme.border} rounded-lg p-4 hover:shadow-md transition-all ${isActionable ? 'cursor-pointer' : ''}`}
               >
                 <div className="flex items-start space-x-3">
                   <div className={`${colorScheme.iconColor} mt-1`}>
@@ -170,14 +171,20 @@ export default function NotificationPopup() {
                     <div className="flex items-center space-x-2 mt-3">
                       {isActionable && (
                         <button
-                          onClick={() => handleRateNow(notification)}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleRateNow(notification);
+                          }}
                           className={`${colorScheme.buttonBg} text-white px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors`}
                         >
                           {notification.notification_type === 'procedure' ? 'Rate Procedure' : 'Rate Presentation'}
                         </button>
                       )}
                       <button
-                        onClick={() => markAsRead(notification.id)}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          markAsRead(notification.id);
+                        }}
                         className="text-gray-600 hover:text-gray-800 text-xs font-semibold"
                       >
                         Dismiss

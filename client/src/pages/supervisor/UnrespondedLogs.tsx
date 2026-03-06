@@ -93,90 +93,185 @@ export default function UnrespondedLogs() {
       {/* Procedures Tab */}
       {activeTab === 'procedures' && (
         <div className="bg-white rounded-lg shadow overflow-hidden">
-          <table className="min-w-full divide-y divide-gray-200">
-            <thead className="bg-gray-50">
-              <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Date</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Resident</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Year</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Procedure</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Diagnosis</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Actions</th>
-              </tr>
-            </thead>
-            <tbody className="bg-white divide-y divide-gray-200">
-              {logs.map((log) => (
-                <tr key={log.id}>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm">{new Date(log.date).toLocaleDateString()}</td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm">{log.resident_name}</td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm">Year {log.resident_year}</td>
-                  <td className="px-6 py-4 text-sm">{log.procedure}</td>
-                  <td className="px-6 py-4 text-sm">{log.diagnosis}</td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm">
-                    <button
-                      onClick={() => setSelectedLog(log)}
-                      className="text-blue-600 hover:text-blue-900"
-                    >
-                      Rate
-                    </button>
-                  </td>
-                </tr>
-              ))}
-              {logs.length === 0 && (
+          {/* Desktop Table View */}
+          <div className="hidden md:block overflow-x-auto">
+            <table className="min-w-full divide-y divide-gray-200">
+              <thead className="bg-gray-50">
                 <tr>
-                  <td colSpan={6} className="px-6 py-12 text-center text-gray-500">
-                    No unresponded procedures
-                  </td>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Date</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Resident</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Year</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Procedure</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Diagnosis</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Actions</th>
                 </tr>
-              )}
-            </tbody>
-          </table>
+              </thead>
+              <tbody className="bg-white divide-y divide-gray-200">
+                {logs.map((log) => (
+                  <tr 
+                    key={log.id}
+                    onClick={() => setSelectedLog(log)}
+                    className="cursor-pointer hover:bg-blue-50 transition-colors"
+                  >
+                    <td className="px-6 py-4 whitespace-nowrap text-sm">{new Date(log.date).toLocaleDateString()}</td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm">{log.resident_name}</td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm">Year {log.resident_year}</td>
+                    <td className="px-6 py-4 text-sm">{log.procedure}</td>
+                    <td className="px-6 py-4 text-sm">{log.diagnosis}</td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm">
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setSelectedLog(log);
+                        }}
+                        className="text-blue-600 hover:text-blue-900 font-semibold"
+                      >
+                        Rate
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+                {logs.length === 0 && (
+                  <tr>
+                    <td colSpan={6} className="px-6 py-12 text-center text-gray-500">
+                      No unresponded procedures
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
+
+          {/* Mobile Card View */}
+          <div className="md:hidden divide-y divide-gray-200">
+            {logs.map((log) => (
+              <div
+                key={log.id}
+                onClick={() => setSelectedLog(log)}
+                className="p-4 hover:bg-blue-50 cursor-pointer transition-colors"
+              >
+                <div className="flex justify-between items-start mb-2">
+                  <div className="flex-1">
+                    <p className="font-semibold text-gray-900">{log.resident_name}</p>
+                    <p className="text-xs text-gray-500">Year {log.resident_year}</p>
+                  </div>
+                  <span className="text-xs text-gray-500">{new Date(log.date).toLocaleDateString()}</span>
+                </div>
+                <div className="space-y-1">
+                  <p className="text-sm text-gray-700"><span className="font-medium">Procedure:</span> {log.procedure}</p>
+                  <p className="text-sm text-gray-700"><span className="font-medium">Diagnosis:</span> {log.diagnosis}</p>
+                </div>
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setSelectedLog(log);
+                  }}
+                  className="mt-3 w-full bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 transition-colors font-semibold text-sm"
+                >
+                  Rate Procedure
+                </button>
+              </div>
+            ))}
+            {logs.length === 0 && (
+              <div className="px-6 py-12 text-center text-gray-500">
+                No unresponded procedures
+              </div>
+            )}
+          </div>
         </div>
       )}
 
       {/* Presentations Tab */}
       {activeTab === 'presentations' && (
         <div className="bg-white rounded-lg shadow overflow-hidden">
-          <table className="min-w-full divide-y divide-gray-200">
-            <thead className="bg-gray-50">
-              <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Date</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Resident</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Year</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Title</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Type</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Venue</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Actions</th>
-              </tr>
-            </thead>
-            <tbody className="bg-white divide-y divide-gray-200">
-              {presentations.map((pres) => (
-                <tr key={pres.id}>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm">{new Date(pres.date).toLocaleDateString()}</td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm">{pres.resident_name}</td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm">Year {pres.resident_year}</td>
-                  <td className="px-6 py-4 text-sm">{pres.title}</td>
-                  <td className="px-6 py-4 text-sm">{pres.presentation_type}</td>
-                  <td className="px-6 py-4 text-sm">{pres.venue}</td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm">
-                    <button
-                      onClick={() => setSelectedPresentation(pres)}
-                      className="text-blue-600 hover:text-blue-900"
-                    >
-                      Rate
-                    </button>
-                  </td>
-                </tr>
-              ))}
-              {presentations.length === 0 && (
+          {/* Desktop Table View */}
+          <div className="hidden md:block overflow-x-auto">
+            <table className="min-w-full divide-y divide-gray-200">
+              <thead className="bg-gray-50">
                 <tr>
-                  <td colSpan={7} className="px-6 py-12 text-center text-gray-500">
-                    No unresponded presentations
-                  </td>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Date</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Resident</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Year</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Title</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Type</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Venue</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Actions</th>
                 </tr>
-              )}
-            </tbody>
-          </table>
+              </thead>
+              <tbody className="bg-white divide-y divide-gray-200">
+                {presentations.map((pres) => (
+                  <tr 
+                    key={pres.id}
+                    onClick={() => setSelectedPresentation(pres)}
+                    className="cursor-pointer hover:bg-green-50 transition-colors"
+                  >
+                    <td className="px-6 py-4 whitespace-nowrap text-sm">{new Date(pres.date).toLocaleDateString()}</td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm">{pres.resident_name}</td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm">Year {pres.resident_year}</td>
+                    <td className="px-6 py-4 text-sm">{pres.title}</td>
+                    <td className="px-6 py-4 text-sm">{pres.presentation_type}</td>
+                    <td className="px-6 py-4 text-sm">{pres.venue}</td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm">
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setSelectedPresentation(pres);
+                        }}
+                        className="text-blue-600 hover:text-blue-900 font-semibold"
+                      >
+                        Rate
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+                {presentations.length === 0 && (
+                  <tr>
+                    <td colSpan={7} className="px-6 py-12 text-center text-gray-500">
+                      No unresponded presentations
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
+
+          {/* Mobile Card View */}
+          <div className="md:hidden divide-y divide-gray-200">
+            {presentations.map((pres) => (
+              <div
+                key={pres.id}
+                onClick={() => setSelectedPresentation(pres)}
+                className="p-4 hover:bg-green-50 cursor-pointer transition-colors"
+              >
+                <div className="flex justify-between items-start mb-2">
+                  <div className="flex-1">
+                    <p className="font-semibold text-gray-900">{pres.resident_name}</p>
+                    <p className="text-xs text-gray-500">Year {pres.resident_year}</p>
+                  </div>
+                  <span className="text-xs text-gray-500">{new Date(pres.date).toLocaleDateString()}</span>
+                </div>
+                <div className="space-y-1">
+                  <p className="text-sm text-gray-700"><span className="font-medium">Title:</span> {pres.title}</p>
+                  <p className="text-sm text-gray-700"><span className="font-medium">Type:</span> {pres.presentation_type}</p>
+                  <p className="text-sm text-gray-700"><span className="font-medium">Venue:</span> {pres.venue}</p>
+                </div>
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setSelectedPresentation(pres);
+                  }}
+                  className="mt-3 w-full bg-green-600 text-white py-2 rounded-lg hover:bg-green-700 transition-colors font-semibold text-sm"
+                >
+                  Rate Presentation
+                </button>
+              </div>
+            ))}
+            {presentations.length === 0 && (
+              <div className="px-6 py-12 text-center text-gray-500">
+                No unresponded presentations
+              </div>
+            )}
+          </div>
         </div>
       )}
 

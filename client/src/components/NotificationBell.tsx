@@ -49,9 +49,10 @@ export default function NotificationBell({ show, onClose, onCountChange }: Notif
   const fetchNotifications = async () => {
     try {
       const response = await api.get('/notifications');
-      setNotifications(response.data);
-      const unreadCount = response.data.filter((n: Notification) => !n.read).length;
-      onCountChange(unreadCount);
+      // Only show unread notifications
+      const unreadNotifications = response.data.filter((n: Notification) => !n.read);
+      setNotifications(unreadNotifications);
+      onCountChange(unreadNotifications.length);
     } catch (error) {
       console.error('Failed to fetch notifications:', error);
     }
@@ -159,7 +160,8 @@ export default function NotificationBell({ show, onClose, onCountChange }: Notif
               return (
                 <div
                   key={notification.id}
-                  className={`${colorScheme.bg} ${notification.read ? 'opacity-60' : ''} border-l-4 ${colorScheme.border} rounded-lg p-3 transition-all`}
+                  onClick={() => isActionable && handleRateNow(notification)}
+                  className={`${colorScheme.bg} border-l-4 ${colorScheme.border} rounded-lg p-3 transition-all ${isActionable ? 'cursor-pointer hover:shadow-md' : ''}`}
                 >
                   <div className="flex items-start space-x-2">
                     <div className={`${colorScheme.iconColor} mt-0.5`}>
@@ -174,24 +176,28 @@ export default function NotificationBell({ show, onClose, onCountChange }: Notif
                       </p>
                       
                       {/* Action Buttons */}
-                      {!notification.read && (
-                        <div className="flex items-center space-x-2 mt-2">
-                          {isActionable && (
-                            <button
-                              onClick={() => handleRateNow(notification)}
-                              className={`${colorScheme.buttonBg} text-white px-2 py-1 rounded text-xs font-semibold transition-colors`}
-                            >
-                              {notification.notification_type === 'procedure' ? 'Rate Procedure' : 'Rate Presentation'}
-                            </button>
-                          )}
+                      <div className="flex items-center space-x-2 mt-2">
+                        {isActionable && (
                           <button
-                            onClick={() => markAsRead(notification.id)}
-                            className="text-gray-600 hover:text-gray-800 text-xs font-semibold"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleRateNow(notification);
+                            }}
+                            className={`${colorScheme.buttonBg} text-white px-2 py-1 rounded text-xs font-semibold transition-colors`}
                           >
-                            Dismiss
+                            {notification.notification_type === 'procedure' ? 'Rate Procedure' : 'Rate Presentation'}
                           </button>
-                        </div>
-                      )}
+                        )}
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            markAsRead(notification.id);
+                          }}
+                          className="text-gray-600 hover:text-gray-800 text-xs font-semibold"
+                        >
+                          Dismiss
+                        </button>
+                      </div>
                     </div>
                   </div>
                 </div>
