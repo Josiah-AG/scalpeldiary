@@ -38,7 +38,9 @@ router.post('/login', async (req, res) => {
         id: user.id,
         email: user.email,
         name: user.name,
-        role: user.role
+        role: user.role,
+        has_management_access: user.has_management_access || false,
+        is_chief_resident: user.is_chief_resident || false
       }
     });
   } catch (error) {
