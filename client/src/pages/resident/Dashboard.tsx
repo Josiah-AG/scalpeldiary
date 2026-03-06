@@ -809,7 +809,9 @@ export default function Dashboard() {
                     </td>
                     <td className="px-3 py-3 md:px-6 md:py-4 text-xs md:text-sm text-gray-700 hidden md:table-cell">{surgery.surgery_role?.replace(/_/g, ' ')}</td>
                     <td className="px-3 py-3 md:px-6 md:py-4 whitespace-nowrap text-xs md:text-sm">
-                      {surgery.rating ? (
+                      {surgery.status === 'NOT_WITNESSED' ? (
+                        <span className="px-2 py-0.5 md:px-3 md:py-1 rounded-full bg-gray-400 text-white font-semibold text-xs">N/A</span>
+                      ) : surgery.rating ? (
                         <span className={`px-2 py-0.5 md:px-3 md:py-1 rounded-full font-semibold text-xs ${
                           surgery.rating > 50 ? 'bg-green-600 text-white' : 'bg-red-600 text-white'
                         }`}>
@@ -917,7 +919,9 @@ export default function Dashboard() {
                     <td className="px-3 py-3 md:px-6 md:py-4 text-xs md:text-sm text-gray-700 hidden md:table-cell">{pres.presentation_type?.replace(/_/g, ' ')}</td>
                     <td className="px-3 py-3 md:px-6 md:py-4 text-xs md:text-sm text-gray-700 hidden lg:table-cell">{pres.venue}</td>
                     <td className="px-3 py-3 md:px-6 md:py-4 whitespace-nowrap text-xs md:text-sm">
-                      {pres.rating ? (
+                      {pres.status === 'NOT_WITNESSED' ? (
+                        <span className="px-2 py-0.5 md:px-3 md:py-1 rounded-full bg-gray-400 text-white font-semibold text-xs">N/A</span>
+                      ) : pres.rating ? (
                         <span className={`px-2 py-0.5 md:px-3 md:py-1 rounded-full font-semibold text-xs ${
                           pres.rating > 50 ? 'bg-green-600 text-white' : 'bg-red-600 text-white'
                         }`}>
