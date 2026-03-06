@@ -62,6 +62,16 @@ router.post('/', authenticate, async (req: AuthRequest, res) => {
       [req.user!.id, yearId, date, title, venue, presentationType, description, supervisorId || null]
     );
 
+    // Send notification to supervisor if assigned
+    if (supervisorId) {
+      await sendNotification(
+        supervisorId,
+        `New presentation assigned to you by ${req.user!.name}`,
+        result.rows[0].id,
+        'presentation'
+      );
+    }
+
     res.status(201).json(result.rows[0]);
   } catch (error) {
     console.error('Failed to create presentation:', error);
