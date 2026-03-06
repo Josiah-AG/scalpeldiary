@@ -20,6 +20,13 @@ export default function UnrespondedLogs() {
     fetchPresentations();
   }, []);
 
+  // Update active tab when location state changes
+  useEffect(() => {
+    if ((location.state as any)?.activeTab) {
+      setActiveTab((location.state as any).activeTab);
+    }
+  }, [location.state]);
+
   const fetchLogs = async () => {
     const response = await api.get('/logs/to-rate');
     setLogs(response.data);
@@ -51,9 +58,14 @@ export default function UnrespondedLogs() {
   };
 
   const handleRatePresentation = async () => {
+    if (!rating || rating === '') {
+      alert('Rating is required for presentations');
+      return;
+    }
+    
     try {
       await api.post(`/presentations/${selectedPresentation.id}/rate`, {
-        rating: rating ? parseInt(rating) : null,
+        rating: parseInt(rating),
         comment,
       });
       alert('Presentation rated successfully');
@@ -420,7 +432,9 @@ export default function UnrespondedLogs() {
             </div>
             <div className="space-y-4">
               <div>
-                <label className="block text-sm font-medium mb-2">Rating (0-100)</label>
+                <label className="block text-sm font-medium mb-2">
+                  Rating (0-100) <span className="text-red-600">*</span>
+                </label>
                 <input
                   type="number"
                   min="0"
@@ -428,7 +442,8 @@ export default function UnrespondedLogs() {
                   value={rating}
                   onChange={(e) => setRating(e.target.value)}
                   className="w-full px-4 py-2 border rounded-md"
-                  placeholder="Leave empty if not witnessed"
+                  placeholder="Enter rating (required)"
+                  required
                 />
               </div>
               <div>
@@ -438,13 +453,17 @@ export default function UnrespondedLogs() {
                   onChange={(e) => setComment(e.target.value)}
                   className="w-full px-4 py-2 border rounded-md"
                   rows={4}
-                  required
                 />
               </div>
               <div className="flex space-x-3">
                 <button
                   onClick={handleRatePresentation}
-                  className="flex-1 bg-blue-600 text-white py-2 rounded-md hover:bg-blue-700"
+                  disabled={!rating || rating === ''}
+                  className={`flex-1 py-2 rounded-md transition-colors ${
+                    !rating || rating === ''
+                      ? 'bg-gray-400 cursor-not-allowed text-white'
+                      : 'bg-blue-600 text-white hover:bg-blue-700'
+                  }`}
                 >
                   Submit
                 </button>

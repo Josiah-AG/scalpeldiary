@@ -226,7 +226,7 @@ router.get('/rated', authenticate, async (req: AuthRequest, res) => {
        LEFT JOIN users u ON p.supervisor_id = u.id
        LEFT JOIN users res ON p.resident_id = res.id
        LEFT JOIN resident_years ry ON p.year_id = ry.id
-       WHERE p.supervisor_id = $1 AND (p.status = 'RATED' OR p.status = 'NOT_WITNESSED')
+       WHERE p.supervisor_id = $1 AND p.status = 'RATED'
        ORDER BY p.date DESC`,
       [req.user!.id]
     );
@@ -262,15 +262,22 @@ router.post('/:presentationId/rate', authenticate, async (req: AuthRequest, res)
     const { presentationId } = req.params;
     const { rating, comment } = req.body;
 
-    // If no rating provided, mark as NOT_WITNESSED
-    const status = rating ? 'RATED' : 'NOT_WITNESSED';
+    // Rating is mandatory for presentations
+    if (!rating || rating === null || rating === undefined) {
+      return res.status(400).json({ error: 'Rating is required for presentations' });
+    }
+
+    // Validate rating range
+    if (rating < 0 || rating > 100) {
+      return res.status(400).json({ error: 'Rating must be between 0 and 100' });
+    }
     
     const result = await query(
       `UPDATE presentations 
-       SET rating = $1, comment = $2, status = $3, rated_at = NOW(), updated_at = NOW()
-       WHERE id = $4 AND supervisor_id = $5
+       SET rating = $1, comment = $2, status = 'RATED', rated_at = NOW(), updated_at = NOW()
+       WHERE id = $3 AND supervisor_id = $4
        RETURNING *`,
-      [rating, comment, status, presentationId, req.user!.id]
+      [rating, comment, presentationId, req.user!.id]
     );
 
     if (result.rows.length === 0) {
@@ -279,9 +286,7 @@ router.post('/:presentationId/rate', authenticate, async (req: AuthRequest, res)
 
     // Send notification to the resident
     const presentation = result.rows[0];
-    const notificationMessage = rating 
-      ? `Your presentation "${presentation.title}" has been rated` 
-      : `Your presentation "${presentation.title}" was marked as not witnessed`;
+    const notificationMessage = `Your presentation "${presentation.title}" has been rated`;
     
     await sendNotification(
       presentation.resident_id,
