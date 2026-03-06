@@ -75,7 +75,7 @@ router.post('/', authenticate, async (req: AuthRequest, res) => {
         await sendNotification(
           supervisorId,
           `New presentation "${title}" assigned to you by ${req.user!.name}`,
-          result.rows[0].id,
+          null, // presentations don't have log_id (that's for surgical_logs)
           'presentation'
         );
         console.log('✅ Notification sent successfully');
@@ -286,7 +286,7 @@ router.post('/:presentationId/rate', authenticate, async (req: AuthRequest, res)
     await sendNotification(
       presentation.resident_id,
       notificationMessage,
-      presentationId,
+      null, // presentations don't have log_id
       'rated'
     );
 

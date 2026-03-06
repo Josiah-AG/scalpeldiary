@@ -28,12 +28,16 @@ try {
 // Get notifications for user
 router.get('/', authenticate, async (req: AuthRequest, res) => {
   try {
+    console.log('Fetching notifications for user:', req.user!.id);
     const result = await query(
       'SELECT * FROM notifications WHERE user_id = $1 ORDER BY created_at DESC LIMIT 50',
       [req.user!.id]
     );
+    console.log(`Found ${result.rows.length} notifications`);
+    console.log('Notification types:', result.rows.map(n => n.notification_type));
     res.json(result.rows);
   } catch (error) {
+    console.error('Failed to fetch notifications:', error);
     res.status(500).json({ error: 'Failed to fetch notifications' });
   }
 });

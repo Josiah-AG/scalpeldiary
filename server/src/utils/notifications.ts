@@ -4,7 +4,7 @@ import { sendPushNotification } from '../routes/notifications';
 export const sendNotification = async (
   userId: string,
   message: string,
-  logId?: string,
+  logId?: string | null,
   notificationType?: 'procedure' | 'presentation' | 'rated'
 ) => {
   try {
@@ -28,7 +28,7 @@ export const sendNotification = async (
         userId,
         'ScalpelDiary',
         message,
-        logId ? `/logs/${logId}` : '/'
+        '/' // Always go to home, let user navigate from there
       );
       console.log('✅ Push notification sent');
     } catch (pushError) {

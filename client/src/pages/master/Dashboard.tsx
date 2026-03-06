@@ -13,6 +13,8 @@ export default function MasterDashboard() {
   const [sortBy, setSortBy] = useState<'name' | 'created'>('created');
   const [migrationStatus, setMigrationStatus] = useState<string>('');
   const [migrationLoading, setMigrationLoading] = useState(false);
+  const [debugNotifications, setDebugNotifications] = useState<any>(null);
+  const [debugLoading, setDebugLoading] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -53,6 +55,19 @@ export default function MasterDashboard() {
       setMigrationStatus(`❌ Error: ${error.response?.data?.details || error.message}`);
     } finally {
       setMigrationLoading(false);
+    }
+  };
+
+  const checkRecentNotifications = async () => {
+    setDebugLoading(true);
+    try {
+      const response = await api.get('/notifications/debug/recent');
+      setDebugNotifications(response.data);
+    } catch (error: any) {
+      console.error('Failed to fetch debug notifications:', error);
+      setDebugNotifications({ error: error.response?.data?.details || error.message });
+    } finally {
+      setDebugLoading(false);
     }
   };
 
@@ -214,6 +229,59 @@ export default function MasterDashboard() {
               <p className="text-sm font-medium">{migrationStatus}</p>
             </div>
           )}
+
+          {/* Debug Section */}
+          <div className="mt-6 pt-6 border-t border-gray-200">
+            <h4 className="text-sm font-semibold text-gray-700 mb-3">Debug Tools</h4>
+            <button
+              onClick={checkRecentNotifications}
+              disabled={debugLoading}
+              className={`px-4 py-2 rounded-lg font-semibold text-sm transition-all ${
+                debugLoading
+                  ? 'bg-gray-400 cursor-not-allowed text-white'
+                  : 'bg-gray-600 hover:bg-gray-700 text-white'
+              }`}
+            >
+              {debugLoading ? 'Loading...' : 'Check Recent Notifications'}
+            </button>
+
+            {debugNotifications && (
+              <div className="mt-4 p-4 bg-gray-50 rounded-lg border border-gray-200 max-h-96 overflow-y-auto">
+                {debugNotifications.error ? (
+                  <p className="text-red-600 text-sm">{debugNotifications.error}</p>
+                ) : (
+                  <>
+                    <p className="text-sm font-semibold mb-3">
+                      Recent Notifications: {debugNotifications.total}
+                    </p>
+                    <div className="space-y-2">
+                      {debugNotifications.notifications?.map((notif: any) => (
+                        <div key={notif.id} className="bg-white p-3 rounded border border-gray-200 text-xs">
+                          <div className="flex justify-between items-start mb-1">
+                            <span className="font-semibold text-gray-900">{notif.user_name}</span>
+                            <span className={`px-2 py-0.5 rounded text-xs font-semibold ${
+                              notif.notification_type === 'procedure' ? 'bg-blue-100 text-blue-800' :
+                              notif.notification_type === 'presentation' ? 'bg-green-100 text-green-800' :
+                              notif.notification_type === 'rated' ? 'bg-purple-100 text-purple-800' :
+                              'bg-gray-100 text-gray-800'
+                            }`}>
+                              {notif.notification_type || 'none'}
+                            </span>
+                          </div>
+                          <p className="text-gray-700 mb-1">{notif.message}</p>
+                          <div className="flex justify-between text-gray-500">
+                            <span>{notif.user_email}</span>
+                            <span>{notif.read ? '✓ Read' : '○ Unread'}</span>
+                          </div>
+                          <p className="text-gray-400 mt-1">{new Date(notif.created_at).toLocaleString()}</p>
+                        </div>
+                      ))}
+                    </div>
+                  </>
+                )}
+              </div>
+            )}
+          </div>
         </div>
       </div>
 

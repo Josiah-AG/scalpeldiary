@@ -650,6 +650,43 @@ router.post('/clear-old-notifications', authenticate, async (req: AuthRequest, r
   }
 });
 
+// Debug endpoint - Check recent notifications (Master only)
+router.get('/debug/recent', authenticate, async (req: AuthRequest, res) => {
+  // Check if user is Master
+  if (req.user!.role !== 'MASTER') {
+    return res.status(403).json({ error: 'Only Master accounts can access debug endpoints' });
+  }
+
+  try {
+    const result = await query(
+      `SELECT n.*, u.name as user_name, u.email as user_email
+       FROM notifications n
+       JOIN users u ON n.user_id = u.id
+       ORDER BY n.created_at DESC
+       LIMIT 20`
+    );
+    
+    res.json({
+      total: result.rows.length,
+      notifications: result.rows.map(n => ({
+        id: n.id,
+        user_name: n.user_name,
+        user_email: n.user_email,
+        message: n.message,
+        notification_type: n.notification_type,
+        read: n.read,
+        created_at: n.created_at
+      }))
+    });
+  } catch (error: any) {
+    console.error('Failed to fetch debug notifications:', error);
+    res.status(500).json({ 
+      error: 'Failed to fetch notifications', 
+      details: error.message 
+    });
+  }
+});
+
 // Run chief resident setup (add color columns and ensure academic year)
 router.post('/setup-chief-resident', authenticate, async (req: AuthRequest, res) => {
   // Check if user is Master
