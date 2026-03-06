@@ -73,7 +73,9 @@ export default function AllRatedPresentations() {
                         N/A
                       </span>
                     ) : (
-                      <span className="px-2 py-1 bg-green-100 text-green-800 rounded font-semibold">
+                      <span className={`px-2 py-1 rounded font-semibold ${
+                        pres.rating && pres.rating > 50 ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
+                      }`}>
                         {pres.rating}
                       </span>
                     )}
@@ -111,7 +113,9 @@ export default function AllRatedPresentations() {
                     N/A
                   </span>
                 ) : (
-                  <span className="px-2 py-1 bg-green-100 text-green-800 rounded text-sm font-semibold ml-2">
+                  <span className={`px-2 py-1 rounded text-sm font-semibold ml-2 ${
+                    pres.rating && pres.rating > 50 ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
+                  }`}>
                     {pres.rating}
                   </span>
                 )}

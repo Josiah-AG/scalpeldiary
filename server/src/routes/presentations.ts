@@ -55,6 +55,9 @@ router.post('/', authenticate, async (req: AuthRequest, res) => {
   try {
     const { yearId, date, title, venue, presentationType, description, supervisorId } = req.body;
 
+    console.log('Creating presentation with supervisorId:', supervisorId);
+    console.log('User creating:', req.user!.name, req.user!.id);
+
     const result = await query(
       `INSERT INTO presentations (
         resident_id, year_id, date, title, venue, presentation_type, description, supervisor_id, status
@@ -64,12 +67,16 @@ router.post('/', authenticate, async (req: AuthRequest, res) => {
 
     // Send notification to supervisor if assigned
     if (supervisorId) {
+      console.log('Sending notification to supervisor:', supervisorId);
       await sendNotification(
         supervisorId,
         `New presentation assigned to you by ${req.user!.name}`,
         result.rows[0].id,
         'presentation'
       );
+      console.log('Notification sent successfully');
+    } else {
+      console.log('No supervisorId provided, skipping notification');
     }
 
     res.status(201).json(result.rows[0]);
