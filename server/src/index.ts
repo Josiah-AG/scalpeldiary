@@ -1,4 +1,4 @@
-// ScalpelDiary Backend Server
+// ScalpelDiary Backend Server - Notification System
 import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
