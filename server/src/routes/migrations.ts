@@ -697,7 +697,18 @@ router.post('/fix-notification-log-id', authenticate, async (req: AuthRequest, r
   try {
     console.log('Fixing notification log_id column type...');
     
-    // Change log_id from UUID to TEXT to support both UUIDs (procedures) and integers (presentations)
+    // Step 1: Drop the foreign key constraint if it exists
+    try {
+      await query(`
+        ALTER TABLE notifications 
+        DROP CONSTRAINT IF EXISTS notifications_log_id_fkey
+      `);
+      console.log('✅ Dropped foreign key constraint');
+    } catch (e) {
+      console.log('No foreign key constraint to drop');
+    }
+    
+    // Step 2: Change log_id from UUID to TEXT to support both UUIDs (procedures) and integers (presentations)
     await query(`
       ALTER TABLE notifications 
       ALTER COLUMN log_id TYPE TEXT USING log_id::TEXT
