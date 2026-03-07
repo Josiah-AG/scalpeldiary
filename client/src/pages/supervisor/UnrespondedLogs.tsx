@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { useLocation, useSearchParams } from 'react-router-dom';
+import { useSearchParams } from 'react-router-dom';
 import Layout from '../../components/Layout';
 import api from '../../api/axios';
 
@@ -12,6 +12,7 @@ export default function UnrespondedLogs() {
   const [rating, setRating] = useState('');
   const [comment, setComment] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [hasAutoOpened, setHasAutoOpened] = useState(false); // Track if we've already auto-opened
   const [activeTab, setActiveTab] = useState<'procedures' | 'presentations'>(
     searchParams.get('tab') as 'procedures' | 'presentations' || 'procedures'
   );
@@ -29,13 +30,14 @@ export default function UnrespondedLogs() {
     }
   }, [searchParams]);
 
-  // Auto-open first presentation if autoOpen parameter is present
+  // Auto-open first presentation if autoOpen parameter is present (only once on initial load)
   useEffect(() => {
     const autoOpen = searchParams.get('autoOpen');
-    if (autoOpen === 'true' && presentations.length > 0 && !selectedPresentation) {
+    if (autoOpen === 'true' && presentations.length > 0 && !selectedPresentation && !hasAutoOpened) {
       setSelectedPresentation(presentations[0]);
+      setHasAutoOpened(true); // Mark that we've auto-opened
     }
-  }, [presentations, searchParams, selectedPresentation]);
+  }, [presentations, searchParams, selectedPresentation, hasAutoOpened]);
 
   const fetchLogs = async () => {
     const response = await api.get('/logs/to-rate');
@@ -66,17 +68,11 @@ export default function UnrespondedLogs() {
       setRating('');
       setComment('');
       
-      // Refresh list and get updated logs
+      // Refresh list to show updated logs
       const response = await api.get('/logs/to-rate');
-      const updatedLogs = response.data;
-      setLogs(updatedLogs);
+      setLogs(response.data);
       
-      // Auto-open next log if available (after a short delay for smooth transition)
-      if (updatedLogs.length > 0) {
-        setTimeout(() => {
-          setSelectedLog(updatedLogs[0]);
-        }, 300);
-      }
+      // Don't auto-open next log - let user choose
     } catch (error) {
       alert('Failed to rate log');
     } finally {
@@ -104,17 +100,11 @@ export default function UnrespondedLogs() {
       setRating('');
       setComment('');
       
-      // Refresh list and get updated presentations
+      // Refresh list to show updated presentations
       const response = await api.get('/presentations/to-rate');
-      const updatedPresentations = response.data;
-      setPresentations(updatedPresentations);
+      setPresentations(response.data);
       
-      // Auto-open next presentation if available (after a short delay for smooth transition)
-      if (updatedPresentations.length > 0) {
-        setTimeout(() => {
-          setSelectedPresentation(updatedPresentations[0]);
-        }, 300);
-      }
+      // Don't auto-open next presentation - let user choose
     } catch (error) {
       alert('Failed to rate presentation');
     } finally {
