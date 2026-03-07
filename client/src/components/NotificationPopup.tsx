@@ -17,7 +17,8 @@ interface Notification {
 export default function NotificationPopup() {
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [showPopup, setShowPopup] = useState(false);
-  const [selectedItem, setSelectedItem] = useState<{ id: string; type: 'procedure' | 'presentation' } | null>(null);
+  const [selectedItem, setSelectedItem] = useState<{ item: any; type: 'procedure' | 'presentation' } | null>(null);
+  const [loadingItem, setLoadingItem] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -76,7 +77,12 @@ export default function NotificationPopup() {
     setShowPopup(false);
   };
 
-  const handleRateNow = async (notification: Notification) => {
+  const handleRateNow = async (notification: Notification, autoMarkRead: boolean = false) => {
+    // Auto-dismiss notification if requested
+    if (autoMarkRead) {
+      await markAsRead(notification.id);
+    }
+    
     // Close popup first
     setShowPopup(false);
     
@@ -86,14 +92,37 @@ export default function NotificationPopup() {
     } else if (notification.notification_type === 'presentation') {
       navigate('/unresponded-logs?tab=presentations&autoOpen=true');
     } else if (notification.notification_type === 'rated' && notification.log_id) {
-      // Open modal with the rated item
+      // Fetch the full item data before opening modal
+      await fetchAndShowRatedItem(notification.log_id);
+    }
+  };
+
+  const fetchAndShowRatedItem = async (logId: string) => {
+    try {
+      setLoadingItem(true);
       // Determine if it's a procedure or presentation
       // Procedures have UUID format (with dashes), presentations are numeric
-      const isProcedure = notification.log_id.includes('-');
-      setSelectedItem({
-        id: notification.log_id,
-        type: isProcedure ? 'procedure' : 'presentation'
-      });
+      const isProcedure = logId.includes('-');
+      
+      if (isProcedure) {
+        // Fetch all logs to find this one
+        const response = await api.get('/logs/my-logs?yearId=all');
+        const procedure = response.data.find((p: any) => p.id === logId);
+        if (procedure) {
+          setSelectedItem({ item: procedure, type: 'procedure' });
+        }
+      } else {
+        // Fetch all presentations to find this one
+        const response = await api.get('/presentations/my-presentations');
+        const presentation = response.data.find((p: any) => p.id === parseInt(logId));
+        if (presentation) {
+          setSelectedItem({ item: presentation, type: 'presentation' });
+        }
+      }
+    } catch (error) {
+      console.error('Failed to fetch rated item:', error);
+    } finally {
+      setLoadingItem(false);
     }
   };
 
@@ -135,14 +164,25 @@ export default function NotificationPopup() {
   };
 
   if (!showPopup || notifications.length === 0) {
-    // Still render modal if selected
-    return selectedItem ? (
-      <RatedItemModal
-        itemId={selectedItem.id}
-        itemType={selectedItem.type}
-        onClose={() => setSelectedItem(null)}
-      />
-    ) : null;
+    // Still render modal and loading overlay if selected
+    return (
+      <>
+        {loadingItem && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+            <div className="bg-white rounded-lg p-6">
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
+            </div>
+          </div>
+        )}
+        {selectedItem ? (
+          <RatedItemModal
+            item={selectedItem.item}
+            itemType={selectedItem.type}
+            onClose={() => setSelectedItem(null)}
+          />
+        ) : null}
+      </>
+    );
   }
 
   return (
@@ -183,7 +223,7 @@ export default function NotificationPopup() {
             return (
               <div
                 key={notification.id}
-                onClick={() => isClickable && handleRateNow(notification)}
+                onClick={() => isClickable && handleRateNow(notification, true)}
                 className={`${colorScheme.bg} border-l-4 ${colorScheme.border} rounded-lg p-4 hover:shadow-md transition-all ${isClickable ? 'cursor-pointer' : ''}`}
               >
                 <div className="flex items-start space-x-3">
@@ -204,7 +244,7 @@ export default function NotificationPopup() {
                         <button
                           onClick={(e) => {
                             e.stopPropagation();
-                            handleRateNow(notification);
+                            handleRateNow(notification, true);
                           }}
                           className={`${colorScheme.buttonBg} text-white px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors`}
                         >
@@ -215,7 +255,7 @@ export default function NotificationPopup() {
                         <button
                           onClick={(e) => {
                             e.stopPropagation();
-                            handleRateNow(notification);
+                            handleRateNow(notification, true);
                           }}
                           className={`${colorScheme.buttonBg} text-white px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors`}
                         >
@@ -257,10 +297,19 @@ export default function NotificationPopup() {
       </div>
       </div>
 
+      {/* Loading Overlay */}
+      {loadingItem && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
+          </div>
+        </div>
+      )}
+
       {/* Rated Item Modal */}
       {selectedItem && (
         <RatedItemModal
-          itemId={selectedItem.id}
+          item={selectedItem.item}
           itemType={selectedItem.type}
           onClose={() => setSelectedItem(null)}
         />

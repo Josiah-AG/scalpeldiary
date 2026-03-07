@@ -4,18 +4,22 @@ import api from '../api/axios';
 import { format } from 'date-fns';
 
 interface RatedItemModalProps {
-  itemId: string;
+  item?: any; // Accept full item object
+  itemId?: string; // Keep for backward compatibility
   itemType: 'procedure' | 'presentation';
   onClose: () => void;
 }
 
-export default function RatedItemModal({ itemId, itemType, onClose }: RatedItemModalProps) {
-  const [item, setItem] = useState<any>(null);
-  const [loading, setLoading] = useState(true);
+export default function RatedItemModal({ item: providedItem, itemId, itemType, onClose }: RatedItemModalProps) {
+  const [item, setItem] = useState<any>(providedItem || null);
+  const [loading, setLoading] = useState(!providedItem);
 
   useEffect(() => {
-    fetchItemDetails();
-  }, [itemId, itemType]);
+    // Only fetch if item not provided
+    if (!providedItem && itemId) {
+      fetchItemDetails();
+    }
+  }, [itemId, itemType, providedItem]);
 
   const fetchItemDetails = async () => {
     try {
@@ -28,7 +32,7 @@ export default function RatedItemModal({ itemId, itemType, onClose }: RatedItemM
       } else {
         // Fetch all presentations including rated ones
         const response = await api.get('/presentations/my-presentations');
-        const presentation = response.data.find((p: any) => p.id === parseInt(itemId));
+        const presentation = response.data.find((p: any) => p.id === parseInt(itemId!));
         setItem(presentation);
       }
     } catch (error) {
