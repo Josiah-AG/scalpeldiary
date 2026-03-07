@@ -123,8 +123,8 @@ export default function Layout({ children, title }: LayoutProps) {
     // Clear read-only mode
     sessionStorage.removeItem('viewingResidentId');
     sessionStorage.removeItem('isReadOnlyMode');
-    // Clear notification popup flag so it shows again on next login
-    sessionStorage.removeItem('notificationPopupShown');
+    // Clear notification check time so popup shows on next login
+    sessionStorage.removeItem('lastNotificationCheck');
     logout();
     navigate('/login');
   };

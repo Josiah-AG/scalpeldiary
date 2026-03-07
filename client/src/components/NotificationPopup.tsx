@@ -19,12 +19,7 @@ export default function NotificationPopup() {
   const navigate = useNavigate();
 
   useEffect(() => {
-    // Check if popup has already been shown in this session
-    const popupShown = sessionStorage.getItem('notificationPopupShown');
-    
-    if (!popupShown) {
-      fetchUnreadNotifications();
-    }
+    fetchUnreadNotifications();
   }, []);
 
   const fetchUnreadNotifications = async () => {
@@ -33,10 +28,18 @@ export default function NotificationPopup() {
       const unread = response.data.filter((n: Notification) => !n.read);
       
       if (unread.length > 0) {
-        setNotifications(unread);
-        setShowPopup(true);
-        // Mark that popup has been shown in this session
-        sessionStorage.setItem('notificationPopupShown', 'true');
+        // Check if there are NEW notifications since last check
+        const lastCheckTime = sessionStorage.getItem('lastNotificationCheck');
+        const hasNewNotifications = lastCheckTime 
+          ? unread.some((n: Notification) => new Date(n.created_at) > new Date(lastCheckTime))
+          : true; // First time, show all
+        
+        if (hasNewNotifications) {
+          setNotifications(unread);
+          setShowPopup(true);
+          // Update last check time to now
+          sessionStorage.setItem('lastNotificationCheck', new Date().toISOString());
+        }
       }
     } catch (error) {
       console.error('Failed to fetch notifications:', error);
@@ -72,8 +75,9 @@ export default function NotificationPopup() {
   };
 
   const handleRateNow = async (notification: Notification) => {
-    // Mark as read
-    await markAsRead(notification.id);
+    // Don't mark as read yet - let user see it on the destination page
+    // Just close the popup and navigate
+    setShowPopup(false);
     
     // Navigate to appropriate page with correct tab
     if (notification.notification_type === 'procedure') {
