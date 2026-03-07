@@ -21,13 +21,13 @@ export default function RatedItemModal({ itemId, itemType, onClose }: RatedItemM
     try {
       setLoading(true);
       if (itemType === 'procedure') {
-        // Fetch procedure from rated logs
-        const response = await api.get('/logs/rated');
-        const procedure = response.data.find((p: any) => p.id === parseInt(itemId));
+        // Fetch from my-logs and find the specific one
+        const response = await api.get('/logs/my-logs');
+        const procedure = response.data.find((p: any) => p.id === itemId);
         setItem(procedure);
       } else {
-        // Fetch presentation from rated presentations
-        const response = await api.get('/presentations/rated');
+        // Fetch from my-presentations and find the specific one
+        const response = await api.get('/presentations/my-presentations');
         const presentation = response.data.find((p: any) => p.id === parseInt(itemId));
         setItem(presentation);
       }
