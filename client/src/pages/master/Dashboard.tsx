@@ -149,6 +149,32 @@ export default function MasterDashboard() {
         </div>
       </div>
 
+      {/* Database Migration Section */}
+      <div className="mb-8 bg-gradient-to-r from-orange-50 to-amber-50 rounded-xl shadow-md border-2 border-orange-300 p-6">
+        <h3 className="text-lg font-semibold text-orange-900 mb-3 flex items-center">
+          <Activity className="w-5 h-5 mr-2" />
+          Database Migrations
+        </h3>
+        <p className="text-sm text-orange-800 mb-4">
+          Run this migration to fix rated notifications for presentations. This changes the log_id column to support both procedure UUIDs and presentation IDs.
+        </p>
+        <button
+          onClick={async () => {
+            if (confirm('Run notification log_id migration? This will allow rated notifications to work for presentations.')) {
+              try {
+                const response = await api.post('/migrations/fix-notification-log-id');
+                alert(response.data.message);
+              } catch (error: any) {
+                alert('Migration failed: ' + (error.response?.data?.details || error.message));
+              }
+            }
+          }}
+          className="bg-orange-600 hover:bg-orange-700 text-white px-4 py-2 rounded-lg font-semibold transition-colors"
+        >
+          Fix Notification Log ID Column
+        </button>
+      </div>
+
       {/* Masters List Modal */}
       {showMasters && (
         <div className="mb-8 bg-white rounded-xl shadow-lg overflow-hidden border-2 border-purple-500">

@@ -687,6 +687,38 @@ router.get('/debug/recent', authenticate, async (req: AuthRequest, res) => {
   }
 });
 
+// Fix notification log_id column to support both UUIDs and integers
+router.post('/fix-notification-log-id', authenticate, async (req: AuthRequest, res) => {
+  // Check if user is Master
+  if (req.user!.role !== 'MASTER') {
+    return res.status(403).json({ error: 'Only Master accounts can run migrations' });
+  }
+
+  try {
+    console.log('Fixing notification log_id column type...');
+    
+    // Change log_id from UUID to TEXT to support both UUIDs (procedures) and integers (presentations)
+    await query(`
+      ALTER TABLE notifications 
+      ALTER COLUMN log_id TYPE TEXT USING log_id::TEXT
+    `);
+    
+    console.log('✅ Changed log_id column from UUID to TEXT');
+    
+    res.json({ 
+      success: true, 
+      message: 'Successfully changed log_id column to TEXT type. Rated notifications will now work for both procedures and presentations.'
+    });
+  } catch (error: any) {
+    console.error('Migration failed:', error);
+    res.status(500).json({ 
+      success: false, 
+      error: 'Migration failed', 
+      details: error.message 
+    });
+  }
+});
+
 // Run chief resident setup (add color columns and ensure academic year)
 router.post('/setup-chief-resident', authenticate, async (req: AuthRequest, res) => {
   // Check if user is Master
