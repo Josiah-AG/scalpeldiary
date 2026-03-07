@@ -3,6 +3,7 @@ import { Bell, X, Star, FileText, Activity } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import api from '../api/axios';
 import { format } from 'date-fns';
+import RatedItemModal from './RatedItemModal';
 
 interface Notification {
   id: string;
@@ -21,6 +22,7 @@ interface NotificationBellProps {
 
 export default function NotificationBell({ show, onClose, onCountChange }: NotificationBellProps) {
   const [notifications, setNotifications] = useState<Notification[]>([]);
+  const [selectedItem, setSelectedItem] = useState<{ id: string; type: 'procedure' | 'presentation' } | null>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const navigate = useNavigate();
 
@@ -76,12 +78,23 @@ export default function NotificationBell({ show, onClose, onCountChange }: Notif
     }
   };
 
-  const handleRateNow = async (notification: Notification) => {
-    await markAsRead(notification.id);
+  const handleNotificationClick = async (notification: Notification) => {
     onClose();
     
-    if (notification.notification_type === 'procedure' || notification.notification_type === 'presentation') {
-      navigate('/unresponded-logs');
+    // Navigate or open modal based on notification type
+    if (notification.notification_type === 'procedure') {
+      navigate('/unresponded-logs?tab=procedures');
+    } else if (notification.notification_type === 'presentation') {
+      navigate('/unresponded-logs?tab=presentations&autoOpen=true');
+    } else if (notification.notification_type === 'rated' && notification.log_id) {
+      // Open modal with the rated item
+      // Determine if it's a procedure or presentation
+      // Procedures have UUID format (with dashes), presentations are numeric
+      const isProcedure = notification.log_id.includes('-');
+      setSelectedItem({
+        id: notification.log_id,
+        type: isProcedure ? 'procedure' : 'presentation'
+      });
     }
   };
 
@@ -122,7 +135,16 @@ export default function NotificationBell({ show, onClose, onCountChange }: Notif
     }
   };
 
-  if (!show) return null;
+  if (!show) {
+    // Still render modal if selected
+    return selectedItem ? (
+      <RatedItemModal
+        itemId={selectedItem.id}
+        itemType={selectedItem.type}
+        onClose={() => setSelectedItem(null)}
+      />
+    ) : null;
+  }
 
   return (
     <div
@@ -156,12 +178,14 @@ export default function NotificationBell({ show, onClose, onCountChange }: Notif
               const colorScheme = getNotificationColor(notification.notification_type);
               const Icon = colorScheme.icon;
               const isActionable = notification.notification_type === 'procedure' || notification.notification_type === 'presentation';
+              const isRated = notification.notification_type === 'rated';
+              const isClickable = isActionable || isRated;
               
               return (
                 <div
                   key={notification.id}
-                  onClick={() => isActionable && handleRateNow(notification)}
-                  className={`${colorScheme.bg} border-l-4 ${colorScheme.border} rounded-lg p-3 transition-all ${isActionable ? 'cursor-pointer hover:shadow-md' : ''}`}
+                  onClick={() => isClickable && handleNotificationClick(notification)}
+                  className={`${colorScheme.bg} border-l-4 ${colorScheme.border} rounded-lg p-3 transition-all ${isClickable ? 'cursor-pointer hover:shadow-md' : ''}`}
                 >
                   <div className="flex items-start space-x-2">
                     <div className={`${colorScheme.iconColor} mt-0.5`}>
@@ -181,11 +205,22 @@ export default function NotificationBell({ show, onClose, onCountChange }: Notif
                           <button
                             onClick={(e) => {
                               e.stopPropagation();
-                              handleRateNow(notification);
+                              handleNotificationClick(notification);
                             }}
                             className={`${colorScheme.buttonBg} text-white px-2 py-1 rounded text-xs font-semibold transition-colors`}
                           >
                             {notification.notification_type === 'procedure' ? 'Rate Procedure' : 'Rate Presentation'}
+                          </button>
+                        )}
+                        {isRated && (
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleNotificationClick(notification);
+                            }}
+                            className={`${colorScheme.buttonBg} text-white px-2 py-1 rounded text-xs font-semibold transition-colors`}
+                          >
+                            View Details
                           </button>
                         )}
                         <button
@@ -217,6 +252,15 @@ export default function NotificationBell({ show, onClose, onCountChange }: Notif
             Mark all as read
           </button>
         </div>
+      )}
+
+      {/* Rated Item Modal */}
+      {selectedItem && (
+        <RatedItemModal
+          itemId={selectedItem.id}
+          itemType={selectedItem.type}
+          onClose={() => setSelectedItem(null)}
+        />
       )}
     </div>
   );
