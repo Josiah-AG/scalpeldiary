@@ -1,10 +1,11 @@
 import { useEffect, useState } from 'react';
-import { useLocation } from 'react-router-dom';
+import { useLocation, useSearchParams } from 'react-router-dom';
 import Layout from '../../components/Layout';
 import api from '../../api/axios';
 
 export default function UnrespondedLogs() {
   const location = useLocation();
+  const [searchParams] = useSearchParams();
   const [logs, setLogs] = useState<any[]>([]);
   const [presentations, setPresentations] = useState<any[]>([]);
   const [selectedLog, setSelectedLog] = useState<any>(null);
@@ -12,7 +13,7 @@ export default function UnrespondedLogs() {
   const [rating, setRating] = useState('');
   const [comment, setComment] = useState('');
   const [activeTab, setActiveTab] = useState<'procedures' | 'presentations'>(
-    (location.state as any)?.activeTab || 'procedures'
+    searchParams.get('tab') as 'procedures' | 'presentations' || 'procedures'
   );
 
   useEffect(() => {
@@ -20,12 +21,21 @@ export default function UnrespondedLogs() {
     fetchPresentations();
   }, []);
 
-  // Update active tab when location state changes
+  // Update active tab when URL parameters change
   useEffect(() => {
-    if ((location.state as any)?.activeTab) {
-      setActiveTab((location.state as any).activeTab);
+    const tab = searchParams.get('tab');
+    if (tab === 'procedures' || tab === 'presentations') {
+      setActiveTab(tab);
     }
-  }, [location.state]);
+  }, [searchParams]);
+
+  // Auto-open first presentation if autoOpen parameter is present
+  useEffect(() => {
+    const autoOpen = searchParams.get('autoOpen');
+    if (autoOpen === 'true' && presentations.length > 0 && !selectedPresentation) {
+      setSelectedPresentation(presentations[0]);
+    }
+  }, [presentations, searchParams, selectedPresentation]);
 
   const fetchLogs = async () => {
     const response = await api.get('/logs/to-rate');
@@ -350,8 +360,9 @@ export default function UnrespondedLogs() {
                   value={rating}
                   onChange={(e) => setRating(e.target.value)}
                   className="w-full px-4 py-2 border rounded-md"
-                  placeholder="Leave empty if not witnessed"
+                  placeholder="Enter rating"
                 />
+                <p className="text-xs text-gray-500 mt-1">Leave empty if procedure was not witnessed</p>
               </div>
               <div>
                 <label className="block text-sm font-medium mb-2">Comment</label>

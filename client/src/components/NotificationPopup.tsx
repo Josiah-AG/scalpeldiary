@@ -70,9 +70,9 @@ export default function NotificationPopup() {
     
     // Navigate to appropriate page with correct tab
     if (notification.notification_type === 'procedure') {
-      navigate('/unresponded-logs', { state: { activeTab: 'procedures' } });
+      navigate('/unresponded-logs?tab=procedures');
     } else if (notification.notification_type === 'presentation') {
-      navigate('/unresponded-logs', { state: { activeTab: 'presentations' } });
+      navigate('/unresponded-logs?tab=presentations&autoOpen=true');
     }
   };
 
