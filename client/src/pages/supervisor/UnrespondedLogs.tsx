@@ -337,9 +337,34 @@ export default function UnrespondedLogs() {
 
       {/* Procedure Rating Modal */}
       {selectedLog && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-          <div className="bg-white rounded-lg p-6 max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-            <h3 className="text-lg font-semibold mb-4">Rate Procedure</h3>
+        <div 
+          className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50"
+          onClick={() => {
+            if (!isSubmitting) {
+              setSelectedLog(null);
+              setRating('');
+              setComment('');
+            }
+          }}
+        >
+          <div 
+            className="bg-white rounded-lg p-6 max-w-2xl w-full max-h-[90vh] overflow-y-auto"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="text-lg font-semibold">Rate Procedure</h3>
+              <button
+                onClick={() => {
+                  setSelectedLog(null);
+                  setRating('');
+                  setComment('');
+                }}
+                className="text-gray-500 hover:text-gray-700 text-2xl font-bold leading-none"
+                disabled={isSubmitting}
+              >
+                ×
+              </button>
+            </div>
             <div 
               className="mb-4 p-4 bg-blue-50 rounded-lg border-2 border-blue-200 cursor-pointer hover:bg-blue-100 transition-colors"
               onClick={() => {
@@ -439,9 +464,34 @@ export default function UnrespondedLogs() {
 
       {/* Presentation Rating Modal */}
       {selectedPresentation && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-          <div className="bg-white rounded-lg p-6 max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-            <h3 className="text-lg font-semibold mb-4">Rate Presentation</h3>
+        <div 
+          className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50"
+          onClick={() => {
+            if (!isSubmitting) {
+              setSelectedPresentation(null);
+              setRating('');
+              setComment('');
+            }
+          }}
+        >
+          <div 
+            className="bg-white rounded-lg p-6 max-w-2xl w-full max-h-[90vh] overflow-y-auto"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="text-lg font-semibold">Rate Presentation</h3>
+              <button
+                onClick={() => {
+                  setSelectedPresentation(null);
+                  setRating('');
+                  setComment('');
+                }}
+                className="text-gray-500 hover:text-gray-700 text-2xl font-bold leading-none"
+                disabled={isSubmitting}
+              >
+                ×
+              </button>
+            </div>
             <div 
               className="mb-4 p-4 bg-green-50 rounded-lg border-2 border-green-200 cursor-pointer hover:bg-green-100 transition-colors"
               onClick={() => {
