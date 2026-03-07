@@ -291,7 +291,7 @@ router.post('/:presentationId/rate', authenticate, async (req: AuthRequest, res)
     await sendNotification(
       presentation.resident_id,
       notificationMessage,
-      null, // presentations don't have log_id
+      presentationId.toString(), // Store presentation ID for fetching later
       'rated'
     );
 

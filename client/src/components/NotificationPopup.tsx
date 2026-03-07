@@ -3,6 +3,7 @@ import { X, Bell, Star, FileText, Activity } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import api from '../api/axios';
 import { format } from 'date-fns';
+import RatedItemModal from './RatedItemModal';
 
 interface Notification {
   id: string;
@@ -16,6 +17,7 @@ interface Notification {
 export default function NotificationPopup() {
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [showPopup, setShowPopup] = useState(false);
+  const [selectedItem, setSelectedItem] = useState<{ id: string; type: 'procedure' | 'presentation' } | null>(null);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -75,24 +77,23 @@ export default function NotificationPopup() {
   };
 
   const handleRateNow = async (notification: Notification) => {
-    // Don't mark as read yet - let user see it on the destination page
-    // Just close the popup and navigate
+    // Close popup first
     setShowPopup(false);
     
-    // Navigate to appropriate page with correct tab
+    // Navigate or open modal based on notification type
     if (notification.notification_type === 'procedure') {
       navigate('/unresponded-logs?tab=procedures');
     } else if (notification.notification_type === 'presentation') {
       navigate('/unresponded-logs?tab=presentations&autoOpen=true');
-    } else if (notification.notification_type === 'rated') {
-      // Navigate to appropriate page to view rated item
-      if (notification.log_id) {
-        // It's a procedure - go to ratings done page (procedures tab)
-        navigate('/ratings-done?tab=procedures');
-      } else {
-        // It's a presentation - go to ratings done page (presentations tab)
-        navigate('/ratings-done?tab=presentations');
-      }
+    } else if (notification.notification_type === 'rated' && notification.log_id) {
+      // Open modal with the rated item
+      // Determine if it's a procedure or presentation
+      // Procedures have UUID format (with dashes), presentations are numeric
+      const isProcedure = notification.log_id.includes('-');
+      setSelectedItem({
+        id: notification.log_id,
+        type: isProcedure ? 'procedure' : 'presentation'
+      });
     }
   };
 
@@ -134,11 +135,19 @@ export default function NotificationPopup() {
   };
 
   if (!showPopup || notifications.length === 0) {
-    return null;
+    // Still render modal if selected
+    return selectedItem ? (
+      <RatedItemModal
+        itemId={selectedItem.id}
+        itemType={selectedItem.type}
+        onClose={() => setSelectedItem(null)}
+      />
+    ) : null;
   }
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50 animate-fadeIn">
+    <>
+      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50 animate-fadeIn">
       <div className="bg-white rounded-xl shadow-2xl max-w-md w-full max-h-[80vh] overflow-hidden animate-slideUp">
         {/* Header */}
         <div className="bg-gradient-to-r from-blue-600 to-blue-700 px-6 py-4 flex items-center justify-between">
@@ -246,6 +255,16 @@ export default function NotificationPopup() {
           </button>
         </div>
       </div>
-    </div>
+      </div>
+
+      {/* Rated Item Modal */}
+      {selectedItem && (
+        <RatedItemModal
+          itemId={selectedItem.id}
+          itemType={selectedItem.type}
+          onClose={() => setSelectedItem(null)}
+        />
+      )}
+    </>
   );
 }
