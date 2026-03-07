@@ -286,7 +286,7 @@ router.post('/:presentationId/rate', authenticate, async (req: AuthRequest, res)
 
     // Send notification to the resident
     const presentation = result.rows[0];
-    const notificationMessage = `Your presentation "${presentation.title}" has been rated`;
+    const notificationMessage = `Your presentation "${presentation.title}" has been rated: ${rating}/100`;
     
     await sendNotification(
       presentation.resident_id,

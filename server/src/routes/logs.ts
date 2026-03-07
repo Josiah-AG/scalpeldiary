@@ -141,7 +141,7 @@ router.post('/:logId/rate', authenticate, async (req: AuthRequest, res) => {
     // Notify resident
     const log = result.rows[0];
     const notificationMessage = rating 
-      ? 'Your surgical log has been rated' 
+      ? `Your surgical log has been rated: ${rating}/100`
       : 'Your surgical log was marked as not witnessed';
     
     await sendNotification(

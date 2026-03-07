@@ -11,10 +11,6 @@ export default function MasterDashboard() {
   const [showRotationsModal, setShowRotationsModal] = useState(false);
   const [showActivitiesModal, setShowActivitiesModal] = useState(false);
   const [sortBy, setSortBy] = useState<'name' | 'created'>('created');
-  const [migrationStatus, setMigrationStatus] = useState<string>('');
-  const [migrationLoading, setMigrationLoading] = useState(false);
-  const [debugNotifications, setDebugNotifications] = useState<any>(null);
-  const [debugLoading, setDebugLoading] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -40,36 +36,6 @@ export default function MasterDashboard() {
     // Default: sort by created date (newest first)
     return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
   });
-
-  const runNotificationMigration = async () => {
-    setMigrationLoading(true);
-    setMigrationStatus('');
-    try {
-      const response = await api.post('/migrations/add-notification-type');
-      if (response.data.success) {
-        setMigrationStatus(`✅ ${response.data.message}`);
-      } else {
-        setMigrationStatus(`❌ Migration failed: ${response.data.error}`);
-      }
-    } catch (error: any) {
-      setMigrationStatus(`❌ Error: ${error.response?.data?.details || error.message}`);
-    } finally {
-      setMigrationLoading(false);
-    }
-  };
-
-  const checkRecentNotifications = async () => {
-    setDebugLoading(true);
-    try {
-      const response = await api.get('/notifications/debug/recent');
-      setDebugNotifications(response.data);
-    } catch (error: any) {
-      console.error('Failed to fetch debug notifications:', error);
-      setDebugNotifications({ error: error.response?.data?.details || error.message });
-    } finally {
-      setDebugLoading(false);
-    }
-  };
 
   return (
     <Layout title="Master Dashboard">
@@ -179,108 +145,6 @@ export default function MasterDashboard() {
             <div className="p-3 bg-red-100 rounded-lg">
               <Shield className="w-8 h-8 text-red-600" />
             </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Database Migrations Section */}
-      <div className="mb-8 bg-white rounded-xl shadow-lg overflow-hidden border-2 border-blue-500">
-        <div className="bg-gradient-to-r from-blue-600 to-blue-700 text-white px-6 py-4">
-          <h3 className="text-lg font-semibold flex items-center">
-            <Activity className="w-6 h-6 mr-2" />
-            Database Migrations
-          </h3>
-        </div>
-        <div className="p-6">
-          <div className="bg-blue-50 border-l-4 border-blue-500 p-4 mb-4">
-            <p className="text-sm text-blue-800">
-              <strong>Notification System Migration:</strong> This migration adds the notification_type column to enable color-coded notifications (blue for procedures, green for presentations, purple for rated).
-            </p>
-          </div>
-          
-          <button
-            onClick={runNotificationMigration}
-            disabled={migrationLoading}
-            className={`w-full md:w-auto px-6 py-3 rounded-lg font-semibold transition-all ${
-              migrationLoading
-                ? 'bg-gray-400 cursor-not-allowed'
-                : 'bg-blue-600 hover:bg-blue-700 text-white shadow-md hover:shadow-lg'
-            }`}
-          >
-            {migrationLoading ? (
-              <span className="flex items-center justify-center">
-                <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                </svg>
-                Running Migration...
-              </span>
-            ) : (
-              'Run Notification Type Migration'
-            )}
-          </button>
-
-          {migrationStatus && (
-            <div className={`mt-4 p-4 rounded-lg ${
-              migrationStatus.startsWith('✅') 
-                ? 'bg-green-50 border border-green-200 text-green-800' 
-                : 'bg-red-50 border border-red-200 text-red-800'
-            }`}>
-              <p className="text-sm font-medium">{migrationStatus}</p>
-            </div>
-          )}
-
-          {/* Debug Section */}
-          <div className="mt-6 pt-6 border-t border-gray-200">
-            <h4 className="text-sm font-semibold text-gray-700 mb-3">Debug Tools</h4>
-            <button
-              onClick={checkRecentNotifications}
-              disabled={debugLoading}
-              className={`px-4 py-2 rounded-lg font-semibold text-sm transition-all ${
-                debugLoading
-                  ? 'bg-gray-400 cursor-not-allowed text-white'
-                  : 'bg-gray-600 hover:bg-gray-700 text-white'
-              }`}
-            >
-              {debugLoading ? 'Loading...' : 'Check Recent Notifications'}
-            </button>
-
-            {debugNotifications && (
-              <div className="mt-4 p-4 bg-gray-50 rounded-lg border border-gray-200 max-h-96 overflow-y-auto">
-                {debugNotifications.error ? (
-                  <p className="text-red-600 text-sm">{debugNotifications.error}</p>
-                ) : (
-                  <>
-                    <p className="text-sm font-semibold mb-3">
-                      Recent Notifications: {debugNotifications.total}
-                    </p>
-                    <div className="space-y-2">
-                      {debugNotifications.notifications?.map((notif: any) => (
-                        <div key={notif.id} className="bg-white p-3 rounded border border-gray-200 text-xs">
-                          <div className="flex justify-between items-start mb-1">
-                            <span className="font-semibold text-gray-900">{notif.user_name}</span>
-                            <span className={`px-2 py-0.5 rounded text-xs font-semibold ${
-                              notif.notification_type === 'procedure' ? 'bg-blue-100 text-blue-800' :
-                              notif.notification_type === 'presentation' ? 'bg-green-100 text-green-800' :
-                              notif.notification_type === 'rated' ? 'bg-purple-100 text-purple-800' :
-                              'bg-gray-100 text-gray-800'
-                            }`}>
-                              {notif.notification_type || 'none'}
-                            </span>
-                          </div>
-                          <p className="text-gray-700 mb-1">{notif.message}</p>
-                          <div className="flex justify-between text-gray-500">
-                            <span>{notif.user_email}</span>
-                            <span>{notif.read ? '✓ Read' : '○ Unread'}</span>
-                          </div>
-                          <p className="text-gray-400 mt-1">{new Date(notif.created_at).toLocaleString()}</p>
-                        </div>
-                      ))}
-                    </div>
-                  </>
-                )}
-              </div>
-            )}
           </div>
         </div>
       </div>

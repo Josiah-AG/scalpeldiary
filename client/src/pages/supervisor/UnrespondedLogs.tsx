@@ -57,11 +57,24 @@ export default function UnrespondedLogs() {
         rating: rating ? parseInt(rating) : null,
         comment,
       });
-      alert('Log rated successfully');
+      
+      const currentLogId = selectedLog.id;
+      
+      // Close modal and clear form
       setSelectedLog(null);
       setRating('');
       setComment('');
-      fetchLogs();
+      
+      // Refresh list
+      await fetchLogs();
+      
+      // Auto-open next log if available (after a short delay for smooth transition)
+      setTimeout(() => {
+        const remainingLogs = logs.filter(l => l.id !== currentLogId);
+        if (remainingLogs.length > 0) {
+          setSelectedLog(remainingLogs[0]);
+        }
+      }, 300);
     } catch (error) {
       alert('Failed to rate log');
     }
@@ -78,11 +91,24 @@ export default function UnrespondedLogs() {
         rating: parseInt(rating),
         comment,
       });
-      alert('Presentation rated successfully');
+      
+      const currentPresentationId = selectedPresentation.id;
+      
+      // Close modal and clear form
       setSelectedPresentation(null);
       setRating('');
       setComment('');
-      fetchPresentations();
+      
+      // Refresh list
+      await fetchPresentations();
+      
+      // Auto-open next presentation if available (after a short delay for smooth transition)
+      setTimeout(() => {
+        const remainingPresentations = presentations.filter(p => p.id !== currentPresentationId);
+        if (remainingPresentations.length > 0) {
+          setSelectedPresentation(remainingPresentations[0]);
+        }
+      }, 300);
     } catch (error) {
       alert('Failed to rate presentation');
     }
