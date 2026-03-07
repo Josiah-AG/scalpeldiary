@@ -4,7 +4,6 @@ import Layout from '../../components/Layout';
 import api from '../../api/axios';
 
 export default function UnrespondedLogs() {
-  const location = useLocation();
   const [searchParams] = useSearchParams();
   const [logs, setLogs] = useState<any[]>([]);
   const [presentations, setPresentations] = useState<any[]>([]);
@@ -12,6 +11,7 @@ export default function UnrespondedLogs() {
   const [selectedPresentation, setSelectedPresentation] = useState<any>(null);
   const [rating, setRating] = useState('');
   const [comment, setComment] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [activeTab, setActiveTab] = useState<'procedures' | 'presentations'>(
     searchParams.get('tab') as 'procedures' | 'presentations' || 'procedures'
   );
@@ -52,13 +52,14 @@ export default function UnrespondedLogs() {
   };
 
   const handleRate = async () => {
+    if (isSubmitting) return; // Prevent double submission
+    
+    setIsSubmitting(true);
     try {
       await api.post(`/logs/${selectedLog.id}/rate`, {
         rating: rating ? parseInt(rating) : null,
         comment,
       });
-      
-      const currentLogId = selectedLog.id;
       
       // Close modal and clear form
       setSelectedLog(null);
@@ -78,6 +79,8 @@ export default function UnrespondedLogs() {
       }
     } catch (error) {
       alert('Failed to rate log');
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -87,13 +90,14 @@ export default function UnrespondedLogs() {
       return;
     }
     
+    if (isSubmitting) return; // Prevent double submission
+    
+    setIsSubmitting(true);
     try {
       await api.post(`/presentations/${selectedPresentation.id}/rate`, {
         rating: parseInt(rating),
         comment,
       });
-      
-      const currentPresentationId = selectedPresentation.id;
       
       // Close modal and clear form
       setSelectedPresentation(null);
@@ -113,6 +117,8 @@ export default function UnrespondedLogs() {
       }
     } catch (error) {
       alert('Failed to rate presentation');
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -405,9 +411,14 @@ export default function UnrespondedLogs() {
               <div className="flex space-x-3">
                 <button
                   onClick={handleRate}
-                  className="flex-1 bg-blue-600 text-white py-2 rounded-md hover:bg-blue-700"
+                  disabled={isSubmitting}
+                  className={`flex-1 py-2 rounded-md transition-colors ${
+                    isSubmitting
+                      ? 'bg-gray-400 cursor-not-allowed text-white'
+                      : 'bg-blue-600 text-white hover:bg-blue-700'
+                  }`}
                 >
-                  Submit
+                  {isSubmitting ? 'Submitting...' : 'Submit'}
                 </button>
                 <button
                   onClick={() => {
@@ -415,7 +426,8 @@ export default function UnrespondedLogs() {
                     setRating('');
                     setComment('');
                   }}
-                  className="flex-1 bg-gray-300 text-gray-700 py-2 rounded-md hover:bg-gray-400"
+                  disabled={isSubmitting}
+                  className="flex-1 bg-gray-300 text-gray-700 py-2 rounded-md hover:bg-gray-400 disabled:opacity-50"
                 >
                   Cancel
                 </button>
@@ -497,14 +509,14 @@ export default function UnrespondedLogs() {
               <div className="flex space-x-3">
                 <button
                   onClick={handleRatePresentation}
-                  disabled={!rating || rating === ''}
+                  disabled={!rating || rating === '' || isSubmitting}
                   className={`flex-1 py-2 rounded-md transition-colors ${
-                    !rating || rating === ''
+                    !rating || rating === '' || isSubmitting
                       ? 'bg-gray-400 cursor-not-allowed text-white'
                       : 'bg-blue-600 text-white hover:bg-blue-700'
                   }`}
                 >
-                  Submit
+                  {isSubmitting ? 'Submitting...' : 'Submit'}
                 </button>
                 <button
                   onClick={() => {
@@ -512,7 +524,8 @@ export default function UnrespondedLogs() {
                     setRating('');
                     setComment('');
                   }}
-                  className="flex-1 bg-gray-300 text-gray-700 py-2 rounded-md hover:bg-gray-400"
+                  disabled={isSubmitting}
+                  className="flex-1 bg-gray-300 text-gray-700 py-2 rounded-md hover:bg-gray-400 disabled:opacity-50"
                 >
                   Cancel
                 </button>

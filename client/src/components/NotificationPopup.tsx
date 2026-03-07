@@ -157,12 +157,14 @@ export default function NotificationPopup() {
             const colorScheme = getNotificationColor(notification.notification_type);
             const Icon = colorScheme.icon;
             const isActionable = notification.notification_type === 'procedure' || notification.notification_type === 'presentation';
+            const isRated = notification.notification_type === 'rated';
+            const isClickable = isActionable || isRated;
             
             return (
               <div
                 key={notification.id}
-                onClick={() => isActionable && handleRateNow(notification)}
-                className={`${colorScheme.bg} border-l-4 ${colorScheme.border} rounded-lg p-4 hover:shadow-md transition-all ${isActionable ? 'cursor-pointer' : ''}`}
+                onClick={() => isClickable && handleRateNow(notification)}
+                className={`${colorScheme.bg} border-l-4 ${colorScheme.border} rounded-lg p-4 hover:shadow-md transition-all ${isClickable ? 'cursor-pointer' : ''}`}
               >
                 <div className="flex items-start space-x-3">
                   <div className={`${colorScheme.iconColor} mt-1`}>
@@ -187,6 +189,17 @@ export default function NotificationPopup() {
                           className={`${colorScheme.buttonBg} text-white px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors`}
                         >
                           {notification.notification_type === 'procedure' ? 'Rate Procedure' : 'Rate Presentation'}
+                        </button>
+                      )}
+                      {isRated && (
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleRateNow(notification);
+                          }}
+                          className={`${colorScheme.buttonBg} text-white px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors`}
+                        >
+                          View Details
                         </button>
                       )}
                       <button

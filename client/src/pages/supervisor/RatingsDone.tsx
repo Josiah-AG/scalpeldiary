@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import Layout from '../../components/Layout';
 import api from '../../api/axios';
 import { Eye, FileText, Presentation } from 'lucide-react';
@@ -38,13 +39,24 @@ interface PresentationItem {
 }
 
 export default function RatingsDone() {
-  const [activeTab, setActiveTab] = useState<'procedures' | 'presentations'>('procedures');
+  const [searchParams] = useSearchParams();
+  const [activeTab, setActiveTab] = useState<'procedures' | 'presentations'>(
+    searchParams.get('tab') as 'procedures' | 'presentations' || 'procedures'
+  );
   const [procedures, setProcedures] = useState<Procedure[]>([]);
   const [presentations, setPresentations] = useState<PresentationItem[]>([]);
   const [selectedProcedure, setSelectedProcedure] = useState<Procedure | null>(null);
   const [selectedPresentation, setSelectedPresentation] = useState<PresentationItem | null>(null);
   const [showProcedureModal, setShowProcedureModal] = useState(false);
   const [showPresentationModal, setShowPresentationModal] = useState(false);
+
+  // Update active tab when URL parameters change
+  useEffect(() => {
+    const tab = searchParams.get('tab');
+    if (tab === 'procedures' || tab === 'presentations') {
+      setActiveTab(tab);
+    }
+  }, [searchParams]);
 
   useEffect(() => {
     fetchProcedures();
