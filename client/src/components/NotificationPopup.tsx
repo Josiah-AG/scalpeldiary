@@ -52,6 +52,7 @@ export default function NotificationPopup() {
   const markAsRead = async (notificationId: string) => {
     try {
       await api.put(`/notifications/${notificationId}/read`);
+      // Immediately update local state
       setNotifications(prev => prev.filter(n => n.id !== notificationId));
       
       // Close popup if no more notifications
@@ -78,7 +79,20 @@ export default function NotificationPopup() {
   };
 
   const handleRateNow = async (notification: Notification, autoMarkRead: boolean = false) => {
-    // Auto-dismiss notification if requested
+    // For rated notifications, fetch and show modal
+    if (notification.notification_type === 'rated' && notification.log_id) {
+      // Mark as read first
+      if (autoMarkRead) {
+        await markAsRead(notification.id);
+      }
+      // Close popup
+      setShowPopup(false);
+      // Fetch the full item data and open modal
+      await fetchAndShowRatedItem(notification.log_id);
+      return;
+    }
+    
+    // For actionable notifications (procedure/presentation to rate)
     if (autoMarkRead) {
       await markAsRead(notification.id);
     }
@@ -86,14 +100,11 @@ export default function NotificationPopup() {
     // Close popup first
     setShowPopup(false);
     
-    // Navigate or open modal based on notification type
+    // Navigate based on notification type
     if (notification.notification_type === 'procedure') {
       navigate('/unresponded-logs?tab=procedures');
     } else if (notification.notification_type === 'presentation') {
       navigate('/unresponded-logs?tab=presentations&autoOpen=true');
-    } else if (notification.notification_type === 'rated' && notification.log_id) {
-      // Fetch the full item data before opening modal
-      await fetchAndShowRatedItem(notification.log_id);
     }
   };
 
@@ -110,6 +121,9 @@ export default function NotificationPopup() {
         const procedure = response.data.find((p: any) => p.id === logId);
         if (procedure) {
           setSelectedItem({ item: procedure, type: 'procedure' });
+        } else {
+          console.error('Procedure not found with ID:', logId);
+          alert('Could not find the rated procedure. It may have been deleted.');
         }
       } else {
         // Fetch all presentations to find this one
@@ -117,10 +131,14 @@ export default function NotificationPopup() {
         const presentation = response.data.find((p: any) => p.id === parseInt(logId));
         if (presentation) {
           setSelectedItem({ item: presentation, type: 'presentation' });
+        } else {
+          console.error('Presentation not found with ID:', logId);
+          alert('Could not find the rated presentation. It may have been deleted.');
         }
       }
     } catch (error) {
       console.error('Failed to fetch rated item:', error);
+      alert('Failed to load details. Please try again.');
     } finally {
       setLoadingItem(false);
     }
