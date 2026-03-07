@@ -19,7 +19,12 @@ export default function NotificationPopup() {
   const navigate = useNavigate();
 
   useEffect(() => {
-    fetchUnreadNotifications();
+    // Check if popup has already been shown in this session
+    const popupShown = sessionStorage.getItem('notificationPopupShown');
+    
+    if (!popupShown) {
+      fetchUnreadNotifications();
+    }
   }, []);
 
   const fetchUnreadNotifications = async () => {
@@ -30,6 +35,8 @@ export default function NotificationPopup() {
       if (unread.length > 0) {
         setNotifications(unread);
         setShowPopup(true);
+        // Mark that popup has been shown in this session
+        sessionStorage.setItem('notificationPopupShown', 'true');
       }
     } catch (error) {
       console.error('Failed to fetch notifications:', error);
@@ -76,11 +83,11 @@ export default function NotificationPopup() {
     } else if (notification.notification_type === 'rated') {
       // Navigate to appropriate page to view rated item
       if (notification.log_id) {
-        // It's a procedure - go to rated logs
-        navigate('/rated-logs');
+        // It's a procedure - go to ratings done page (procedures tab)
+        navigate('/ratings-done?tab=procedures');
       } else {
-        // It's a presentation - go to presentations page
-        navigate('/presentations');
+        // It's a presentation - go to ratings done page (presentations tab)
+        navigate('/ratings-done?tab=presentations');
       }
     }
   };
