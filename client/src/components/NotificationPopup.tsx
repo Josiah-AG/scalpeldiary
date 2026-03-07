@@ -73,6 +73,15 @@ export default function NotificationPopup() {
       navigate('/unresponded-logs?tab=procedures');
     } else if (notification.notification_type === 'presentation') {
       navigate('/unresponded-logs?tab=presentations&autoOpen=true');
+    } else if (notification.notification_type === 'rated') {
+      // Navigate to appropriate page to view rated item
+      if (notification.log_id) {
+        // It's a procedure - go to rated logs
+        navigate('/rated-logs');
+      } else {
+        // It's a presentation - go to presentations page
+        navigate('/presentations');
+      }
     }
   };
 

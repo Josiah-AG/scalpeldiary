@@ -541,7 +541,7 @@ export default function Presentations() {
                             <p><strong>Type:</strong> ${getPresentationTypeLabel(presentation.presentation_type)}</p>
                             <p><strong>Venue:</strong> ${presentation.venue}</p>
                             ${presentation.description ? `<p><strong>Description:</strong> ${presentation.description}</p>` : ''}
-                            <p><strong>Moderator:</strong> ${presentation.supervisor_name || 'Not assigned'}</p>
+                            <p><strong>Rated by:</strong> ${presentation.supervisor_name || 'Not yet rated'}</p>
                             ${presentation.rating ? `
                               <div class="border-t pt-3 mt-3">
                                 <p><strong>Rating:</strong> <span class="text-2xl font-bold ${presentation.rating > 50 ? 'text-green-600' : 'text-red-600'}">${presentation.rating}/100</span></p>

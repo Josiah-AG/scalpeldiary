@@ -65,16 +65,17 @@ export default function UnrespondedLogs() {
       setRating('');
       setComment('');
       
-      // Refresh list
-      await fetchLogs();
+      // Refresh list and get updated logs
+      const response = await api.get('/logs/to-rate');
+      const updatedLogs = response.data;
+      setLogs(updatedLogs);
       
       // Auto-open next log if available (after a short delay for smooth transition)
-      setTimeout(() => {
-        const remainingLogs = logs.filter(l => l.id !== currentLogId);
-        if (remainingLogs.length > 0) {
-          setSelectedLog(remainingLogs[0]);
-        }
-      }, 300);
+      if (updatedLogs.length > 0) {
+        setTimeout(() => {
+          setSelectedLog(updatedLogs[0]);
+        }, 300);
+      }
     } catch (error) {
       alert('Failed to rate log');
     }
@@ -99,16 +100,17 @@ export default function UnrespondedLogs() {
       setRating('');
       setComment('');
       
-      // Refresh list
-      await fetchPresentations();
+      // Refresh list and get updated presentations
+      const response = await api.get('/presentations/to-rate');
+      const updatedPresentations = response.data;
+      setPresentations(updatedPresentations);
       
       // Auto-open next presentation if available (after a short delay for smooth transition)
-      setTimeout(() => {
-        const remainingPresentations = presentations.filter(p => p.id !== currentPresentationId);
-        if (remainingPresentations.length > 0) {
-          setSelectedPresentation(remainingPresentations[0]);
-        }
-      }, 300);
+      if (updatedPresentations.length > 0) {
+        setTimeout(() => {
+          setSelectedPresentation(updatedPresentations[0]);
+        }, 300);
+      }
     } catch (error) {
       alert('Failed to rate presentation');
     }

@@ -899,7 +899,7 @@ export default function Dashboard() {
                             <p><strong>Type:</strong> ${pres.presentation_type?.replace(/_/g, ' ')}</p>
                             <p><strong>Venue:</strong> ${pres.venue}</p>
                             ${pres.description ? `<p><strong>Description:</strong> ${pres.description}</p>` : ''}
-                            <p><strong>Moderator:</strong> ${pres.supervisor_name || 'Not assigned'}</p>
+                            <p><strong>Rated by:</strong> ${pres.supervisor_name || 'Not yet rated'}</p>
                             ${pres.rating ? `
                               <div class="border-t pt-3 mt-3">
                                 <p><strong>Rating:</strong> <span class="text-2xl font-bold ${pres.rating > 50 ? 'text-green-600' : 'text-red-600'}">${pres.rating}/100</span></p>
