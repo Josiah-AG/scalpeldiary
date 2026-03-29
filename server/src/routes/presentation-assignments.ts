@@ -12,6 +12,17 @@ async function getUserName(user: any): Promise<string> {
 
 const router = Router();
 
+// Ensure created_by column exists (handles both old and new table schemas)
+(async () => {
+  try {
+    await query(`ALTER TABLE presentation_assignments ADD COLUMN IF NOT EXISTS created_by UUID REFERENCES users(id) ON DELETE CASCADE`);
+    // Copy from assigned_by if created_by is empty
+    await query(`UPDATE presentation_assignments SET created_by = assigned_by WHERE created_by IS NULL AND assigned_by IS NOT NULL`);
+  } catch (e) {
+    // Column might already exist or table might not exist yet
+  }
+})();
+
 // Create presentation assignment (Chief Resident & Supervisor)
 router.post('/', authenticate, async (req: AuthRequest, res) => {
   try {
@@ -39,12 +50,27 @@ router.post('/', authenticate, async (req: AuthRequest, res) => {
       return res.status(400).json({ error: 'Missing required fields' });
     }
 
-    const result = await query(
-      `INSERT INTO presentation_assignments (
-        title, presentation_type, presenter_id, moderator_id, scheduled_date, description, created_by, status
-      ) VALUES ($1, $2, $3, $4, $5, $6, $7, 'assigned') RETURNING *`,
-      [title, type, presenter_id, moderator_id, scheduled_date || null, description, req.user!.id]
-    );
+    let result;
+    try {
+      result = await query(
+        `INSERT INTO presentation_assignments (
+          title, presentation_type, presenter_id, moderator_id, scheduled_date, description, created_by, status
+        ) VALUES ($1, $2, $3, $4, $5, $6, $7, 'assigned') RETURNING *`,
+        [title, type, presenter_id, moderator_id, scheduled_date || null, description, req.user!.id]
+      );
+    } catch (insertError: any) {
+      // Fallback: try with assigned_by column name
+      if (insertError.message?.includes('created_by')) {
+        result = await query(
+          `INSERT INTO presentation_assignments (
+            title, presentation_type, presenter_id, moderator_id, scheduled_date, description, assigned_by, status
+          ) VALUES ($1, $2, $3, $4, $5, $6, $7, 'assigned') RETURNING *`,
+          [title, type, presenter_id, moderator_id, scheduled_date || null, description, req.user!.id]
+        );
+      } else {
+        throw insertError;
+      }
+    }
 
     // Send notification to the resident who was assigned the presentation
     await sendNotification(
@@ -91,7 +117,7 @@ router.get('/', authenticate, async (req: AuthRequest, res) => {
          FROM presentation_assignments pa
          JOIN users presenter ON pa.presenter_id = presenter.id
          JOIN users moderator ON pa.moderator_id = moderator.id
-         JOIN users creator ON pa.created_by = creator.id
+         LEFT JOIN users creator ON pa.created_by = creator.id
          ORDER BY pa.created_at DESC`
       );
     } 
@@ -105,7 +131,7 @@ router.get('/', authenticate, async (req: AuthRequest, res) => {
          FROM presentation_assignments pa
          JOIN users presenter ON pa.presenter_id = presenter.id
          JOIN users moderator ON pa.moderator_id = moderator.id
-         JOIN users creator ON pa.created_by = creator.id
+         LEFT JOIN users creator ON pa.created_by = creator.id
          WHERE pa.created_by = $1 OR pa.moderator_id = $1
          ORDER BY pa.created_at DESC`,
         [req.user!.id]
@@ -136,7 +162,7 @@ router.get('/my-assignments', authenticate, async (req: AuthRequest, res) => {
               creator.name as created_by_name
        FROM presentation_assignments pa
        JOIN users moderator ON pa.moderator_id = moderator.id
-       JOIN users creator ON pa.created_by = creator.id
+       LEFT JOIN users creator ON pa.created_by = creator.id
        WHERE pa.presenter_id = $1 AND pa.status = 'assigned'
        ORDER BY pa.scheduled_date ASC`,
       [req.user!.id]
@@ -285,7 +311,7 @@ router.put('/:id', authenticate, async (req: AuthRequest, res) => {
       `UPDATE presentation_assignments 
        SET title = $1, presentation_type = $2, presenter_id = $3, moderator_id = $4, 
            scheduled_date = $5, description = $6, updated_at = NOW()
-       WHERE id = $7 AND created_by = $8
+       WHERE id = $7 AND (created_by = $8 OR assigned_by = $8)
        RETURNING *`,
       [title, type, presenter_id, moderator_id, scheduled_date || null, description, id, req.user!.id]
     );
@@ -322,7 +348,7 @@ router.delete('/:id', authenticate, async (req: AuthRequest, res) => {
 
     // Get assignment details before deleting (for notification)
     const assignmentCheck = await query(
-      'SELECT * FROM presentation_assignments WHERE id = $1 AND created_by = $2',
+      'SELECT * FROM presentation_assignments WHERE id = $1 AND (created_by = $2 OR assigned_by = $2)',
       [id, req.user!.id]
     );
 
@@ -333,7 +359,7 @@ router.delete('/:id', authenticate, async (req: AuthRequest, res) => {
     const assignment = assignmentCheck.rows[0];
 
     const result = await query(
-      'DELETE FROM presentation_assignments WHERE id = $1 AND created_by = $2 RETURNING id',
+      'DELETE FROM presentation_assignments WHERE id = $1 AND (created_by = $2 OR assigned_by = $2) RETURNING id',
       [id, req.user!.id]
     );
 
