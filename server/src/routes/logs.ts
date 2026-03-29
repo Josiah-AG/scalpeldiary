@@ -298,6 +298,53 @@ router.get('/supervisor/:supervisorId/rated', authenticate, async (req: AuthRequ
   }
 });
 
+// Add post-op follow-up comment (supervisor only, after rating)
+router.post('/:logId/postop-followup', authenticate, async (req: AuthRequest, res) => {
+  try {
+    const { logId } = req.params;
+    const { comment } = req.body;
+
+    if (!comment || comment.trim() === '') {
+      return res.status(400).json({ error: 'Comment is required' });
+    }
+
+    // Verify the log exists, is rated, and belongs to this supervisor
+    const checkResult = await query(
+      `SELECT sl.*, res.name as resident_name 
+       FROM surgical_logs sl
+       JOIN users res ON sl.resident_id = res.id
+       WHERE sl.id = $1 AND sl.supervisor_id = $2 AND sl.status IN ('RATED', 'COMMENTED', 'NOT_WITNESSED')`,
+      [logId, req.user!.id]
+    );
+
+    if (checkResult.rows.length === 0) {
+      return res.status(404).json({ error: 'Rated log not found or unauthorized' });
+    }
+
+    const result = await query(
+      `UPDATE surgical_logs 
+       SET postop_followup_comment = $1, postop_followup_at = NOW(), updated_at = NOW()
+       WHERE id = $2
+       RETURNING *`,
+      [comment.trim(), logId]
+    );
+
+    // Notify resident
+    const log = checkResult.rows[0];
+    await sendNotification(
+      log.resident_id,
+      `${req.user!.name} added a post-op follow-up comment on your procedure: ${log.procedure}`,
+      logId,
+      'rated'
+    );
+
+    res.json(result.rows[0]);
+  } catch (error) {
+    console.error('Failed to add post-op follow-up:', error);
+    res.status(500).json({ error: 'Failed to add post-op follow-up comment' });
+  }
+});
+
 // Update log (only if not rated)
 router.put('/:logId', authenticate, async (req: AuthRequest, res) => {
   try {

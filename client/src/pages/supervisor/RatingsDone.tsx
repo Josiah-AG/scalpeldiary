@@ -21,6 +21,8 @@ interface Procedure {
   place_of_practice: string;
   status: string;
   rated_at: string;
+  postop_followup_comment?: string;
+  postop_followup_at?: string;
 }
 
 interface PresentationItem {
@@ -49,6 +51,8 @@ export default function RatingsDone() {
   const [selectedPresentation, setSelectedPresentation] = useState<PresentationItem | null>(null);
   const [showProcedureModal, setShowProcedureModal] = useState(false);
   const [showPresentationModal, setShowPresentationModal] = useState(false);
+  const [followupComment, setFollowupComment] = useState('');
+  const [submittingFollowup, setSubmittingFollowup] = useState(false);
 
   // Update active tab when URL parameters change
   useEffect(() => {
@@ -83,12 +87,32 @@ export default function RatingsDone() {
 
   const viewProcedureDetails = (procedure: Procedure) => {
     setSelectedProcedure(procedure);
+    setFollowupComment(procedure.postop_followup_comment || '');
     setShowProcedureModal(true);
   };
 
   const viewPresentationDetails = (presentation: PresentationItem) => {
     setSelectedPresentation(presentation);
     setShowPresentationModal(true);
+  };
+
+  const handleSubmitFollowup = async () => {
+    if (!selectedProcedure || !followupComment.trim()) return;
+    setSubmittingFollowup(true);
+    try {
+      await api.post(`/logs/${selectedProcedure.id}/postop-followup`, {
+        comment: followupComment
+      });
+      // Update local state
+      const updated = { ...selectedProcedure, postop_followup_comment: followupComment, postop_followup_at: new Date().toISOString() };
+      setSelectedProcedure(updated);
+      setProcedures(prev => prev.map(p => p.id === updated.id ? updated : p));
+      alert('Post-op follow-up comment saved and resident notified.');
+    } catch (error: any) {
+      alert('Failed to save: ' + (error.response?.data?.error || error.message));
+    } finally {
+      setSubmittingFollowup(false);
+    }
   };
 
   return (
@@ -394,6 +418,37 @@ export default function RatingsDone() {
                     <p className="mt-1">{selectedProcedure.comment}</p>
                   </div>
                 )}
+
+                {/* Post-Op Follow-Up Section */}
+                <div className="border-t pt-4">
+                  <p className="text-sm text-gray-500 font-semibold mb-2">Post-Op Follow-Up Comment</p>
+                  {selectedProcedure.postop_followup_comment ? (
+                    <div className="bg-purple-50 border-l-4 border-purple-500 p-4 rounded-r-lg">
+                      <p className="text-gray-800">{selectedProcedure.postop_followup_comment}</p>
+                      <p className="text-xs text-gray-500 mt-2">
+                        Added on {new Date(selectedProcedure.postop_followup_at!).toLocaleDateString()}
+                      </p>
+                    </div>
+                  ) : null}
+                  <textarea
+                    value={followupComment}
+                    onChange={(e) => setFollowupComment(e.target.value)}
+                    className="w-full mt-3 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
+                    rows={3}
+                    placeholder={selectedProcedure.postop_followup_comment ? 'Update follow-up comment...' : 'Write post-op follow-up comment...'}
+                  />
+                  <button
+                    onClick={handleSubmitFollowup}
+                    disabled={submittingFollowup || !followupComment.trim()}
+                    className={`mt-2 px-4 py-2 rounded-lg font-semibold text-sm transition-colors ${
+                      submittingFollowup || !followupComment.trim()
+                        ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                        : 'bg-purple-600 hover:bg-purple-700 text-white'
+                    }`}
+                  >
+                    {submittingFollowup ? 'Saving...' : selectedProcedure.postop_followup_comment ? 'Update Follow-Up' : 'Submit Follow-Up'}
+                  </button>
+                </div>
               </div>
 
               <div className="mt-6 flex justify-end">

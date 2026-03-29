@@ -136,12 +136,18 @@ router.get('/resident', authenticate, async (req: AuthRequest, res) => {
       [targetResidentId, yearId]
     );
 
-    // Comments
+    // Comments - only where actual comment text exists (not just rating)
     const commentsResult = await query(
-      `SELECT sl.comment, sl.rating, sl.rated_at as date, u.name as supervisor_name
+      `SELECT sl.id, sl.comment, sl.rating, sl.rated_at as date, sl.procedure, sl.date as procedure_date,
+              u.name as supervisor_name,
+              sl.postop_followup_comment, sl.postop_followup_at
        FROM surgical_logs sl
        JOIN users u ON sl.supervisor_id = u.id
-       WHERE sl.resident_id = $1 AND sl.year_id = $2 AND sl.comment IS NOT NULL
+       WHERE sl.resident_id = $1 AND sl.year_id = $2 
+       AND (
+         (sl.comment IS NOT NULL AND sl.comment != '')
+         OR (sl.postop_followup_comment IS NOT NULL AND sl.postop_followup_comment != '')
+       )
        ORDER BY sl.rated_at DESC`,
       [targetResidentId, yearId]
     );

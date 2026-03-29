@@ -280,6 +280,17 @@ export default function RatedLogs() {
                   )}
                 </>
               )}
+              {selectedLog.postop_followup_comment && (
+                <div className="border-t pt-4">
+                  <label className="text-sm font-semibold text-purple-700">Supervisor Post-Op Follow-Up</label>
+                  <div className="bg-purple-50 border-l-4 border-purple-500 p-4 rounded-r-lg mt-1">
+                    <p className="text-gray-800">{selectedLog.postop_followup_comment}</p>
+                    <p className="text-xs text-gray-500 mt-2">
+                      {selectedLog.supervisor_name} · {new Date(selectedLog.postop_followup_at).toLocaleDateString()}
+                    </p>
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         </div>

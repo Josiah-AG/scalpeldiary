@@ -169,9 +169,24 @@ export default function MasterDashboard() {
               }
             }
           }}
-          className="bg-orange-600 hover:bg-orange-700 text-white px-4 py-2 rounded-lg font-semibold transition-colors"
+          className="bg-orange-600 hover:bg-orange-700 text-white px-4 py-2 rounded-lg font-semibold transition-colors mr-3"
         >
           Fix Notification Log ID Column
+        </button>
+        <button
+          onClick={async () => {
+            if (confirm('Add Post-Op Follow-Up columns to surgical_logs? This enables supervisors to add follow-up comments after rating.')) {
+              try {
+                const response = await api.post('/migrations/add-postop-followup');
+                alert(response.data.message);
+              } catch (error: any) {
+                alert('Migration failed: ' + (error.response?.data?.details || error.message));
+              }
+            }
+          }}
+          className="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg font-semibold transition-colors"
+        >
+          Add Post-Op Follow-Up Columns
         </button>
       </div>
 

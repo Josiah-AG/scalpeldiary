@@ -730,6 +730,37 @@ router.post('/fix-notification-log-id', authenticate, async (req: AuthRequest, r
   }
 });
 
+// Add post-op follow-up comment column to surgical_logs
+router.post('/add-postop-followup', authenticate, async (req: AuthRequest, res) => {
+  if (req.user!.role !== 'MASTER') {
+    return res.status(403).json({ error: 'Only Master accounts can run migrations' });
+  }
+
+  try {
+    console.log('Adding post-op follow-up columns to surgical_logs...');
+
+    await query(`
+      ALTER TABLE surgical_logs 
+      ADD COLUMN IF NOT EXISTS postop_followup_comment TEXT,
+      ADD COLUMN IF NOT EXISTS postop_followup_at TIMESTAMP
+    `);
+    
+    console.log('✅ Added postop_followup_comment and postop_followup_at columns');
+    
+    res.json({ 
+      success: true, 
+      message: 'Successfully added post-op follow-up columns to surgical_logs table.'
+    });
+  } catch (error: any) {
+    console.error('Migration failed:', error);
+    res.status(500).json({ 
+      success: false, 
+      error: 'Migration failed', 
+      details: error.message 
+    });
+  }
+});
+
 // Run chief resident setup (add color columns and ensure academic year)
 router.post('/setup-chief-resident', authenticate, async (req: AuthRequest, res) => {
   // Check if user is Master

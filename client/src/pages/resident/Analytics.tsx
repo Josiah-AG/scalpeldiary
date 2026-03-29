@@ -13,6 +13,7 @@ export default function Analytics() {
   const [loading, setLoading] = useState(true);
   const [yearProgress, setYearProgress] = useState<any>(null);
   const [showProgressModal, setShowProgressModal] = useState(false);
+  const [showAllComments, setShowAllComments] = useState(false);
   const [commentFilter, setCommentFilter] = useState<'all' | 'excellent' | 'good' | 'bad'>('all');
 
   // Check if in read-only mode
@@ -451,8 +452,8 @@ export default function Analytics() {
         </div>
       </div>
 
-      {/* Comments Section */}
-      <div className="bg-white rounded-xl shadow-lg p-4 sm:p-6">
+      {/* Supervisor Comments Section - unified list */}
+      <div className="bg-white rounded-xl shadow-lg p-4 sm:p-6 mb-8">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-4 gap-3">
           <h3 className="text-lg font-bold text-gray-900 flex items-center">
             <MessageSquare className="mr-2 text-blue-600" size={20} />
@@ -472,33 +473,89 @@ export default function Analytics() {
             </select>
           </div>
         </div>
-        <div className="space-y-4 max-h-96 overflow-y-auto">
-          {filteredComments.map((comment: any, index: number) => (
-            <div 
-              key={index} 
-              className="border-l-4 border-blue-500 bg-blue-50 p-4 rounded-r-lg hover:bg-blue-100 transition-colors"
-            >
-              <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-2 mb-2">
-                <div>
-                  <p className="font-semibold text-gray-900">{comment.supervisor_name}</p>
-                  <p className="text-xs text-gray-500">{new Date(comment.date).toLocaleDateString()}</p>
-                </div>
-                <span className={`inline-block px-3 py-1 rounded-full text-sm font-bold ${
-                  comment.rating > 50 ? 'bg-green-500 text-white' : 'bg-red-500 text-white'
-                }`}>
-                  {comment.rating}/100
-                </span>
-              </div>
-              <p className="text-gray-700 text-sm">{comment.comment}</p>
-            </div>
-          ))}
-          {filteredComments.length === 0 && (
-            <p className="text-gray-500 text-center py-8">
-              {analytics?.comments?.length > 0 
-                ? 'No comments match the selected filter' 
-                : 'No comments yet'}
-            </p>
-          )}
+        <div className="space-y-4 overflow-y-auto">
+          {(() => {
+            // Build unified comment list from procedure comments + post-op follow-ups
+            const allComments: any[] = [];
+            (filteredComments || []).forEach((c: any) => {
+              if (c.comment && c.comment.trim() !== '') {
+                allComments.push({ ...c, type: 'procedure', sortDate: c.date });
+              }
+              if (c.postop_followup_comment && c.postop_followup_comment.trim() !== '') {
+                allComments.push({ ...c, type: 'postop', sortDate: c.postop_followup_at });
+              }
+            });
+            allComments.sort((a, b) => new Date(b.sortDate).getTime() - new Date(a.sortDate).getTime());
+
+            const displayComments = showAllComments ? allComments : allComments.slice(0, 10);
+            const hasMore = allComments.length > 10;
+
+            if (allComments.length === 0) {
+              return (
+                <p className="text-gray-500 text-center py-8">
+                  {analytics?.comments?.length > 0 
+                    ? 'No comments match the selected filter' 
+                    : 'No comments yet'}
+                </p>
+              );
+            }
+
+            return (
+              <>
+                {displayComments.map((item: any, index: number) => (
+                  <div 
+                    key={`${item.id}-${item.type}-${index}`} 
+                    className={`border-l-4 ${item.type === 'postop' ? 'border-purple-500 bg-purple-50' : 'border-blue-500 bg-blue-50'} p-4 rounded-r-lg hover:opacity-90 transition-colors`}
+                  >
+                    <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-2 mb-2">
+                      <div>
+                        <p className="font-semibold text-gray-900">{item.supervisor_name}</p>
+                        <p className="text-xs text-gray-500">
+                          {item.procedure && `${item.procedure} · `}
+                          {new Date(item.sortDate).toLocaleDateString()}
+                        </p>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <span className={`inline-block px-2 py-0.5 rounded-full text-xs font-bold ${
+                          item.type === 'postop' 
+                            ? 'bg-purple-500 text-white' 
+                            : 'bg-blue-500 text-white'
+                        }`}>
+                          {item.type === 'postop' ? 'Post-Op Follow-Up' : 'Procedure Comment'}
+                        </span>
+                        {item.rating && (
+                          <span className={`inline-block px-2 py-0.5 rounded-full text-xs font-bold ${
+                            item.rating > 50 ? 'bg-green-500 text-white' : 'bg-red-500 text-white'
+                          }`}>
+                            {item.rating}/100
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                    <p className="text-gray-700 text-sm">
+                      {item.type === 'postop' ? item.postop_followup_comment : item.comment}
+                    </p>
+                  </div>
+                ))}
+                {hasMore && !showAllComments && (
+                  <button
+                    onClick={() => setShowAllComments(true)}
+                    className="w-full py-3 text-center text-blue-600 hover:text-blue-800 font-semibold text-sm border-t border-gray-200 mt-2"
+                  >
+                    Show All ({allComments.length} comments)
+                  </button>
+                )}
+                {showAllComments && hasMore && (
+                  <button
+                    onClick={() => setShowAllComments(false)}
+                    className="w-full py-3 text-center text-blue-600 hover:text-blue-800 font-semibold text-sm border-t border-gray-200 mt-2"
+                  >
+                    Show Less
+                  </button>
+                )}
+              </>
+            );
+          })()}
         </div>
       </div>
 
