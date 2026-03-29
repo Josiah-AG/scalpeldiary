@@ -131,8 +131,10 @@ router.get('/', authenticate, async (req: AuthRequest, res) => {
          JOIN users presenter ON pa.presenter_id = presenter.id
          JOIN users moderator ON pa.moderator_id = moderator.id
          LEFT JOIN users creator ON pa.created_by = creator.id
-         WHERE NOT (pa.status = 'presented' AND pa.presentation_id IS NOT NULL 
-               AND NOT EXISTS (SELECT 1 FROM presentations p WHERE p.id = pa.presentation_id))
+         WHERE pa.status = 'assigned'
+            OR (pa.status = 'presented' AND EXISTS (
+                SELECT 1 FROM presentations p WHERE p.id = pa.presentation_id
+            ))
          ORDER BY pa.created_at DESC`
       );
     } 
@@ -148,8 +150,10 @@ router.get('/', authenticate, async (req: AuthRequest, res) => {
          JOIN users moderator ON pa.moderator_id = moderator.id
          LEFT JOIN users creator ON pa.created_by = creator.id
          WHERE (pa.created_by = $1 OR pa.moderator_id = $1)
-         AND NOT (pa.status = 'presented' AND pa.presentation_id IS NOT NULL 
-               AND NOT EXISTS (SELECT 1 FROM presentations p WHERE p.id = pa.presentation_id))
+         AND (pa.status = 'assigned'
+              OR (pa.status = 'presented' AND EXISTS (
+                  SELECT 1 FROM presentations p WHERE p.id = pa.presentation_id
+              )))
          ORDER BY pa.created_at DESC`,
         [req.user!.id]
       );
