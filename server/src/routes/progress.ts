@@ -38,6 +38,13 @@ router.get('/year/:yearId', authenticate, async (req: AuthRequest, res) => {
       [yearId, residentId]
     );
 
+    console.log(`Progress: Year ${yearNumber}, ${proceduresResult.rows.length} procedures found for resident ${residentId}`);
+    // Log unique procedure names and roles for debugging
+    const uniqueProcs = [...new Set(proceduresResult.rows.map((r: any) => r.procedure))];
+    const uniqueRoles = [...new Set(proceduresResult.rows.map((r: any) => r.surgery_role))];
+    console.log('Unique procedures:', uniqueProcs);
+    console.log('Unique roles:', uniqueRoles);
+
     const progress = calculateYearProgress(yearNumber, proceduresResult.rows);
     res.json(progress);
   } catch (error) {

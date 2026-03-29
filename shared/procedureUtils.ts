@@ -133,14 +133,13 @@ export function calculateYearProgress(
     let performed = 0;
 
     loggedProcedures.forEach(log => {
-      // Match procedure name
+      // Match procedure name - exact match (case-insensitive, trimmed)
+      const logProc = log.procedure.toLowerCase().trim();
       const matchesProcedure = procedureNames.some(name => 
-        log.procedure.toLowerCase().includes(name.toLowerCase()) ||
-        name.toLowerCase().includes(log.procedure.toLowerCase())
+        logProc === name.toLowerCase().trim()
       );
 
       if (matchesProcedure) {
-        // Check role
         const role = log.surgery_role;
         if (role === 'PRIMARY_SURGEON' || role === 'PRIMARY_SURGEON_ASSISTED') {
           performed++;
@@ -185,9 +184,14 @@ export function calculateYearProgress(
       });
 
       // Calculate totals
-      if (req.minimum_expected_assisted) totalRequired += req.minimum_expected_assisted;
-      if (req.minimum_expected_performed) totalRequired += req.minimum_expected_performed;
-      totalAchieved += counts.assisted + counts.performed;
+      if (req.minimum_expected_assisted) {
+        totalRequired += req.minimum_expected_assisted;
+        totalAchieved += Math.min(counts.assisted, req.minimum_expected_assisted);
+      }
+      if (req.minimum_expected_performed) {
+        totalRequired += req.minimum_expected_performed;
+        totalAchieved += Math.min(counts.performed, req.minimum_expected_performed);
+      }
     });
   });
 
