@@ -105,7 +105,7 @@ export default function NotificationPopup() {
       navigate('/unresponded-logs?tab=procedures');
     } else if (notification.notification_type === 'presentation') {
       if (notification.message?.includes('assigned to present') || notification.message?.includes('cancelled')) {
-        navigate('/presentations');
+        navigate('/presentations?tab=assigned');
       } else {
         navigate('/unresponded-logs?tab=presentations&autoOpen=true');
       }
@@ -238,7 +238,7 @@ export default function NotificationPopup() {
           {notifications.map((notification) => {
             const colorScheme = getNotificationColor(notification.notification_type);
             const Icon = colorScheme.icon;
-            const isActionable = notification.notification_type === 'procedure' || notification.notification_type === 'presentation';
+            const isActionable = (notification.notification_type === 'procedure' || notification.notification_type === 'presentation') && !notification.message?.includes('cancelled');
             const isRated = notification.notification_type === 'rated';
             const isClickable = isActionable || isRated;
             

@@ -101,7 +101,7 @@ export default function NotificationBell({ show, onClose, onCountChange }: Notif
     } else if (notification.notification_type === 'presentation') {
       // If it's an assignment notification for resident, go to presentations assigned tab
       if (notification.message?.includes('assigned to present') || notification.message?.includes('cancelled')) {
-        navigate('/presentations');
+        navigate('/presentations?tab=assigned');
       } else {
         navigate('/unresponded-logs?tab=presentations&autoOpen=true');
       }
@@ -211,7 +211,7 @@ export default function NotificationBell({ show, onClose, onCountChange }: Notif
                 {notifications.map((notification) => {
                   const colorScheme = getNotificationColor(notification.notification_type);
                   const Icon = colorScheme.icon;
-                  const isActionable = notification.notification_type === 'procedure' || notification.notification_type === 'presentation';
+                  const isActionable = (notification.notification_type === 'procedure' || notification.notification_type === 'presentation') && !notification.message?.includes('cancelled');
                   const isRated = notification.notification_type === 'rated';
                   const isClickable = isActionable || isRated;
                   

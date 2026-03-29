@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import Layout from '../../components/Layout';
 import api from '../../api/axios';
 import { format } from 'date-fns';
@@ -22,7 +23,10 @@ interface Presentation {
 export default function Presentations() {
   const [presentations, setPresentations] = useState<Presentation[]>([]);
   const [assignedPresentations, setAssignedPresentations] = useState<any[]>([]);
-  const [activeTab, setActiveTab] = useState<'my-presentations' | 'assigned'>('my-presentations');
+  const [searchParams] = useSearchParams();
+  const [activeTab, setActiveTab] = useState<'my-presentations' | 'assigned'>(
+    searchParams.get('tab') === 'assigned' ? 'assigned' : 'my-presentations'
+  );
   const [years, setYears] = useState<any[]>([]);
   const [selectedYear, setSelectedYear] = useState<string>('');
   const [showModal, setShowModal] = useState(false);
