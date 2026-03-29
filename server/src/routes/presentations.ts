@@ -432,8 +432,8 @@ router.delete('/master/:presId', authenticate, authorize('MASTER'), async (req: 
     // Delete associated notifications
     await query("DELETE FROM notifications WHERE log_id = $1", [presId.toString()]);
     
-    // Unlink from presentation_assignments
-    await query("UPDATE presentation_assignments SET presentation_id = NULL WHERE presentation_id = $1", [presId]);
+    // Delete linked presentation assignments (not just unlink)
+    await query("DELETE FROM presentation_assignments WHERE presentation_id = $1", [presId]);
     
     const result = await query('DELETE FROM presentations WHERE id = $1 RETURNING id, title', [presId]);
     
