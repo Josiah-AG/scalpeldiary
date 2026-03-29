@@ -232,7 +232,7 @@ export default function Analytics() {
                   cx="50%"
                   cy="45%"
                   labelLine={false}
-                  label={({ name, percent }) => `${Math.round(percent * 100)}%`}
+                  label={({ value, percent }) => `${value} (${Math.round(percent * 100)}%)`}
                   outerRadius={window.innerWidth < 640 ? 60 : 80}
                   fill="#8884d8"
                   dataKey="value"
@@ -264,7 +264,7 @@ export default function Analytics() {
                   cx="50%"
                   cy="45%"
                   labelLine={false}
-                  label={({ name, percent }) => `${Math.round(percent * 100)}%`}
+                  label={({ value, percent }) => `${value} (${Math.round(percent * 100)}%)`}
                   outerRadius={window.innerWidth < 640 ? 60 : 80}
                   fill="#8884d8"
                   dataKey="value"
@@ -387,7 +387,7 @@ export default function Analytics() {
                     outerRadius={60}
                     fill="#8884d8"
                     dataKey="value"
-                    label={({ percent }) => `${Math.round(percent * 100)}%`}
+                    label={({ value, percent }) => `${value} (${Math.round(percent * 100)}%)`}
                     labelLine={false}
                   >
                     {analytics.institutionProcedures.map((entry: any, index: number) => (
