@@ -99,7 +99,12 @@ export default function NotificationBell({ show, onClose, onCountChange }: Notif
     if (notification.notification_type === 'procedure') {
       navigate('/unresponded-logs?tab=procedures');
     } else if (notification.notification_type === 'presentation') {
-      navigate('/unresponded-logs?tab=presentations&autoOpen=true');
+      // If it's an assignment notification for resident, go to presentations assigned tab
+      if (notification.message?.includes('assigned to present') || notification.message?.includes('cancelled')) {
+        navigate('/presentations');
+      } else {
+        navigate('/unresponded-logs?tab=presentations&autoOpen=true');
+      }
     }
   };
 
@@ -237,7 +242,10 @@ export default function NotificationBell({ show, onClose, onCountChange }: Notif
                                 }}
                                 className={`${colorScheme.buttonBg} text-white px-2 py-1 rounded text-xs font-semibold transition-colors`}
                               >
-                                {notification.notification_type === 'procedure' ? 'Rate Procedure' : 'Rate Presentation'}
+                                {notification.notification_type === 'procedure' ? 'Rate Procedure' 
+                                  : notification.message?.includes('assigned to present') ? 'View Assignment'
+                                  : notification.message?.includes('ready for rating') ? 'Rate Presentation'
+                                  : 'View'}
                               </button>
                             )}
                             {isRated && (

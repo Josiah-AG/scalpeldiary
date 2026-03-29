@@ -72,11 +72,16 @@ router.post('/', authenticate, async (req: AuthRequest, res) => {
       }
     }
 
+    // Get moderator name for the notification
+    const moderatorResult = await query('SELECT name FROM users WHERE id = $1', [moderator_id]);
+    const moderatorName = moderatorResult.rows[0]?.name || 'a supervisor';
+    const assignerName = await getUserName(req.user!);
+
     // Send notification to the resident who was assigned the presentation
     await sendNotification(
       presenter_id,
-      `You have been assigned a new presentation: ${title}`,
-      null, // Don't pass assignment ID as log_id
+      `You have been assigned to present "${title}" to ${moderatorName} by ${assignerName}`,
+      null,
       'presentation'
     );
 
