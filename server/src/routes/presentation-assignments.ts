@@ -41,7 +41,7 @@ router.post('/', authenticate, async (req: AuthRequest, res) => {
 
     const result = await query(
       `INSERT INTO presentation_assignments (
-        title, type, presenter_id, moderator_id, scheduled_date, description, created_by, status
+        title, presentation_type, presenter_id, moderator_id, scheduled_date, description, created_by, status
       ) VALUES ($1, $2, $3, $4, $5, $6, $7, 'assigned') RETURNING *`,
       [title, type, presenter_id, moderator_id, scheduled_date || null, description, req.user!.id]
     );
@@ -224,7 +224,7 @@ router.post('/:id/mark-presented', authenticate, async (req: AuthRequest, res) =
         presented_date,
         assignment.title,
         'Assigned', // Default venue for assigned presentations
-        assignment.type,
+        assignment.presentation_type,
         assignment.description,
         assignment.moderator_id
       ]
@@ -283,7 +283,7 @@ router.put('/:id', authenticate, async (req: AuthRequest, res) => {
 
     const result = await query(
       `UPDATE presentation_assignments 
-       SET title = $1, type = $2, presenter_id = $3, moderator_id = $4, 
+       SET title = $1, presentation_type = $2, presenter_id = $3, moderator_id = $4, 
            scheduled_date = $5, description = $6, updated_at = NOW()
        WHERE id = $7 AND created_by = $8
        RETURNING *`,

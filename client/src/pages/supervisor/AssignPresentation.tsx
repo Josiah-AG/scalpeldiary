@@ -95,7 +95,7 @@ export default function AssignPresentation() {
     setEditingAssignment(assignment);
     setFormData({
       title: assignment.title,
-      type: assignment.type,
+      type: assignment.presentation_type || assignment.type,
       presenter_id: assignment.presenter_id,
       moderator_id: assignment.moderator_id,
       description: assignment.description || ''
@@ -175,7 +175,7 @@ export default function AssignPresentation() {
                 {assignments.map((assignment) => (
                   <tr key={assignment.id} className="hover:bg-gray-50">
                     <td className="px-6 py-4 text-sm font-medium">{assignment.title}</td>
-                    <td className="px-6 py-4 text-sm">{assignment.type}</td>
+                    <td className="px-6 py-4 text-sm">{assignment.presentation_type || assignment.type}</td>
                     <td className="px-6 py-4 text-sm">{assignment.presenter_name}</td>
                     <td className="px-6 py-4 text-sm">{assignment.moderator_name}</td>
                     <td className="px-6 py-4 text-sm">
