@@ -27,15 +27,31 @@ export default function SupervisorDashboard() {
   const [residents, setResidents] = useState<ResidentSummary[]>([]);
   const [showRotationsModal, setShowRotationsModal] = useState(false);
   const [showActivitiesModal, setShowActivitiesModal] = useState(false);
+  const [todayDuties, setTodayDuties] = useState<any[]>([]);
   const navigate = useNavigate();
 
   useEffect(() => {
     fetchAnalytics();
+    fetchTodayDuties();
   }, []);
 
   const fetchAnalytics = async () => {
     const response = await api.get('/analytics/supervisor');
     setAnalytics(response.data);
+  };
+
+  const fetchTodayDuties = async () => {
+    try {
+      const today = new Date();
+      const month = today.getMonth() + 1;
+      const year = today.getFullYear();
+      const response = await api.get('/duties?month=' + month + '&year=' + year);
+      const todayStr = format(today, 'yyyy-MM-dd');
+      const duties = response.data.filter((d: any) => d.duty_date?.split('T')[0] === todayStr);
+      setTodayDuties(duties);
+    } catch (error) {
+      console.error('Failed to fetch today duties');
+    }
   };
 
   const fetchResidentsByYear = async (year: number) => {
@@ -139,6 +155,29 @@ export default function SupervisorDashboard() {
           <p className="text-2xl font-bold mb-2">View Calendar</p>
           <p className="text-xs opacity-75">Click to view activity schedule →</p>
         </button>
+      </div>
+
+      {/* Today's Duty */}
+      <div className="bg-white rounded-xl shadow-lg p-6 mb-8 border-l-4 border-indigo-500">
+        <h3 className="text-lg font-bold text-gray-900 mb-3 flex items-center">
+          <CalendarDays className="mr-2 text-indigo-600" size={22} />
+          Today's Duty — {format(new Date(), 'EEEE, MMM dd')}
+        </h3>
+        {todayDuties.length > 0 ? (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+            {todayDuties.map((duty: any, idx: number) => (
+              <div key={idx} className="flex items-center space-x-3 p-3 rounded-lg" style={{ backgroundColor: (duty.color || '#6366F1') + '15' }}>
+                <div className="w-3 h-3 rounded-full flex-shrink-0" style={{ backgroundColor: duty.color || '#6366F1' }}></div>
+                <div>
+                  <p className="font-semibold text-gray-900 text-sm">{duty.resident_name}</p>
+                  <p className="text-xs font-medium" style={{ color: duty.color || '#6366F1' }}>{duty.duty_name}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <p className="text-gray-500 text-sm">No duties assigned for today</p>
+        )}
       </div>
 
       {/* Year Selection - Enhanced */}
