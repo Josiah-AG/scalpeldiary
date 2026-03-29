@@ -226,6 +226,7 @@ export default function Analytics() {
                   cx="50%"
                   cy="45%"
                   labelLine={false}
+                  label={({ name, percent }) => `${Math.round(percent * 100)}%`}
                   outerRadius={window.innerWidth < 640 ? 60 : 80}
                   fill="#8884d8"
                   dataKey="value"
@@ -257,6 +258,7 @@ export default function Analytics() {
                   cx="50%"
                   cy="45%"
                   labelLine={false}
+                  label={({ name, percent }) => `${Math.round(percent * 100)}%`}
                   outerRadius={window.innerWidth < 640 ? 60 : 80}
                   fill="#8884d8"
                   dataKey="value"
@@ -291,18 +293,25 @@ export default function Analytics() {
                     <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">#</th>
                     <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Category</th>
                     <th className="px-4 py-2 text-right text-xs font-medium text-gray-500 uppercase">Count</th>
+                    <th className="px-4 py-2 text-right text-xs font-medium text-gray-500 uppercase">%</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-200">
-                  {unitPerformanceData.map((unit: any, index: number) => (
+                  {unitPerformanceData.map((unit: any, index: number) => {
+                    const totalUnit = unitPerformanceData.reduce((s: number, u: any) => s + u.count, 0);
+                    return (
                     <tr key={index} className="hover:bg-gray-50">
                       <td className="px-4 py-3 text-sm font-bold text-purple-600">{index + 1}</td>
                       <td className="px-4 py-3 text-sm text-gray-900">{unit.name}</td>
                       <td className="px-4 py-3 text-sm font-semibold text-right text-purple-600">
                         {unit.count}
                       </td>
+                      <td className="px-4 py-3 text-sm text-right text-gray-500">
+                        {totalUnit > 0 ? Math.round((unit.count / totalUnit) * 100) : 0}%
+                      </td>
                     </tr>
-                  ))}
+                    );
+                  })}
                 </tbody>
               </table>
             </div>
@@ -325,16 +334,23 @@ export default function Analytics() {
                     <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">#</th>
                     <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Procedure</th>
                     <th className="px-4 py-2 text-right text-xs font-medium text-gray-500 uppercase">Count</th>
+                    <th className="px-4 py-2 text-right text-xs font-medium text-gray-500 uppercase">%</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-200">
-                  {analytics.topProcedures.map((proc: any, index: number) => (
+                  {analytics.topProcedures.map((proc: any, index: number) => {
+                    const totalProc = analytics.topProcedures.reduce((s: number, p: any) => s + parseInt(p.count), 0);
+                    return (
                     <tr key={index} className="hover:bg-gray-50">
                       <td className="px-4 py-3 text-sm font-bold text-blue-600">{index + 1}</td>
                       <td className="px-4 py-3 text-sm text-gray-900">{proc.procedure}</td>
                       <td className="px-4 py-3 text-sm font-semibold text-right text-blue-600">{proc.count}</td>
+                      <td className="px-4 py-3 text-sm text-right text-gray-500">
+                        {totalProc > 0 ? Math.round((parseInt(proc.count) / totalProc) * 100) : 0}%
+                      </td>
                     </tr>
-                  ))}
+                    );
+                  })}
                 </tbody>
               </table>
             </div>
@@ -365,7 +381,8 @@ export default function Analytics() {
                     outerRadius={60}
                     fill="#8884d8"
                     dataKey="value"
-                    label
+                    label={({ percent }) => `${Math.round(percent * 100)}%`}
+                    labelLine={false}
                   >
                     {analytics.institutionProcedures.map((entry: any, index: number) => (
                       <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
@@ -381,17 +398,24 @@ export default function Analytics() {
                     <tr>
                       <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Institution</th>
                       <th className="px-4 py-2 text-right text-xs font-medium text-gray-500 uppercase">Count</th>
+                      <th className="px-4 py-2 text-right text-xs font-medium text-gray-500 uppercase">%</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-gray-200">
-                    {analytics.institutionProcedures.map((inst: any, index: number) => (
+                    {analytics.institutionProcedures.map((inst: any, index: number) => {
+                      const totalInst = analytics.institutionProcedures.reduce((s: number, i: any) => s + parseInt(i.count), 0);
+                      return (
                       <tr key={index} className="hover:bg-gray-50">
                         <td className="px-4 py-2 text-sm text-gray-900">
                           {inst.place_of_practice === 'ABEBECH_GOBENA' ? 'Abebech Gobena' : inst.place_of_practice}
                         </td>
                         <td className="px-4 py-2 text-sm font-semibold text-right text-blue-600">{inst.count}</td>
+                        <td className="px-4 py-2 text-sm text-right text-gray-500">
+                          {totalInst > 0 ? Math.round((parseInt(inst.count) / totalInst) * 100) : 0}%
+                        </td>
                       </tr>
-                    ))}
+                      );
+                    })}
                   </tbody>
                 </table>
               </div>
@@ -414,15 +438,21 @@ export default function Analytics() {
                     <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">#</th>
                     <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Supervisor</th>
                     <th className="px-4 py-2 text-right text-xs font-medium text-gray-500 uppercase">Procedures</th>
+                    <th className="px-4 py-2 text-right text-xs font-medium text-gray-500 uppercase">%</th>
                     <th className="px-4 py-2 text-right text-xs font-medium text-gray-500 uppercase">Avg Rating</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-200">
-                  {analytics.supervisorDistribution.map((sup: any, index: number) => (
+                  {analytics.supervisorDistribution.map((sup: any, index: number) => {
+                    const totalSup = analytics.supervisorDistribution.reduce((s: number, sv: any) => s + parseInt(sv.count), 0);
+                    return (
                     <tr key={index} className="hover:bg-gray-50">
                       <td className="px-4 py-3 text-sm font-bold text-green-600">{index + 1}</td>
                       <td className="px-4 py-3 text-sm text-gray-900 font-medium">{sup.supervisor_name}</td>
                       <td className="px-4 py-3 text-sm font-semibold text-right text-green-600">{sup.count}</td>
+                      <td className="px-4 py-3 text-sm text-right text-gray-500">
+                        {totalSup > 0 ? Math.round((parseInt(sup.count) / totalSup) * 100) : 0}%
+                      </td>
                       <td className="px-4 py-3 text-sm font-semibold text-right">
                         {sup.avg_rating ? (
                           <span className={sup.avg_rating > 50 ? 'text-green-600' : 'text-red-600'}>
@@ -433,7 +463,8 @@ export default function Analytics() {
                         )}
                       </td>
                     </tr>
-                  ))}
+                    );
+                  })}
                 </tbody>
               </table>
             </div>
