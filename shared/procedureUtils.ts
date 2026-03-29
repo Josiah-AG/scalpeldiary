@@ -141,9 +141,13 @@ export function calculateYearProgress(
 
       if (matchesProcedure) {
         const role = log.surgery_role;
-        if (role === 'PRIMARY_SURGEON' || role === 'PRIMARY_SURGEON_ASSISTED') {
+        if (role === 'PRIMARY_SURGEON' || role === 'PRIMARY_SURGEON_ASSISTED' || role === 'PRIMARY_SUPERVISED') {
           performed++;
         } else if (role === 'FIRST_ASSISTANT' || role === 'SECOND_ASSISTANT' || role === 'OBSERVER') {
+          assisted++;
+        } else {
+          // Unknown role - still count as assisted so nothing is lost
+          console.log(`[Progress] Unknown role "${role}" for procedure "${log.procedure}" - counting as assisted`);
           assisted++;
         }
       }
@@ -223,7 +227,7 @@ export type SurgeryRoleKey = keyof typeof SURGERY_ROLES;
  * Check if a role counts as "performed"
  */
 export function isPerformedRole(role: string): boolean {
-  return role === 'PRIMARY_SURGEON' || role === 'PRIMARY_SURGEON_ASSISTED';
+  return role === 'PRIMARY_SURGEON' || role === 'PRIMARY_SURGEON_ASSISTED' || role === 'PRIMARY_SUPERVISED';
 }
 
 /**

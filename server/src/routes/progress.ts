@@ -46,6 +46,22 @@ router.get('/year/:yearId', authenticate, async (req: AuthRequest, res) => {
     console.log('Unique roles:', uniqueRoles);
 
     const progress = calculateYearProgress(yearNumber, proceduresResult.rows);
+    
+    // Log unmatched procedures for debugging
+    const allRequiredProcs = new Set<string>();
+    const yearReqsDebug = progress.categories;
+    Object.values(yearReqsDebug).forEach((procs: any) => {
+      procs.forEach((p: any) => {
+        p.procedureGroup.forEach((name: string) => allRequiredProcs.add(name.toLowerCase().trim()));
+      });
+    });
+    const unmatchedLogs = proceduresResult.rows.filter((log: any) => 
+      !allRequiredProcs.has(log.procedure.toLowerCase().trim())
+    );
+    if (unmatchedLogs.length > 0) {
+      console.log('⚠️ UNMATCHED procedures (not in Year requirements):', 
+        unmatchedLogs.map((l: any) => `"${l.procedure}" (role: ${l.surgery_role})`));
+    }
     res.json(progress);
   } catch (error) {
     console.error('Error fetching progress:', error);
