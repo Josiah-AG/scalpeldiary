@@ -475,7 +475,7 @@ export default function Analytics() {
         </div>
         <div className="space-y-4 overflow-y-auto">
           {(() => {
-            // Build unified comment list from procedure comments + post-op follow-ups
+            // Build unified comment list from procedure comments + post-op follow-ups + presentation comments
             const allComments: any[] = [];
             (filteredComments || []).forEach((c: any) => {
               if (c.comment && c.comment.trim() !== '') {
@@ -483,6 +483,15 @@ export default function Analytics() {
               }
               if (c.postop_followup_comment && c.postop_followup_comment.trim() !== '') {
                 allComments.push({ ...c, type: 'postop', sortDate: c.postop_followup_at });
+              }
+            });
+            // Add presentation comments
+            (analytics?.presentationComments || []).forEach((c: any) => {
+              if (commentFilter === 'all' ||
+                  (commentFilter === 'excellent' && c.rating > 80) ||
+                  (commentFilter === 'good' && c.rating > 50 && c.rating <= 80) ||
+                  (commentFilter === 'bad' && c.rating <= 50)) {
+                allComments.push({ ...c, type: 'presentation', sortDate: c.date, procedure: c.title });
               }
             });
             allComments.sort((a, b) => new Date(b.sortDate).getTime() - new Date(a.sortDate).getTime());
@@ -505,7 +514,7 @@ export default function Analytics() {
                 {displayComments.map((item: any, index: number) => (
                   <div 
                     key={`${item.id}-${item.type}-${index}`} 
-                    className={`border-l-4 ${item.type === 'postop' ? 'border-purple-500 bg-purple-50' : 'border-blue-500 bg-blue-50'} p-4 rounded-r-lg hover:opacity-90 transition-colors`}
+                    className={`border-l-4 ${item.type === 'postop' ? 'border-purple-500 bg-purple-50' : item.type === 'presentation' ? 'border-green-500 bg-green-50' : 'border-blue-500 bg-blue-50'} p-4 rounded-r-lg hover:opacity-90 transition-colors`}
                   >
                     <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-2 mb-2">
                       <div>
@@ -519,9 +528,11 @@ export default function Analytics() {
                         <span className={`inline-block px-2 py-0.5 rounded-full text-xs font-bold ${
                           item.type === 'postop' 
                             ? 'bg-purple-500 text-white' 
+                            : item.type === 'presentation'
+                            ? 'bg-green-500 text-white'
                             : 'bg-blue-500 text-white'
                         }`}>
-                          {item.type === 'postop' ? 'Post-Op Follow-Up' : 'Procedure Comment'}
+                          {item.type === 'postop' ? 'Post-Op Follow-Up' : item.type === 'presentation' ? 'Presentation Comment' : 'Procedure Comment'}
                         </span>
                         {item.rating && (
                           <span className={`inline-block px-2 py-0.5 rounded-full text-xs font-bold ${

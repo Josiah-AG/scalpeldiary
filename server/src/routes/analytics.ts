@@ -152,6 +152,18 @@ router.get('/resident', authenticate, async (req: AuthRequest, res) => {
       [targetResidentId, yearId]
     );
 
+    // Presentation comments - only where actual comment text exists
+    const presentationCommentsResult = await query(
+      `SELECT p.id, p.comment, p.rating, p.rated_at as date, p.title, p.date as presentation_date,
+              u.name as supervisor_name
+       FROM presentations p
+       JOIN users u ON p.supervisor_id = u.id
+       WHERE p.resident_id = $1 AND p.year_id = $2 
+       AND p.comment IS NOT NULL AND p.comment != ''
+       ORDER BY p.rated_at DESC`,
+      [targetResidentId, yearId]
+    );
+
     // Total presentations
     const totalPresentationsResult = await query(
       'SELECT COUNT(*) as count FROM presentations WHERE resident_id = $1 AND year_id = $2',
@@ -197,7 +209,8 @@ router.get('/resident', authenticate, async (req: AuthRequest, res) => {
       avgPresentationRating: parseFloat(presentationRatingResult.rows[0].avg_rating) || 0,
       institutionProcedures: institutionProceduresResult.rows,
       institutionPresentations: institutionPresentationsResult.rows,
-      comments: commentsResult.rows
+      comments: commentsResult.rows,
+      presentationComments: presentationCommentsResult.rows
     });
   } catch (error) {
     res.status(500).json({ error: 'Failed to fetch analytics' });
