@@ -167,6 +167,9 @@ export default function Analytics() {
           </div>
           <p className="text-blue-100 text-xs sm:text-sm font-medium">Total Surgeries</p>
           <p className="text-2xl sm:text-3xl font-bold mt-1">{analytics?.totalSurgeries || 0}</p>
+          {analytics?.verifiedSurgeries != null && (
+            <p className="text-blue-200 text-xs mt-1">({analytics.verifiedSurgeries} Verified)</p>
+          )}
         </div>
 
         <div className="bg-gradient-to-br from-green-500 to-green-600 rounded-xl shadow-lg p-4 sm:p-6 text-white">
@@ -183,6 +186,9 @@ export default function Analytics() {
           </div>
           <p className="text-purple-100 text-xs sm:text-sm font-medium">Total Presentations</p>
           <p className="text-2xl sm:text-3xl font-bold mt-1">{analytics?.totalPresentations || 0}</p>
+          {analytics?.verifiedPresentations != null && (
+            <p className="text-purple-200 text-xs mt-1">({analytics.verifiedPresentations} Verified)</p>
+          )}
         </div>
 
         <div className="bg-gradient-to-br from-orange-500 to-orange-600 rounded-xl shadow-lg p-4 sm:p-6 text-white">

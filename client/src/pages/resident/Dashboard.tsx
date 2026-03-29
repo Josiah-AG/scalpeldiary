@@ -749,6 +749,9 @@ export default function Dashboard() {
             <div>
               <p className="text-blue-100 text-xs md:text-sm font-medium">Total Procedures</p>
               <p className="text-3xl md:text-4xl font-bold mt-1 md:mt-2">{metrics?.totalSurgeries || 0}</p>
+              {metrics?.verifiedSurgeries != null && (
+                <p className="text-blue-200 text-xs mt-1">({metrics.verifiedSurgeries} Verified)</p>
+              )}
             </div>
             <Activity size={32} className="text-blue-200 md:w-10 md:h-10" />
           </div>
@@ -759,6 +762,9 @@ export default function Dashboard() {
             <div>
               <p className="text-green-100 text-xs md:text-sm font-medium">Total Presentations</p>
               <p className="text-3xl md:text-4xl font-bold mt-1 md:mt-2">{metrics?.totalPresentations || 0}</p>
+              {metrics?.verifiedPresentations != null && (
+                <p className="text-green-200 text-xs mt-1">({metrics.verifiedPresentations} Verified)</p>
+              )}
             </div>
             <Award size={32} className="text-green-200 md:w-10 md:h-10" />
           </div>

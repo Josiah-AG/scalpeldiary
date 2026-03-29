@@ -16,6 +16,12 @@ router.get('/dashboard', authenticate, async (req: AuthRequest, res) => {
       [targetResidentId, yearId]
     );
 
+    // Verified surgeries (not PENDING)
+    const verifiedSurgeriesResult = await query(
+      "SELECT COUNT(*) as count FROM surgical_logs WHERE resident_id = $1 AND year_id = $2 AND status != 'PENDING'",
+      [targetResidentId, yearId]
+    );
+
     // Average rating (exclude NOT_WITNESSED)
     const ratingResult = await query(
       `SELECT AVG(rating) as avg_rating 
@@ -55,8 +61,23 @@ router.get('/dashboard', authenticate, async (req: AuthRequest, res) => {
       [targetResidentId, yearId]
     );
 
+    // Total presentations for dashboard
+    const totalPresResult = await query(
+      'SELECT COUNT(*) as count FROM presentations WHERE resident_id = $1 AND year_id = $2',
+      [targetResidentId, yearId]
+    );
+
+    // Verified presentations (not PENDING)
+    const verifiedPresResult = await query(
+      "SELECT COUNT(*) as count FROM presentations WHERE resident_id = $1 AND year_id = $2 AND status != 'PENDING'",
+      [targetResidentId, yearId]
+    );
+
     res.json({
       totalSurgeries: parseInt(totalResult.rows[0].count),
+      verifiedSurgeries: parseInt(verifiedSurgeriesResult.rows[0].count),
+      totalPresentations: parseInt(totalPresResult.rows[0].count),
+      verifiedPresentations: parseInt(verifiedPresResult.rows[0].count),
       averageRating: parseFloat(ratingResult.rows[0].avg_rating) || 0,
       roleDistribution: roleResult.rows.reduce((acc, row) => {
         acc[row.surgery_role] = parseInt(row.count);
@@ -85,6 +106,12 @@ router.get('/resident', authenticate, async (req: AuthRequest, res) => {
     // Total surgeries for year
     const totalResult = await query(
       'SELECT COUNT(*) as count FROM surgical_logs WHERE resident_id = $1 AND year_id = $2',
+      [targetResidentId, yearId]
+    );
+
+    // Verified surgeries (not PENDING)
+    const verifiedSurgeriesResult = await query(
+      "SELECT COUNT(*) as count FROM surgical_logs WHERE resident_id = $1 AND year_id = $2 AND status != 'PENDING'",
       [targetResidentId, yearId]
     );
 
@@ -170,6 +197,12 @@ router.get('/resident', authenticate, async (req: AuthRequest, res) => {
       [targetResidentId, yearId]
     );
 
+    // Verified presentations (not PENDING)
+    const verifiedPresentationsResult = await query(
+      "SELECT COUNT(*) as count FROM presentations WHERE resident_id = $1 AND year_id = $2 AND status != 'PENDING'",
+      [targetResidentId, yearId]
+    );
+
     // Average presentation rating (exclude NOT_WITNESSED)
     const presentationRatingResult = await query(
       `SELECT AVG(rating) as avg_rating 
@@ -204,6 +237,7 @@ router.get('/resident', authenticate, async (req: AuthRequest, res) => {
 
     res.json({
       totalSurgeries: parseInt(totalResult.rows[0].count),
+      verifiedSurgeries: parseInt(verifiedSurgeriesResult.rows[0].count),
       monthSurgeries: parseInt(monthResult.rows[0].count),
       roleDistribution: roleResult.rows.reduce((acc, row) => {
         acc[row.surgery_role] = parseInt(row.count);
@@ -218,6 +252,7 @@ router.get('/resident', authenticate, async (req: AuthRequest, res) => {
       averageRating: parseFloat(ratingResult.rows[0].avg_rating) || 0,
       seniorSupervisorRating: parseFloat(seniorRatingResult.rows[0].avg_rating) || 0,
       totalPresentations: parseInt(totalPresentationsResult.rows[0].count),
+      verifiedPresentations: parseInt(verifiedPresentationsResult.rows[0].count),
       avgPresentationRating: parseFloat(presentationRatingResult.rows[0].avg_rating) || 0,
       institutionProcedures: institutionProceduresResult.rows,
       institutionPresentations: institutionPresentationsResult.rows,
