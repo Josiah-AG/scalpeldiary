@@ -62,6 +62,11 @@ router.post('/', authenticate, async (req: AuthRequest, res) => {
   try {
     const { yearId, date, title, venue, presentationType, description, supervisorId } = req.body;
 
+    // Prevent self-assignment as supervisor
+    if (supervisorId === req.user!.id) {
+      return res.status(400).json({ error: 'You cannot assign yourself as supervisor' });
+    }
+
     console.log('=== CREATING PRESENTATION ===');
     console.log('supervisorId:', supervisorId);
     console.log('User creating:', req.user!.id);

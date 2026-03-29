@@ -75,6 +75,11 @@ router.post('/', authenticate, async (req: AuthRequest, res) => {
       procedureType, procedureCategory, placeOfPractice, surgeryRole, supervisorId, remark
     } = req.body;
 
+    // Prevent self-assignment as supervisor
+    if (supervisorId === req.user!.id) {
+      return res.status(400).json({ error: 'You cannot assign yourself as supervisor' });
+    }
+
     const result = await query(
       `INSERT INTO surgical_logs (
         resident_id, year_id, date, mrn, age, sex, diagnosis, procedure,
@@ -133,6 +138,15 @@ router.post('/:logId/rate', authenticate, async (req: AuthRequest, res) => {
   try {
     const { logId } = req.params;
     const { rating, comment } = req.body;
+
+    // Check if trying to rate own procedure
+    const selfCheck = await query(
+      'SELECT resident_id FROM surgical_logs WHERE id = $1',
+      [logId]
+    );
+    if (selfCheck.rows.length > 0 && selfCheck.rows[0].resident_id === req.user!.id) {
+      return res.status(403).json({ error: 'You cannot rate your own procedure' });
+    }
 
     const status = rating ? 'RATED' : 'NOT_WITNESSED';
     

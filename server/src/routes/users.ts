@@ -273,15 +273,15 @@ router.get('/supervisors', authenticate, async (req: AuthRequest, res) => {
     const result = await query(
       `SELECT u.id, u.name, u.email, u.institution, u.specialty, COALESCE(u.is_senior, false) as is_senior 
        FROM users u
-       WHERE u.role = 'SUPERVISOR' 
+       WHERE (u.role = 'SUPERVISOR' 
        OR (u.role = 'RESIDENT' AND EXISTS (
          SELECT 1 FROM resident_years ry 
          WHERE ry.resident_id = u.id 
          AND ry.year >= $1
-         AND u.id != $2
-       ))
+       )))
+       AND u.id != $2
        ORDER BY u.role DESC, u.name`,
-      [minResidentYear, residentId || null]
+      [minResidentYear, residentId || '00000000-0000-0000-0000-000000000000']
     );
     res.json(result.rows);
   } catch (error) {
