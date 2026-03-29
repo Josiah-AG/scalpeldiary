@@ -131,6 +131,8 @@ router.get('/', authenticate, async (req: AuthRequest, res) => {
          JOIN users presenter ON pa.presenter_id = presenter.id
          JOIN users moderator ON pa.moderator_id = moderator.id
          LEFT JOIN users creator ON pa.created_by = creator.id
+         WHERE NOT (pa.status = 'presented' AND pa.presentation_id IS NOT NULL 
+               AND NOT EXISTS (SELECT 1 FROM presentations p WHERE p.id = pa.presentation_id))
          ORDER BY pa.created_at DESC`
       );
     } 
@@ -145,7 +147,9 @@ router.get('/', authenticate, async (req: AuthRequest, res) => {
          JOIN users presenter ON pa.presenter_id = presenter.id
          JOIN users moderator ON pa.moderator_id = moderator.id
          LEFT JOIN users creator ON pa.created_by = creator.id
-         WHERE pa.created_by = $1 OR pa.moderator_id = $1
+         WHERE (pa.created_by = $1 OR pa.moderator_id = $1)
+         AND NOT (pa.status = 'presented' AND pa.presentation_id IS NOT NULL 
+               AND NOT EXISTS (SELECT 1 FROM presentations p WHERE p.id = pa.presentation_id))
          ORDER BY pa.created_at DESC`,
         [req.user!.id]
       );
@@ -262,7 +266,7 @@ router.post('/:id/mark-presented', authenticate, async (req: AuthRequest, res) =
         yearId,
         presented_date,
         assignment.title,
-        'Assigned',
+        assignment.venue || 'Y12HMC',
         assignment.presentation_type || 'OTHER',
         assignment.description || '',
         assignment.moderator_id

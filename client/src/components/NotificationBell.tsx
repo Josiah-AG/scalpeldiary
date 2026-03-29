@@ -409,7 +409,12 @@ export default function NotificationBell({ show, onClose, onCountChange }: Notif
                   </div>
                   <div>
                     <label className="text-sm font-semibold text-gray-600">Venue</label>
-                    <p className="text-gray-900">{selectedLog.venue}</p>
+                    <p className="text-gray-900">
+                      {selectedLog.venue === 'Assigned' ? 'Y12HMC' : selectedLog.venue}
+                      {selectedLog.venue === 'Assigned' && (
+                        <span className="ml-2 px-2 py-0.5 bg-amber-100 text-amber-700 rounded text-xs font-semibold">Assigned Presentation</span>
+                      )}
+                    </p>
                   </div>
                   {selectedLog.description && (
                     <div>
