@@ -3,7 +3,7 @@ import Layout from '../../components/Layout';
 import api from '../../api/axios';
 import { format, startOfMonth, endOfMonth, eachDayOfInterval, isSameMonth, isSameDay } from 'date-fns';
 import { useNavigate } from 'react-router-dom';
-import { Activity, Award, Calendar, TrendingUp, Edit2 } from 'lucide-react';
+import { Activity, Award, Calendar, TrendingUp, Edit2, Trash2, X } from 'lucide-react';
 import YearProgressBar from '../../components/YearProgressBar';
 import ProgressDetailModal from '../../components/ProgressDetailModal';
 import { RotationModal, DutyModal, ActivityModal } from '../../components/TodayOverviewModals';
@@ -26,6 +26,14 @@ export default function Dashboard() {
   const [yearlyRotations, setYearlyRotations] = useState<any[]>([]);
   const [monthlyDuties, setMonthlyDuties] = useState<any[]>([]);
   const [monthlyActivities, setMonthlyActivities] = useState<any[]>([]);
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [editingLog, setEditingLog] = useState<any>(null);
+  const [editFormData, setEditFormData] = useState({
+    date: '', mrn: '', age: '', sex: 'MALE', diagnosis: '', procedure: '',
+    procedureType: 'ELECTIVE', procedureCategory: 'GI Surgery', placeOfPractice: 'Y12HMC',
+    surgeryRole: 'PRIMARY_SUPERVISED', supervisorId: '', remark: '',
+  });
+  const [supervisorsList, setSupervisorsList] = useState<any[]>([]);
   const navigate = useNavigate();
 
   // Check if in read-only mode
@@ -34,8 +42,10 @@ export default function Dashboard() {
 
   useEffect(() => {
     fetchYears();
-    // Fetch today's overview for both normal and read-only mode
     fetchTodayOverview();
+    if (!isReadOnlyMode) {
+      api.get('/users/supervisors').then(r => setSupervisorsList(r.data)).catch(() => {});
+    }
   }, []);
 
   useEffect(() => {
@@ -484,6 +494,47 @@ export default function Dashboard() {
     );
   };
 
+  const handleEditSurgery = (surgery: any, e: React.MouseEvent) => {
+    e.stopPropagation();
+    setEditingLog(surgery);
+    setEditFormData({
+      date: surgery.date?.split('T')[0] || surgery.date,
+      mrn: surgery.mrn, age: surgery.age?.toString() || '', sex: surgery.sex,
+      diagnosis: surgery.diagnosis, procedure: surgery.procedure,
+      procedureType: surgery.procedure_type, procedureCategory: surgery.procedure_category || 'GI Surgery',
+      placeOfPractice: surgery.place_of_practice, surgeryRole: surgery.surgery_role,
+      supervisorId: surgery.supervisor_id, remark: surgery.remark || '',
+    });
+    setShowEditModal(true);
+  };
+
+  const handleUpdateSurgery = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingLog) return;
+    try {
+      await api.put('/logs/' + editingLog.id, editFormData);
+      alert('Procedure updated successfully');
+      setShowEditModal(false);
+      setEditingLog(null);
+      fetchMetrics();
+    } catch (error: any) {
+      alert(error.response?.data?.error || 'Failed to update procedure');
+    }
+  };
+
+  const handleDeleteSurgery = async (surgery: any, e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (confirm('Delete this procedure?\n\n' + surgery.procedure + '\n' + format(new Date(surgery.date), 'MMM dd, yyyy'))) {
+      try {
+        await api.delete('/logs/' + surgery.id);
+        alert('Procedure deleted');
+        fetchMetrics();
+      } catch (error: any) {
+        alert(error.response?.data?.error || 'Failed to delete');
+      }
+    }
+  };
+
   if (loading) {
     return (
       <Layout title="Dashboard">
@@ -826,15 +877,18 @@ export default function Dashboard() {
                         {surgery.status === 'PENDING' && (
                           <div className="flex items-center space-x-2">
                             <button
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                navigate('/all-procedures');
-                              }}
-                              className="text-green-600 hover:text-green-900 flex items-center space-x-1"
+                              onClick={(e) => handleEditSurgery(surgery, e)}
+                              className="text-green-600 hover:text-green-900"
                               title="Edit procedure"
                             >
                               <Edit2 size={14} className="md:w-4 md:h-4" />
-                              <span className="hidden md:inline">Edit</span>
+                            </button>
+                            <button
+                              onClick={(e) => handleDeleteSurgery(surgery, e)}
+                              className="text-red-600 hover:text-red-900"
+                              title="Delete procedure"
+                            >
+                              <Trash2 size={14} className="md:w-4 md:h-4" />
                             </button>
                           </div>
                         )}
@@ -981,6 +1035,95 @@ export default function Dashboard() {
         onClose={() => setShowActivityModal(false)}
         activities={monthlyActivities}
       />
+
+      {/* Edit Procedure Modal */}
+      {showEditModal && editingLog && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50 overflow-y-auto">
+          <div className="bg-white rounded-xl shadow-2xl max-w-4xl w-full my-8">
+            <div className="bg-gradient-to-r from-green-600 to-green-700 text-white px-6 py-4 flex justify-between items-center rounded-t-xl">
+              <h3 className="text-xl font-bold">Edit Procedure</h3>
+              <button onClick={() => { setShowEditModal(false); setEditingLog(null); }} className="hover:bg-green-800 p-2 rounded-lg">
+                <X size={24} />
+              </button>
+            </div>
+            <form onSubmit={handleUpdateSurgery} className="p-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-h-[60vh] overflow-y-auto px-2">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Date</label>
+                  <input type="date" value={editFormData.date} onChange={(e) => setEditFormData({ ...editFormData, date: e.target.value })} className="w-full px-4 py-2 border border-gray-300 rounded-md" required />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">MRN</label>
+                  <input type="text" value={editFormData.mrn} onChange={(e) => setEditFormData({ ...editFormData, mrn: e.target.value })} className="w-full px-4 py-2 border border-gray-300 rounded-md" required />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Age</label>
+                  <input type="number" value={editFormData.age} onChange={(e) => setEditFormData({ ...editFormData, age: e.target.value })} className="w-full px-4 py-2 border border-gray-300 rounded-md" required />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Sex</label>
+                  <select value={editFormData.sex} onChange={(e) => setEditFormData({ ...editFormData, sex: e.target.value })} className="w-full px-4 py-2 border border-gray-300 rounded-md">
+                    <option value="MALE">Male</option>
+                    <option value="FEMALE">Female</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Diagnosis</label>
+                  <input type="text" value={editFormData.diagnosis} onChange={(e) => setEditFormData({ ...editFormData, diagnosis: e.target.value })} className="w-full px-4 py-2 border border-gray-300 rounded-md" required />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Procedure</label>
+                  <input type="text" value={editFormData.procedure} onChange={(e) => setEditFormData({ ...editFormData, procedure: e.target.value })} className="w-full px-4 py-2 border border-gray-300 rounded-md" required />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Procedure Type</label>
+                  <select value={editFormData.procedureType} onChange={(e) => setEditFormData({ ...editFormData, procedureType: e.target.value })} className="w-full px-4 py-2 border border-gray-300 rounded-md">
+                    <option value="ELECTIVE">Elective</option>
+                    <option value="SEMI_ELECTIVE">Semi-Elective</option>
+                    <option value="EMERGENCY">Emergency</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Institution</label>
+                  <select value={editFormData.placeOfPractice} onChange={(e) => setEditFormData({ ...editFormData, placeOfPractice: e.target.value })} className="w-full px-4 py-2 border border-gray-300 rounded-md">
+                    <option value="Y12HMC">Y12HMC</option>
+                    <option value="ALERT">ALERT</option>
+                    <option value="ABEBECH_GOBENA">Abebech Gobena</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Surgery Role</label>
+                  <select value={editFormData.surgeryRole} onChange={(e) => setEditFormData({ ...editFormData, surgeryRole: e.target.value })} className="w-full px-4 py-2 border border-gray-300 rounded-md">
+                    <option value="PRIMARY_SURGEON">Primary Surgeon</option>
+                    <option value="PRIMARY_SURGEON_ASSISTED">Primary Surgeon (Assisted)</option>
+                    <option value="PRIMARY_SUPERVISED">Primary Supervised</option>
+                    <option value="FIRST_ASSISTANT">1st Assistant</option>
+                    <option value="SECOND_ASSISTANT">2nd Assistant</option>
+                    <option value="OBSERVER">Observer</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Supervisor</label>
+                  <select value={editFormData.supervisorId} onChange={(e) => setEditFormData({ ...editFormData, supervisorId: e.target.value })} className="w-full px-4 py-2 border border-gray-300 rounded-md" required>
+                    <option value="">Select Supervisor</option>
+                    {supervisorsList.map((sup: any) => (
+                      <option key={sup.id} value={sup.id}>{sup.name}</option>
+                    ))}
+                  </select>
+                </div>
+                <div className="md:col-span-2">
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Remark (Optional)</label>
+                  <textarea value={editFormData.remark} onChange={(e) => setEditFormData({ ...editFormData, remark: e.target.value })} className="w-full px-4 py-2 border border-gray-300 rounded-md" rows={3} />
+                </div>
+              </div>
+              <div className="flex space-x-3 mt-6 pt-6 border-t">
+                <button type="submit" className="flex-1 bg-green-600 text-white py-3 rounded-lg hover:bg-green-700 font-medium">Update Procedure</button>
+                <button type="button" onClick={() => { setShowEditModal(false); setEditingLog(null); }} className="flex-1 bg-gray-200 text-gray-700 py-3 rounded-lg hover:bg-gray-300 font-medium">Cancel</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </Layout>
   );
 }
