@@ -161,7 +161,7 @@ export default function SupervisorDashboard() {
       <div className="bg-white rounded-xl shadow-lg p-6 mb-8 border-l-4 border-indigo-500">
         <h3 className="text-lg font-bold text-gray-900 mb-3 flex items-center">
           <CalendarDays className="mr-2 text-indigo-600" size={22} />
-          Today's Duty — {format(new Date(), 'EEEE, MMM dd')}
+          Today's Duty Residents — {format(new Date(), 'EEEE, MMM dd')}
         </h3>
         {todayDuties.length > 0 ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
