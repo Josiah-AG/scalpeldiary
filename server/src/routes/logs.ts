@@ -347,7 +347,7 @@ router.put('/:logId', authenticate, async (req: AuthRequest, res) => {
     } = req.body;
 
     const checkResult = await query(
-      'SELECT rating, resident_id FROM surgical_logs WHERE id = $1',
+      'SELECT rating, status, resident_id FROM surgical_logs WHERE id = $1',
       [logId]
     );
 
@@ -359,8 +359,8 @@ router.put('/:logId', authenticate, async (req: AuthRequest, res) => {
       return res.status(403).json({ error: 'Unauthorized' });
     }
 
-    if (checkResult.rows[0].rating) {
-      return res.status(400).json({ error: 'Cannot edit a rated procedure' });
+    if (checkResult.rows[0].status !== 'PENDING') {
+      return res.status(400).json({ error: 'Cannot edit a rated or confirmed procedure' });
     }
 
     const result = await query(
@@ -387,7 +387,7 @@ router.delete('/:logId', authenticate, async (req: AuthRequest, res) => {
     const { logId } = req.params;
 
     const checkResult = await query(
-      'SELECT rating, resident_id FROM surgical_logs WHERE id = $1',
+      'SELECT status, resident_id FROM surgical_logs WHERE id = $1',
       [logId]
     );
 
@@ -399,8 +399,8 @@ router.delete('/:logId', authenticate, async (req: AuthRequest, res) => {
       return res.status(403).json({ error: 'Unauthorized' });
     }
 
-    if (checkResult.rows[0].rating) {
-      return res.status(400).json({ error: 'Cannot delete a rated procedure' });
+    if (checkResult.rows[0].status !== 'PENDING') {
+      return res.status(400).json({ error: 'Cannot delete a rated or confirmed procedure' });
     }
 
     await query('DELETE FROM surgical_logs WHERE id = $1', [logId]);
