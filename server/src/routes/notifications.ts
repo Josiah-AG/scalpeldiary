@@ -25,16 +25,19 @@ try {
   console.log('Push notifications will be disabled');
 }
 
-// Get notifications for user
+// Get notifications for user (exclude notifications older than 48 hours)
 router.get('/', authenticate, async (req: AuthRequest, res) => {
   try {
-    console.log('Fetching notifications for user:', req.user!.id);
-    const result = await query(
-      'SELECT * FROM notifications WHERE user_id = $1 ORDER BY created_at DESC LIMIT 50',
+    // Auto-mark notifications older than 48 hours as read
+    await query(
+      "UPDATE notifications SET read = TRUE WHERE user_id = $1 AND read = FALSE AND created_at < NOW() - INTERVAL '48 hours'",
       [req.user!.id]
     );
-    console.log(`Found ${result.rows.length} notifications`);
-    console.log('Notification types:', result.rows.map(n => n.notification_type));
+
+    const result = await query(
+      "SELECT * FROM notifications WHERE user_id = $1 AND created_at > NOW() - INTERVAL '30 days' ORDER BY created_at DESC LIMIT 50",
+      [req.user!.id]
+    );
     res.json(result.rows);
   } catch (error) {
     console.error('Failed to fetch notifications:', error);

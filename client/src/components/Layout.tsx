@@ -39,6 +39,10 @@ export default function Layout({ children, title }: LayoutProps) {
     }
     fetchUserProfile();
     fetchUnreadNotificationsCount();
+
+    // Poll for new notifications every 60 seconds
+    const notifInterval = setInterval(fetchUnreadNotificationsCount, 60000);
+    return () => clearInterval(notifInterval);
   }, [user]);
 
   useEffect(() => {

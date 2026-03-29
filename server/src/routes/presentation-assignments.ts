@@ -43,7 +43,7 @@ router.post('/', authenticate, async (req: AuthRequest, res) => {
     await sendNotification(
       presenter_id,
       `You have been assigned a new presentation: ${title}`,
-      result.rows[0].id,
+      null, // Don't pass assignment ID as log_id
       'presentation'
     );
 
@@ -233,6 +233,16 @@ router.post('/:id/mark-presented', authenticate, async (req: AuthRequest, res) =
       [presented_date, presentation.id, id]
     );
 
+    // Notify the moderator/supervisor that the presentation was marked as presented
+    if (assignment.moderator_id) {
+      await sendNotification(
+        assignment.moderator_id,
+        `${req.user!.name} has marked presentation "${assignment.title}" as presented and is ready for rating`,
+        presentation.id.toString(),
+        'presentation'
+      );
+    }
+
     res.json({ 
       success: true, 
       message: 'Presentation marked as presented',
@@ -303,6 +313,18 @@ router.delete('/:id', authenticate, async (req: AuthRequest, res) => {
 
     const { id } = req.params;
 
+    // Get assignment details before deleting (for notification)
+    const assignmentCheck = await query(
+      'SELECT * FROM presentation_assignments WHERE id = $1 AND created_by = $2',
+      [id, req.user!.id]
+    );
+
+    if (assignmentCheck.rows.length === 0) {
+      return res.status(404).json({ error: 'Assignment not found' });
+    }
+
+    const assignment = assignmentCheck.rows[0];
+
     const result = await query(
       'DELETE FROM presentation_assignments WHERE id = $1 AND created_by = $2 RETURNING id',
       [id, req.user!.id]
@@ -310,6 +332,20 @@ router.delete('/:id', authenticate, async (req: AuthRequest, res) => {
 
     if (result.rows.length === 0) {
       return res.status(404).json({ error: 'Assignment not found' });
+    }
+
+    // Notify the resident that their assignment was cancelled
+    if (assignment.presenter_id) {
+      try {
+        await sendNotification(
+          assignment.presenter_id,
+          `Your presentation assignment "${assignment.title}" has been cancelled`,
+          null,
+          'presentation'
+        );
+      } catch (e) {
+        // Don't fail delete if notification fails
+      }
     }
 
     res.json({ message: 'Assignment deleted successfully' });
