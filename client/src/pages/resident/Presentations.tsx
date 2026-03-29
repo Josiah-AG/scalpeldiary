@@ -680,7 +680,7 @@ export default function Presentations() {
                   {assignedPresentations.map((assignment) => (
                     <tr key={assignment.id} className="hover:bg-amber-50">
                       <td className="px-6 py-4 text-sm font-medium">{assignment.title}</td>
-                      <td className="px-6 py-4 text-sm">{assignment.type}</td>
+                      <td className="px-6 py-4 text-sm">{assignment.presentation_type || assignment.type}</td>
                       <td className="px-6 py-4 text-sm">{assignment.moderator_name}</td>
                       <td className="px-6 py-4 text-sm">{assignment.created_by_name}</td>
                       <td className="px-6 py-4 text-sm">
