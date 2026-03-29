@@ -348,6 +348,12 @@ export default function NotificationBell({ show, onClose, onCountChange }: Notif
                       <p className="text-gray-900">{selectedLog.surgery_role?.replace(/_/g, ' ')}</p>
                     </div>
                   </div>
+                  {selectedLog.supervisor_name && (
+                    <div>
+                      <label className="text-sm font-semibold text-gray-600">Supervisor</label>
+                      <p className="text-gray-900">{selectedLog.supervisor_name}</p>
+                    </div>
+                  )}
                   {selectedLog.rating && (
                     <>
                       <div>

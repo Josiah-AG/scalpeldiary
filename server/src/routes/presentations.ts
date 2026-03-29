@@ -286,13 +286,20 @@ router.post('/:presentationId/rate', authenticate, async (req: AuthRequest, res)
 
     // Send notification to the resident
     const presentation = result.rows[0];
-    const notificationMessage = `Your presentation "${presentation.title}" has been rated: ${rating}/100`;
+    const supervisorName = req.user!.name;
+    const notificationMessage = `Your presentation "${presentation.title}" has been rated: ${rating}/100 by ${supervisorName}`;
     
     await sendNotification(
       presentation.resident_id,
       notificationMessage,
-      presentationId.toString(), // Store presentation ID for fetching later
+      presentationId.toString(),
       'rated'
+    );
+
+    // Auto-dismiss the original "new presentation assigned" notification for this supervisor
+    await query(
+      "UPDATE notifications SET read = TRUE WHERE user_id = $1 AND notification_type = 'presentation' AND read = FALSE AND message LIKE $2",
+      [req.user!.id, `%${presentation.title}%`]
     );
 
     res.json(result.rows[0]);

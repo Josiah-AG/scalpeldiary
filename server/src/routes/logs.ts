@@ -142,15 +142,22 @@ router.post('/:logId/rate', authenticate, async (req: AuthRequest, res) => {
     }
 
     const log = result.rows[0];
+    const supervisorName = req.user!.name;
     const notificationMessage = rating 
-      ? `Your surgical log has been rated: ${rating}/100`
-      : 'Your surgical log was marked as not witnessed';
+      ? `Your surgical log has been rated: ${rating}/100 by ${supervisorName}`
+      : `Your surgical log was marked as not witnessed by ${supervisorName}`;
     
     await sendNotification(
       log.resident_id,
       notificationMessage,
       logId,
       'rated'
+    );
+
+    // Auto-dismiss the original "new log assigned" notification for this supervisor
+    await query(
+      "UPDATE notifications SET read = TRUE WHERE user_id = $1 AND log_id = $2 AND notification_type = 'procedure' AND read = FALSE",
+      [req.user!.id, logId]
     );
 
     res.json(result.rows[0]);
