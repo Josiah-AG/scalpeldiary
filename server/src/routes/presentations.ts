@@ -346,4 +346,68 @@ router.get('/supervisor/:supervisorId/rated', authenticate, async (req: AuthRequ
   }
 });
 
+// Update presentation (only if PENDING)
+router.put('/:presId', authenticate, async (req: AuthRequest, res) => {
+  try {
+    const { presId } = req.params;
+    const { date, title, venue, presentationType, description, supervisorId } = req.body;
+
+    const checkResult = await query(
+      'SELECT status, resident_id FROM presentations WHERE id = $1',
+      [presId]
+    );
+
+    if (checkResult.rows.length === 0) {
+      return res.status(404).json({ error: 'Presentation not found' });
+    }
+    if (checkResult.rows[0].resident_id !== req.user!.id) {
+      return res.status(403).json({ error: 'Unauthorized' });
+    }
+    if (checkResult.rows[0].status !== 'PENDING') {
+      return res.status(400).json({ error: 'Cannot edit a rated or confirmed presentation' });
+    }
+
+    const result = await query(
+      `UPDATE presentations 
+       SET date = $1, title = $2, venue = $3, presentation_type = $4, description = $5, supervisor_id = $6, updated_at = NOW()
+       WHERE id = $7
+       RETURNING *`,
+      [date, title, venue, presentationType, description, supervisorId || null, presId]
+    );
+
+    res.json(result.rows[0]);
+  } catch (error) {
+    console.error('Error updating presentation:', error);
+    res.status(500).json({ error: 'Failed to update presentation' });
+  }
+});
+
+// Delete presentation (only if PENDING)
+router.delete('/:presId', authenticate, async (req: AuthRequest, res) => {
+  try {
+    const { presId } = req.params;
+
+    const checkResult = await query(
+      'SELECT status, resident_id FROM presentations WHERE id = $1',
+      [presId]
+    );
+
+    if (checkResult.rows.length === 0) {
+      return res.status(404).json({ error: 'Presentation not found' });
+    }
+    if (checkResult.rows[0].resident_id !== req.user!.id) {
+      return res.status(403).json({ error: 'Unauthorized' });
+    }
+    if (checkResult.rows[0].status !== 'PENDING') {
+      return res.status(400).json({ error: 'Cannot delete a rated or confirmed presentation' });
+    }
+
+    await query('DELETE FROM presentations WHERE id = $1', [presId]);
+    res.json({ message: 'Presentation deleted successfully' });
+  } catch (error) {
+    console.error('Error deleting presentation:', error);
+    res.status(500).json({ error: 'Failed to delete presentation' });
+  }
+});
+
 export default router;

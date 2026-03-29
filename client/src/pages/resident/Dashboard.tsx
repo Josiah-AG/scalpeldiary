@@ -34,6 +34,11 @@ export default function Dashboard() {
     surgeryRole: 'PRIMARY_SUPERVISED', supervisorId: '', remark: '',
   });
   const [supervisorsList, setSupervisorsList] = useState<any[]>([]);
+  const [showEditPresModal, setShowEditPresModal] = useState(false);
+  const [editingPres, setEditingPres] = useState<any>(null);
+  const [editPresFormData, setEditPresFormData] = useState({
+    date: '', title: '', venue: 'Y12HMC', presentationType: 'CASE_PRESENTATION', description: '', supervisorId: '',
+  });
   const navigate = useNavigate();
 
   // Check if in read-only mode
@@ -535,6 +540,45 @@ export default function Dashboard() {
     }
   };
 
+  const handleEditPres = (pres: any, e: React.MouseEvent) => {
+    e.stopPropagation();
+    setEditingPres(pres);
+    setEditPresFormData({
+      date: pres.date?.split('T')[0] || pres.date,
+      title: pres.title, venue: pres.venue,
+      presentationType: pres.presentation_type, description: pres.description || '',
+      supervisorId: pres.supervisor_id || '',
+    });
+    setShowEditPresModal(true);
+  };
+
+  const handleUpdatePres = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingPres) return;
+    try {
+      await api.put('/presentations/' + editingPres.id, editPresFormData);
+      alert('Presentation updated successfully');
+      setShowEditPresModal(false);
+      setEditingPres(null);
+      fetchMetrics();
+    } catch (error: any) {
+      alert(error.response?.data?.error || 'Failed to update presentation');
+    }
+  };
+
+  const handleDeletePres = async (pres: any, e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (confirm('Delete this presentation?\n\n' + pres.title + '\n' + format(new Date(pres.date), 'MMM dd, yyyy'))) {
+      try {
+        await api.delete('/presentations/' + pres.id);
+        alert('Presentation deleted');
+        fetchMetrics();
+      } catch (error: any) {
+        alert(error.response?.data?.error || 'Failed to delete');
+      }
+    }
+  };
+
   if (loading) {
     return (
       <Layout title="Dashboard">
@@ -990,17 +1034,22 @@ export default function Dashboard() {
                     {!isReadOnlyMode && (
                       <td className="px-3 py-3 md:px-6 md:py-4 whitespace-nowrap text-xs md:text-sm hidden sm:table-cell">
                         {pres.status === 'PENDING' && (
-                          <button
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              navigate('/presentations');
-                            }}
-                            className="text-green-600 hover:text-green-900 flex items-center space-x-1"
-                            title="Edit presentation"
-                          >
-                            <Edit2 size={14} className="md:w-4 md:h-4" />
-                            <span className="hidden md:inline">Edit</span>
-                          </button>
+                          <div className="flex items-center space-x-2">
+                            <button
+                              onClick={(e) => handleEditPres(pres, e)}
+                              className="text-green-600 hover:text-green-900"
+                              title="Edit presentation"
+                            >
+                              <Edit2 size={14} className="md:w-4 md:h-4" />
+                            </button>
+                            <button
+                              onClick={(e) => handleDeletePres(pres, e)}
+                              className="text-red-600 hover:text-red-900"
+                              title="Delete presentation"
+                            >
+                              <Trash2 size={14} className="md:w-4 md:h-4" />
+                            </button>
+                          </div>
                         )}
                       </td>
                     )}
@@ -1119,6 +1168,69 @@ export default function Dashboard() {
               <div className="flex space-x-3 mt-6 pt-6 border-t">
                 <button type="submit" className="flex-1 bg-green-600 text-white py-3 rounded-lg hover:bg-green-700 font-medium">Update Procedure</button>
                 <button type="button" onClick={() => { setShowEditModal(false); setEditingLog(null); }} className="flex-1 bg-gray-200 text-gray-700 py-3 rounded-lg hover:bg-gray-300 font-medium">Cancel</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Edit Presentation Modal */}
+      {showEditPresModal && editingPres && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50 overflow-y-auto">
+          <div className="bg-white rounded-xl shadow-2xl max-w-2xl w-full my-8">
+            <div className="bg-gradient-to-r from-green-600 to-green-700 text-white px-6 py-4 flex justify-between items-center rounded-t-xl">
+              <h3 className="text-xl font-bold">Edit Presentation</h3>
+              <button onClick={() => { setShowEditPresModal(false); setEditingPres(null); }} className="hover:bg-green-800 p-2 rounded-lg">
+                <X size={24} />
+              </button>
+            </div>
+            <form onSubmit={handleUpdatePres} className="p-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Date</label>
+                  <input type="date" value={editPresFormData.date} onChange={(e) => setEditPresFormData({ ...editPresFormData, date: e.target.value })} className="w-full px-4 py-2 border border-gray-300 rounded-md" required />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Type</label>
+                  <select value={editPresFormData.presentationType} onChange={(e) => setEditPresFormData({ ...editPresFormData, presentationType: e.target.value })} className="w-full px-4 py-2 border border-gray-300 rounded-md">
+                    <option value="CASE_PRESENTATION">Case Presentation</option>
+                    <option value="SEMINAR">Seminar</option>
+                    <option value="JOURNAL_CLUB">Journal Club</option>
+                    <option value="MORTALITY_MORBIDITY">Mortality & Morbidity</option>
+                    <option value="GRAND_ROUND">Grand Round</option>
+                    <option value="RESEARCH">Research</option>
+                    <option value="OTHER">Other</option>
+                  </select>
+                </div>
+                <div className="md:col-span-2">
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Title</label>
+                  <input type="text" value={editPresFormData.title} onChange={(e) => setEditPresFormData({ ...editPresFormData, title: e.target.value })} className="w-full px-4 py-2 border border-gray-300 rounded-md" required />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Venue</label>
+                  <select value={editPresFormData.venue} onChange={(e) => setEditPresFormData({ ...editPresFormData, venue: e.target.value })} className="w-full px-4 py-2 border border-gray-300 rounded-md">
+                    <option value="Y12HMC">Y12HMC</option>
+                    <option value="ALERT">ALERT</option>
+                    <option value="ABEBECH_GOBENA">Abebech Gobena</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Supervisor</label>
+                  <select value={editPresFormData.supervisorId} onChange={(e) => setEditPresFormData({ ...editPresFormData, supervisorId: e.target.value })} className="w-full px-4 py-2 border border-gray-300 rounded-md">
+                    <option value="">Select Supervisor</option>
+                    {supervisorsList.map((sup: any) => (
+                      <option key={sup.id} value={sup.id}>{sup.name}</option>
+                    ))}
+                  </select>
+                </div>
+                <div className="md:col-span-2">
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Description (Optional)</label>
+                  <textarea value={editPresFormData.description} onChange={(e) => setEditPresFormData({ ...editPresFormData, description: e.target.value })} className="w-full px-4 py-2 border border-gray-300 rounded-md" rows={3} />
+                </div>
+              </div>
+              <div className="flex space-x-3 mt-6 pt-6 border-t">
+                <button type="submit" className="flex-1 bg-green-600 text-white py-3 rounded-lg hover:bg-green-700 font-medium">Update Presentation</button>
+                <button type="button" onClick={() => { setShowEditPresModal(false); setEditingPres(null); }} className="flex-1 bg-gray-200 text-gray-700 py-3 rounded-lg hover:bg-gray-300 font-medium">Cancel</button>
               </div>
             </form>
           </div>
