@@ -351,10 +351,19 @@ export default function AllProcedures() {
                     {isMaster && !canEdit(log) && (
                       <button
                         onClick={(e) => handleDelete(log, e)}
-                        className="text-red-600 hover:text-red-900"
+                        className="bg-red-100 text-red-700 hover:bg-red-200 px-2 py-1 rounded text-xs font-semibold"
                         title="Master delete"
                       >
-                        <Trash2 size={16} />
+                        Delete
+                      </button>
+                    )}
+                    {isMaster && canEdit(log) && (
+                      <button
+                        onClick={(e) => handleDelete(log, e)}
+                        className="bg-red-100 text-red-700 hover:bg-red-200 px-2 py-1 rounded text-xs font-semibold"
+                        title="Master delete"
+                      >
+                        Delete
                       </button>
                     )}
                   </td>

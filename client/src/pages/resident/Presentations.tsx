@@ -624,10 +624,10 @@ export default function Presentations() {
                             e.stopPropagation();
                             handleDelete(presentation.id, presentation);
                           }}
-                          className="text-red-600 hover:text-red-900"
+                          className="bg-red-100 text-red-700 hover:bg-red-200 px-2 py-1 rounded text-xs font-semibold"
                           title="Master delete"
                         >
-                          <Trash2 size={16} />
+                          Delete
                         </button>
                       )}
                       {isReadOnlyMode && !isMaster && <span className="text-gray-400 text-xs">View Only</span>}
