@@ -133,18 +133,21 @@ export function calculateYearProgress(
     let performed = 0;
 
     loggedProcedures.forEach(log => {
-      // Match procedure name
+      // Match procedure name - exact match (case-insensitive, trimmed)
+      const logProc = log.procedure.toLowerCase().trim();
       const matchesProcedure = procedureNames.some(name => 
-        log.procedure.toLowerCase().includes(name.toLowerCase()) ||
-        name.toLowerCase().includes(log.procedure.toLowerCase())
+        logProc === name.toLowerCase().trim()
       );
 
       if (matchesProcedure) {
-        // Check role
         const role = log.surgery_role;
-        if (role === 'PRIMARY_SURGEON' || role === 'PRIMARY_SURGEON_ASSISTED') {
+        if (role === 'PRIMARY_SURGEON' || role === 'PRIMARY_SURGEON_ASSISTED' || role === 'PRIMARY_SUPERVISED') {
           performed++;
         } else if (role === 'FIRST_ASSISTANT' || role === 'SECOND_ASSISTANT' || role === 'OBSERVER') {
+          assisted++;
+        } else {
+          // Unknown role - still count as assisted so nothing is lost
+          console.log(`[Progress] Unknown role "${role}" for procedure "${log.procedure}" - counting as assisted`);
           assisted++;
         }
       }
@@ -185,9 +188,14 @@ export function calculateYearProgress(
       });
 
       // Calculate totals
-      if (req.minimum_expected_assisted) totalRequired += req.minimum_expected_assisted;
-      if (req.minimum_expected_performed) totalRequired += req.minimum_expected_performed;
-      totalAchieved += counts.assisted + counts.performed;
+      if (req.minimum_expected_assisted) {
+        totalRequired += req.minimum_expected_assisted;
+        totalAchieved += Math.min(counts.assisted, req.minimum_expected_assisted);
+      }
+      if (req.minimum_expected_performed) {
+        totalRequired += req.minimum_expected_performed;
+        totalAchieved += Math.min(counts.performed, req.minimum_expected_performed);
+      }
     });
   });
 
@@ -219,7 +227,7 @@ export type SurgeryRoleKey = keyof typeof SURGERY_ROLES;
  * Check if a role counts as "performed"
  */
 export function isPerformedRole(role: string): boolean {
-  return role === 'PRIMARY_SURGEON' || role === 'PRIMARY_SURGEON_ASSISTED';
+  return role === 'PRIMARY_SURGEON' || role === 'PRIMARY_SURGEON_ASSISTED' || role === 'PRIMARY_SUPERVISED';
 }
 
 /**
