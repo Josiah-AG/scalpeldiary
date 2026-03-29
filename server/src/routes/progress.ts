@@ -27,14 +27,14 @@ router.get('/year/:yearId', authenticate, async (req: AuthRequest, res) => {
 
     const yearNumber = yearResult.rows[0].year;
 
-    // Get all procedures for this year
+    // Get only rated/confirmed procedures for this year (not PENDING)
     const proceduresResult = await db.query(
       `SELECT 
         procedure, 
         surgery_role, 
         procedure_category 
       FROM surgical_logs 
-      WHERE year_id = $1 AND resident_id = $2`,
+      WHERE year_id = $1 AND resident_id = $2 AND status != 'PENDING'`,
       [yearId, residentId]
     );
 

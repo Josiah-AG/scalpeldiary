@@ -22,29 +22,34 @@ router.get('/my-logs', authenticate, async (req: AuthRequest, res) => {
 
     // Only filter by yearId if it's provided (not "all")
     if (yearId && yearId !== 'all') {
+      paramCount++;
       params.push(yearId);
-      queryText += ` AND sl.year_id = $${++paramCount}`;
+      queryText += ' AND sl.year_id = $' + paramCount;
     }
     if (startDate) {
+      paramCount++;
       params.push(startDate);
-      queryText += ` AND sl.date >= $${++paramCount}`;
+      queryText += ' AND sl.date >= $' + paramCount;
     }
     if (endDate) {
+      paramCount++;
       params.push(endDate);
-      queryText += ` AND sl.date <= $${++paramCount}`;
+      queryText += ' AND sl.date <= $' + paramCount;
     }
     if (procedureCategory) {
+      paramCount++;
       params.push(procedureCategory);
-      queryText += ` AND sl.procedure_category = $${++paramCount}`;
+      queryText += ' AND sl.procedure_category = $' + paramCount;
     }
     if (placeOfPractice) {
+      paramCount++;
       params.push(placeOfPractice);
-      queryText += ` AND sl.place_of_practice = $${++paramCount}`;
+      queryText += ' AND sl.place_of_practice = $' + paramCount;
     }
-
     if (supervisorId) {
+      paramCount++;
       params.push(supervisorId);
-      queryText += ` AND sl.supervisor_id = $${++paramCount}`;
+      queryText += ' AND sl.supervisor_id = $' + paramCount;
     }
     queryText += ' ORDER BY sl.date DESC';
 
@@ -72,7 +77,6 @@ router.post('/', authenticate, async (req: AuthRequest, res) => {
        procedureType, procedureCategory || 'MINOR', placeOfPractice, surgeryRole, supervisorId, remark || null]
     );
 
-    // Send notification to supervisor with resident name
     await sendNotification(
       supervisorId,
       `New surgical log assigned to you by ${req.user!.name}`,
@@ -123,7 +127,6 @@ router.post('/:logId/rate', authenticate, async (req: AuthRequest, res) => {
     const { logId } = req.params;
     const { rating, comment } = req.body;
 
-    // If no rating provided, mark as NOT_WITNESSED
     const status = rating ? 'RATED' : 'NOT_WITNESSED';
     
     const result = await query(
@@ -138,7 +141,6 @@ router.post('/:logId/rate', authenticate, async (req: AuthRequest, res) => {
       return res.status(404).json({ error: 'Log not found or unauthorized' });
     }
 
-    // Notify resident
     const log = result.rows[0];
     const notificationMessage = rating 
       ? `Your surgical log has been rated: ${rating}/100`
@@ -210,7 +212,6 @@ router.get('/resident/:residentId', authenticate, async (req: AuthRequest, res) 
     const { residentId } = req.params;
     const { year } = req.query;
 
-    // If no year specified, return all logs
     if (!year) {
       const result = await query(
         `SELECT sl.*, u.name as supervisor_name 
@@ -223,7 +224,6 @@ router.get('/resident/:residentId', authenticate, async (req: AuthRequest, res) 
       return res.json(result.rows);
     }
 
-    // Get year_id
     const yearResult = await query(
       'SELECT id FROM resident_years WHERE resident_id = $1 AND year = $2',
       [residentId, year]
@@ -254,14 +254,11 @@ router.get('/resident/:residentId', authenticate, async (req: AuthRequest, res) 
 // Get supervisor's rated procedures (Master and Management with access)
 router.get('/supervisor/:supervisorId/rated', authenticate, async (req: AuthRequest, res) => {
   try {
-    // Check if user has management access
     const userRole = req.user!.role;
     
-    // Allow MASTER, MANAGEMENT, or SUPERVISOR with management access
     if (userRole === 'MASTER' || userRole === 'MANAGEMENT') {
       // Allowed
     } else if (userRole === 'SUPERVISOR') {
-      // Check if supervisor has management access
       const userCheck = await query(
         'SELECT has_management_access FROM users WHERE id = $1',
         [req.user!.id]
@@ -274,8 +271,6 @@ router.get('/supervisor/:supervisorId/rated', authenticate, async (req: AuthRequ
     }
     
     const { supervisorId } = req.params;
-    console.log('Fetching rated procedures for supervisor:', supervisorId);
-    console.log('User making request:', req.user);
 
     const result = await query(
       `SELECT sl.*, 
@@ -290,7 +285,6 @@ router.get('/supervisor/:supervisorId/rated', authenticate, async (req: AuthRequ
       [supervisorId]
     );
 
-    console.log('Found procedures:', result.rows.length);
     res.json(result.rows);
   } catch (error) {
     console.error('Error fetching supervisor rated procedures:', error);
@@ -308,7 +302,6 @@ router.post('/:logId/postop-followup', authenticate, async (req: AuthRequest, re
       return res.status(400).json({ error: 'Comment is required' });
     }
 
-    // Verify the log exists, is rated, and belongs to this supervisor
     const checkResult = await query(
       `SELECT sl.*, res.name as resident_name 
        FROM surgical_logs sl
@@ -329,7 +322,6 @@ router.post('/:logId/postop-followup', authenticate, async (req: AuthRequest, re
       [comment.trim(), logId]
     );
 
-    // Notify resident
     const log = checkResult.rows[0];
     await sendNotification(
       log.resident_id,
@@ -354,7 +346,6 @@ router.put('/:logId', authenticate, async (req: AuthRequest, res) => {
       procedureType, procedureCategory, placeOfPractice, surgeryRole, supervisorId, remark
     } = req.body;
 
-    // Check if log exists and belongs to user
     const checkResult = await query(
       'SELECT rating, resident_id FROM surgical_logs WHERE id = $1',
       [logId]
@@ -395,7 +386,6 @@ router.delete('/:logId', authenticate, async (req: AuthRequest, res) => {
   try {
     const { logId } = req.params;
 
-    // Check if log exists and belongs to user
     const checkResult = await query(
       'SELECT rating, resident_id FROM surgical_logs WHERE id = $1',
       [logId]
