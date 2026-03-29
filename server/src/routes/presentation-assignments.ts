@@ -77,10 +77,18 @@ router.post('/', authenticate, async (req: AuthRequest, res) => {
     const moderatorName = moderatorResult.rows[0]?.name || 'a supervisor';
     const assignerName = await getUserName(req.user!);
 
+    // Build notification message - avoid repeating name if assigner is the moderator
+    let notifMessage;
+    if (req.user!.id === moderator_id || assignerName === moderatorName) {
+      notifMessage = `You have been assigned to present "${title}" to ${moderatorName}`;
+    } else {
+      notifMessage = `You have been assigned to present "${title}" to ${moderatorName} by ${assignerName}`;
+    }
+
     // Send notification to the resident who was assigned the presentation
     await sendNotification(
       presenter_id,
-      `You have been assigned to present "${title}" to ${moderatorName} by ${assignerName}`,
+      notifMessage,
       null,
       'presentation'
     );
