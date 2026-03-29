@@ -262,9 +262,9 @@ router.post('/:id/mark-presented', authenticate, async (req: AuthRequest, res) =
         yearId,
         presented_date,
         assignment.title,
-        'Assigned', // Default venue for assigned presentations
-        assignment.presentation_type,
-        assignment.description,
+        'Assigned',
+        assignment.presentation_type || 'OTHER',
+        assignment.description || '',
         assignment.moderator_id
       ]
     );
@@ -272,12 +272,21 @@ router.post('/:id/mark-presented', authenticate, async (req: AuthRequest, res) =
     const presentation = presentationResult.rows[0];
 
     // Update assignment status
-    await query(
-      `UPDATE presentation_assignments 
-       SET status = 'presented', presented_date = $1, presentation_id = $2, updated_at = NOW()
-       WHERE id = $3`,
-      [presented_date, presentation.id, id]
-    );
+    try {
+      await query(
+        `UPDATE presentation_assignments 
+         SET status = 'presented', presented_date = $1, presentation_id = $2, updated_at = NOW()
+         WHERE id = $3`,
+        [presented_date, presentation.id, id]
+      );
+    } catch (updateError: any) {
+      // Fallback: columns might not exist, just update status
+      console.error('Full update failed, trying status-only:', updateError.message);
+      await query(
+        `UPDATE presentation_assignments SET status = 'presented', updated_at = NOW() WHERE id = $1`,
+        [id]
+      );
+    }
 
     // Notify the moderator/supervisor that the presentation was marked as presented
     if (assignment.moderator_id) {
@@ -296,7 +305,8 @@ router.post('/:id/mark-presented', authenticate, async (req: AuthRequest, res) =
     });
   } catch (error: any) {
     console.error('Failed to mark as presented:', error);
-    res.status(500).json({ error: 'Failed to mark as presented' });
+    console.error('Error details:', error.message, error.detail);
+    res.status(500).json({ error: 'Failed to mark as presented', details: error.message });
   }
 });
 
