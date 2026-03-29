@@ -227,13 +227,17 @@ export default function AccountManagement() {
   };
 
   const handleResetPassword = async (userId: number, userName: string) => {
-    if (confirm(`Reset password for ${userName} to default (password123)?`)) {
-      try {
-        await api.post(`/users/reset-password/${userId}`);
-        alert('Password reset successfully');
-      } catch (error) {
-        alert('Failed to reset password');
-      }
+    const newPassword = prompt(`Set new password for ${userName}:\n(minimum 6 characters)`);
+    if (!newPassword) return;
+    if (newPassword.length < 6) {
+      alert('Password must be at least 6 characters');
+      return;
+    }
+    try {
+      await api.post(`/users/reset-password/${userId}`, { newPassword });
+      alert(`Password for ${userName} has been set successfully`);
+    } catch (error: any) {
+      alert(error.response?.data?.error || 'Failed to reset password');
     }
   };
 

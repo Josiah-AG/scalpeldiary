@@ -4,6 +4,7 @@ import api from '../../api/axios';
 import { format } from 'date-fns';
 import { X, Edit2, Filter, Trash2 } from 'lucide-react';
 import { getAllCategories } from '@shared/procedureUtils';
+import { useAuthStore } from '../../store/authStore';
 
 export default function AllProcedures() {
   const [allLogs, setAllLogs] = useState<any[]>([]);
@@ -15,6 +16,8 @@ export default function AllProcedures() {
   
   const isReadOnlyMode = sessionStorage.getItem('isReadOnlyMode') === 'true';
   const viewingResidentId = sessionStorage.getItem('viewingResidentId');
+  const { user } = useAuthStore();
+  const isMaster = user?.role === 'MASTER';
   
   const [filters, setFilters] = useState({
     startDate: '',
@@ -158,13 +161,14 @@ export default function AllProcedures() {
 
   const handleDelete = async (log: any, e?: React.MouseEvent) => {
     if (e) e.stopPropagation();
-    if (!canEdit(log)) {
+    if (!canEdit(log) && !isMaster) {
       alert('Cannot delete a rated or confirmed procedure');
       return;
     }
+    const endpoint = isMaster ? '/logs/master/' + log.id : '/logs/' + log.id;
     if (confirm('Are you sure you want to delete this procedure?\n\nProcedure: ' + log.procedure + '\nDate: ' + format(new Date(log.date), 'MMM dd, yyyy'))) {
       try {
-        await api.delete('/logs/' + log.id);
+        await api.delete(endpoint);
         alert('Procedure deleted successfully');
         fetchLogs();
       } catch (error: any) {
@@ -343,6 +347,15 @@ export default function AllProcedures() {
                           <Trash2 size={16} />
                         </button>
                       </>
+                    )}
+                    {isMaster && !canEdit(log) && (
+                      <button
+                        onClick={(e) => handleDelete(log, e)}
+                        className="text-red-600 hover:text-red-900"
+                        title="Master delete"
+                      >
+                        <Trash2 size={16} />
+                      </button>
                     )}
                   </td>
                 </tr>

@@ -412,4 +412,25 @@ router.delete('/:logId', authenticate, async (req: AuthRequest, res) => {
   }
 });
 
+// Master delete procedure (can delete any procedure including rated ones)
+router.delete('/master/:logId', authenticate, authorize('MASTER'), async (req: AuthRequest, res) => {
+  try {
+    const { logId } = req.params;
+    
+    // Delete associated notifications first
+    await query("DELETE FROM notifications WHERE log_id = $1", [logId]);
+    
+    const result = await query('DELETE FROM surgical_logs WHERE id = $1 RETURNING id, procedure', [logId]);
+    
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: 'Procedure not found' });
+    }
+    
+    res.json({ message: 'Procedure deleted by master: ' + result.rows[0].procedure });
+  } catch (error) {
+    console.error('Master delete procedure error:', error);
+    res.status(500).json({ error: 'Failed to delete procedure' });
+  }
+});
+
 export default router;

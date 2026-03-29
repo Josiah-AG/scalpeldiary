@@ -167,9 +167,15 @@ router.post('/resident-years', authenticate, authorize('MASTER'), async (req, re
 router.post('/reset-password/:userId', authenticate, authorize('MASTER'), async (req, res) => {
   try {
     const { userId } = req.params;
-    const defaultPassword = await bcrypt.hash('password123', 10);
+    const { newPassword } = req.body;
     
-    await query('UPDATE users SET password = $1, updated_at = NOW() WHERE id = $2', [defaultPassword, userId]);
+    if (!newPassword || newPassword.length < 6) {
+      return res.status(400).json({ error: 'Password must be at least 6 characters' });
+    }
+    
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
+    
+    await query('UPDATE users SET password = $1, updated_at = NOW() WHERE id = $2', [hashedPassword, userId]);
     res.json({ message: 'Password reset successfully' });
   } catch (error) {
     res.status(500).json({ error: 'Failed to reset password' });

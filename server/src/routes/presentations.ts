@@ -410,4 +410,28 @@ router.delete('/:presId', authenticate, async (req: AuthRequest, res) => {
   }
 });
 
+// Master delete presentation (can delete any presentation including rated ones)
+router.delete('/master/:presId', authenticate, authorize('MASTER'), async (req: AuthRequest, res) => {
+  try {
+    const { presId } = req.params;
+    
+    // Delete associated notifications
+    await query("DELETE FROM notifications WHERE log_id = $1", [presId.toString()]);
+    
+    // Unlink from presentation_assignments
+    await query("UPDATE presentation_assignments SET presentation_id = NULL WHERE presentation_id = $1", [presId]);
+    
+    const result = await query('DELETE FROM presentations WHERE id = $1 RETURNING id, title', [presId]);
+    
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: 'Presentation not found' });
+    }
+    
+    res.json({ message: 'Presentation deleted by master: ' + result.rows[0].title });
+  } catch (error) {
+    console.error('Master delete presentation error:', error);
+    res.status(500).json({ error: 'Failed to delete presentation' });
+  }
+});
+
 export default router;

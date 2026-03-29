@@ -3,6 +3,7 @@ import Layout from '../../components/Layout';
 import api from '../../api/axios';
 import { format } from 'date-fns';
 import { Plus, Edit2, Trash2, X, Award } from 'lucide-react';
+import { useAuthStore } from '../../store/authStore';
 
 interface Presentation {
   id: string;
@@ -43,6 +44,8 @@ export default function Presentations() {
   // Check if in read-only mode
   const isReadOnlyMode = sessionStorage.getItem('isReadOnlyMode') === 'true';
   const viewingResidentId = sessionStorage.getItem('viewingResidentId');
+  const { user } = useAuthStore();
+  const isMaster = user?.role === 'MASTER';
 
   const venues = [
     { value: 'Y12HMC', label: 'Y12HMC' },
@@ -250,6 +253,18 @@ export default function Presentations() {
   };
 
   const handleDelete = async (id: string, presentation: Presentation) => {
+    if (isMaster) {
+      if (confirm('Master delete: Are you sure you want to delete this presentation?\n\n' + presentation.title)) {
+        try {
+          await api.delete('/presentations/master/' + id);
+          fetchPresentations();
+          fetchStats();
+        } catch (error) {
+          alert('Failed to delete presentation');
+        }
+      }
+      return;
+    }
     if (!isCurrentYear(selectedYear)) {
       alert('You can only delete presentations from your current year');
       return;
@@ -260,7 +275,7 @@ export default function Presentations() {
     }
     if (confirm('Are you sure you want to delete this presentation?')) {
       try {
-        await api.delete(`/presentations/${id}`);
+        await api.delete('/presentations/' + id);
         fetchPresentations();
         fetchStats();
       } catch (error) {
@@ -603,7 +618,19 @@ export default function Presentations() {
                           </button>
                         </>
                       )}
-                      {isReadOnlyMode && <span className="text-gray-400 text-xs">View Only</span>}
+                      {isReadOnlyMode && isMaster && (
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleDelete(presentation.id, presentation);
+                          }}
+                          className="text-red-600 hover:text-red-900"
+                          title="Master delete"
+                        >
+                          <Trash2 size={16} />
+                        </button>
+                      )}
+                      {isReadOnlyMode && !isMaster && <span className="text-gray-400 text-xs">View Only</span>}
                     </td>
                   </tr>
                 );
