@@ -3,6 +3,13 @@ import { query } from '../database/db';
 import { authenticate, AuthRequest } from '../middleware/auth';
 import { sendNotification } from '../utils/notifications';
 
+// Helper to get user name (fallback to DB if not in JWT)
+async function getUserName(user: any): Promise<string> {
+  if (user.name) return user.name;
+  const result = await query('SELECT name FROM users WHERE id = $1', [user.id]);
+  return result.rows[0]?.name || 'Unknown';
+}
+
 const router = Router();
 
 // Create presentation assignment (Chief Resident & Supervisor)
@@ -237,7 +244,7 @@ router.post('/:id/mark-presented', authenticate, async (req: AuthRequest, res) =
     if (assignment.moderator_id) {
       await sendNotification(
         assignment.moderator_id,
-        `${req.user!.name} has marked presentation "${assignment.title}" as presented and is ready for rating`,
+        `${await getUserName(req.user!)} has marked presentation "${assignment.title}" as presented and is ready for rating`,
         presentation.id.toString(),
         'presentation'
       );

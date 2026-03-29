@@ -3,6 +3,13 @@ import { query } from '../database/db';
 import { authenticate, authorize, AuthRequest } from '../middleware/auth';
 import { sendNotification } from '../utils/notifications';
 
+// Helper to get user name (fallback to DB if not in JWT)
+async function getUserName(user: any): Promise<string> {
+  if (user.name) return user.name;
+  const result = await query('SELECT name FROM users WHERE id = $1', [user.id]);
+  return result.rows[0]?.name || 'Unknown';
+}
+
 // Surgical logs routes
 const router = Router();
 
@@ -79,7 +86,7 @@ router.post('/', authenticate, async (req: AuthRequest, res) => {
 
     await sendNotification(
       supervisorId,
-      `New surgical log assigned to you by ${req.user!.name}`,
+      `New surgical log assigned to you by ${await getUserName(req.user!)}`,
       result.rows[0].id,
       'procedure'
     );
@@ -142,7 +149,7 @@ router.post('/:logId/rate', authenticate, async (req: AuthRequest, res) => {
     }
 
     const log = result.rows[0];
-    const supervisorName = req.user!.name;
+    const supervisorName = await getUserName(req.user!);
     const notificationMessage = rating 
       ? `Your surgical log has been rated: ${rating}/100 by ${supervisorName}`
       : `Your surgical log was marked as not witnessed by ${supervisorName}`;
@@ -156,8 +163,8 @@ router.post('/:logId/rate', authenticate, async (req: AuthRequest, res) => {
 
     // Auto-dismiss the original "new log assigned" notification for this supervisor
     await query(
-      "UPDATE notifications SET read = TRUE WHERE user_id = $1 AND log_id = $2 AND notification_type = 'procedure' AND read = FALSE",
-      [req.user!.id, logId]
+      "UPDATE notifications SET read = TRUE WHERE user_id = $1 AND read = FALSE AND (log_id = $2 OR (notification_type = 'procedure' AND log_id = $3))",
+      [req.user!.id, logId, logId.toString()]
     );
 
     res.json(result.rows[0]);
@@ -330,9 +337,10 @@ router.post('/:logId/postop-followup', authenticate, async (req: AuthRequest, re
     );
 
     const log = checkResult.rows[0];
+    const supervisorName = await getUserName(req.user!);
     await sendNotification(
       log.resident_id,
-      `${req.user!.name} added a post-op follow-up comment on your procedure: ${log.procedure}`,
+      `${supervisorName} added a post-op follow-up comment on your procedure: ${log.procedure}`,
       logId,
       'rated'
     );

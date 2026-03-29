@@ -3,6 +3,13 @@ import { query } from '../database/db';
 import { authenticate, authorize, AuthRequest } from '../middleware/auth';
 import { sendNotification } from '../utils/notifications';
 
+// Helper to get user name (fallback to DB if not in JWT)
+async function getUserName(user: any): Promise<string> {
+  if (user.name) return user.name;
+  const result = await query('SELECT name FROM users WHERE id = $1', [user.id]);
+  return result.rows[0]?.name || 'Unknown';
+}
+
 const router = Router();
 
 // Get presentations for resident
@@ -57,7 +64,7 @@ router.post('/', authenticate, async (req: AuthRequest, res) => {
 
     console.log('=== CREATING PRESENTATION ===');
     console.log('supervisorId:', supervisorId);
-    console.log('User creating:', req.user!.name, req.user!.id);
+    console.log('User creating:', req.user!.id);
 
     const result = await query(
       `INSERT INTO presentations (
@@ -74,8 +81,8 @@ router.post('/', authenticate, async (req: AuthRequest, res) => {
       try {
         await sendNotification(
           supervisorId,
-          `New presentation "${title}" assigned to you by ${req.user!.name}`,
-          null, // presentations don't have log_id (that's for surgical_logs)
+          `New presentation "${title}" assigned to you by ${await getUserName(req.user!)}`,
+          null,
           'presentation'
         );
         console.log('✅ Notification sent successfully');
@@ -286,7 +293,7 @@ router.post('/:presentationId/rate', authenticate, async (req: AuthRequest, res)
 
     // Send notification to the resident
     const presentation = result.rows[0];
-    const supervisorName = req.user!.name;
+    const supervisorName = await getUserName(req.user!);
     const notificationMessage = `Your presentation "${presentation.title}" has been rated: ${rating}/100 by ${supervisorName}`;
     
     await sendNotification(
