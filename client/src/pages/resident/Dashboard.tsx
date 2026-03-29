@@ -823,18 +823,20 @@ export default function Dashboard() {
                     </td>
                     {!isReadOnlyMode && (
                       <td className="px-3 py-3 md:px-6 md:py-4 whitespace-nowrap text-xs md:text-sm hidden sm:table-cell">
-                        {!surgery.rating && (
-                          <button
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              navigate('/all-procedures');
-                            }}
-                            className="text-blue-600 hover:text-blue-900 flex items-center space-x-1"
-                            title="Edit procedure"
-                          >
-                            <Edit2 size={14} className="md:w-4 md:h-4" />
-                            <span className="hidden md:inline">Edit</span>
-                          </button>
+                        {surgery.status === 'PENDING' && (
+                          <div className="flex items-center space-x-2">
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                navigate('/all-procedures');
+                              }}
+                              className="text-green-600 hover:text-green-900 flex items-center space-x-1"
+                              title="Edit procedure"
+                            >
+                              <Edit2 size={14} className="md:w-4 md:h-4" />
+                              <span className="hidden md:inline">Edit</span>
+                            </button>
+                          </div>
                         )}
                       </td>
                     )}
@@ -933,13 +935,13 @@ export default function Dashboard() {
                     </td>
                     {!isReadOnlyMode && (
                       <td className="px-3 py-3 md:px-6 md:py-4 whitespace-nowrap text-xs md:text-sm hidden sm:table-cell">
-                        {!pres.rating && (
+                        {pres.status === 'PENDING' && (
                           <button
                             onClick={(e) => {
                               e.stopPropagation();
                               navigate('/presentations');
                             }}
-                            className="text-blue-600 hover:text-blue-900 flex items-center space-x-1"
+                            className="text-green-600 hover:text-green-900 flex items-center space-x-1"
                             title="Edit presentation"
                           >
                             <Edit2 size={14} className="md:w-4 md:h-4" />
