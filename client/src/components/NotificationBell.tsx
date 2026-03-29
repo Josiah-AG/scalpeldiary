@@ -103,7 +103,7 @@ export default function NotificationBell({ show, onClose, onCountChange }: Notif
       if (notification.message?.includes('assigned to present') || notification.message?.includes('cancelled')) {
         navigate('/presentations?tab=assigned');
       } else {
-        navigate('/unresponded-logs?tab=presentations&autoOpen=true');
+        navigate('/unresponded-logs?tab=presentations');
       }
     }
   };

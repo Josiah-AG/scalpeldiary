@@ -31,17 +31,16 @@ export default function NotificationPopup() {
       const unread = response.data.filter((n: Notification) => !n.read);
       
       if (unread.length > 0) {
-        // Check if there are NEW notifications since last check
-        const lastCheckTime = sessionStorage.getItem('lastNotificationCheck');
-        const hasNewNotifications = lastCheckTime 
-          ? unread.some((n: Notification) => new Date(n.created_at) > new Date(lastCheckTime))
-          : true; // First time, show all
+        // Track which notification IDs we've already shown the popup for
+        const shownIds = JSON.parse(sessionStorage.getItem('shownNotificationIds') || '[]');
+        const newNotifications = unread.filter((n: Notification) => !shownIds.includes(n.id));
         
-        if (hasNewNotifications) {
+        if (newNotifications.length > 0) {
           setNotifications(unread);
           setShowPopup(true);
-          // Update last check time to now
-          sessionStorage.setItem('lastNotificationCheck', new Date().toISOString());
+          // Mark all current unread IDs as shown
+          const allIds = unread.map((n: Notification) => n.id);
+          sessionStorage.setItem('shownNotificationIds', JSON.stringify(allIds));
         }
       }
     } catch (error) {
@@ -107,7 +106,7 @@ export default function NotificationPopup() {
       if (notification.message?.includes('assigned to present') || notification.message?.includes('cancelled')) {
         navigate('/presentations?tab=assigned');
       } else {
-        navigate('/unresponded-logs?tab=presentations&autoOpen=true');
+        navigate('/unresponded-logs?tab=presentations');
       }
     }
   };
