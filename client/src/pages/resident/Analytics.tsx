@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import Layout from '../../components/Layout';
 import api from '../../api/axios';
 import { PieChart, Pie, Cell, ResponsiveContainer, Legend, Tooltip } from 'recharts';
-import { Activity, Award, TrendingUp, MessageSquare, Calendar, Building2 } from 'lucide-react';
+import { Activity, Award, TrendingUp, MessageSquare, Calendar, Building2, UserCheck } from 'lucide-react';
 import YearProgressBar from '../../components/YearProgressBar';
 import ProgressDetailModal from '../../components/ProgressDetailModal';
 
@@ -76,6 +76,13 @@ export default function Analytics() {
   };
 
   const COLORS = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899'];
+
+  // Map specific colors for procedure types
+  const PROCEDURE_TYPE_COLORS: Record<string, string> = {
+    'ELECTIVE': '#3b82f6',
+    'SEMI ELECTIVE': '#f59e0b',
+    'EMERGENCY': '#ef4444',
+  };
 
   const roleData = analytics?.roleDistribution
     ? Object.entries(analytics.roleDistribution).map(([key, value]) => ({
@@ -217,9 +224,8 @@ export default function Analytics() {
                 <Pie
                   data={roleData}
                   cx="50%"
-                  cy="50%"
+                  cy="45%"
                   labelLine={false}
-                  label={(entry) => `${entry.name}: ${entry.value}`}
                   outerRadius={window.innerWidth < 640 ? 60 : 80}
                   fill="#8884d8"
                   dataKey="value"
@@ -228,8 +234,8 @@ export default function Analytics() {
                     <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                   ))}
                 </Pie>
-                <Tooltip />
-                <Legend wrapperStyle={{ fontSize: window.innerWidth < 640 ? '12px' : '14px' }} />
+                <Tooltip formatter={(value: any, name: string) => [value, name]} />
+                <Legend wrapperStyle={{ fontSize: '12px' }} />
               </PieChart>
             </ResponsiveContainer>
           ) : (
@@ -249,19 +255,18 @@ export default function Analytics() {
                 <Pie
                   data={procedureTypeData}
                   cx="50%"
-                  cy="50%"
+                  cy="45%"
                   labelLine={false}
-                  label={(entry) => `${entry.name}: ${entry.value}`}
                   outerRadius={window.innerWidth < 640 ? 60 : 80}
                   fill="#8884d8"
                   dataKey="value"
                 >
                   {procedureTypeData.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                    <Cell key={`cell-${index}`} fill={PROCEDURE_TYPE_COLORS[entry.name.toUpperCase()] || COLORS[index % COLORS.length]} />
                   ))}
                 </Pie>
-                <Tooltip />
-                <Legend wrapperStyle={{ fontSize: window.innerWidth < 640 ? '12px' : '14px' }} />
+                <Tooltip formatter={(value: any, name: string) => [value, name]} />
+                <Legend wrapperStyle={{ fontSize: '12px' }} />
               </PieChart>
             </ResponsiveContainer>
           ) : (
@@ -398,54 +403,40 @@ export default function Analytics() {
 
         <div className="bg-white rounded-xl shadow-lg p-4 sm:p-6">
           <h3 className="text-lg font-bold text-gray-900 mb-4 flex items-center">
-            <Building2 className="mr-2 text-green-600" size={20} />
-            Presentations by Institution
+            <UserCheck className="mr-2 text-green-600" size={20} />
+            Procedures by Supervisor
           </h3>
-          {analytics?.institutionPresentations && analytics.institutionPresentations.length > 0 ? (
-            <>
-              <ResponsiveContainer width="100%" height={200}>
-                <PieChart>
-                  <Pie
-                    data={analytics.institutionPresentations.map((inst: any) => ({
-                      name: inst.venue === 'ABEBECH_GOBENA' ? 'Abebech Gobena' : inst.venue,
-                      value: parseInt(inst.count)
-                    }))}
-                    cx="50%"
-                    cy="50%"
-                    outerRadius={60}
-                    fill="#8884d8"
-                    dataKey="value"
-                    label
-                  >
-                    {analytics.institutionPresentations.map((entry: any, index: number) => (
-                      <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                    ))}
-                  </Pie>
-                  <Tooltip />
-                  <Legend wrapperStyle={{ fontSize: '12px' }} />
-                </PieChart>
-              </ResponsiveContainer>
-              <div className="mt-4">
-                <table className="min-w-full">
-                  <thead className="bg-gray-50">
-                    <tr>
-                      <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Institution</th>
-                      <th className="px-4 py-2 text-right text-xs font-medium text-gray-500 uppercase">Count</th>
+          {analytics?.supervisorDistribution && analytics.supervisorDistribution.length > 0 ? (
+            <div className="overflow-x-auto">
+              <table className="min-w-full">
+                <thead className="bg-gray-50">
+                  <tr>
+                    <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">#</th>
+                    <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Supervisor</th>
+                    <th className="px-4 py-2 text-right text-xs font-medium text-gray-500 uppercase">Procedures</th>
+                    <th className="px-4 py-2 text-right text-xs font-medium text-gray-500 uppercase">Avg Rating</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-200">
+                  {analytics.supervisorDistribution.map((sup: any, index: number) => (
+                    <tr key={index} className="hover:bg-gray-50">
+                      <td className="px-4 py-3 text-sm font-bold text-green-600">{index + 1}</td>
+                      <td className="px-4 py-3 text-sm text-gray-900 font-medium">{sup.supervisor_name}</td>
+                      <td className="px-4 py-3 text-sm font-semibold text-right text-green-600">{sup.count}</td>
+                      <td className="px-4 py-3 text-sm font-semibold text-right">
+                        {sup.avg_rating ? (
+                          <span className={sup.avg_rating > 50 ? 'text-green-600' : 'text-red-600'}>
+                            {sup.avg_rating}
+                          </span>
+                        ) : (
+                          <span className="text-gray-400">-</span>
+                        )}
+                      </td>
                     </tr>
-                  </thead>
-                  <tbody className="divide-y divide-gray-200">
-                    {analytics.institutionPresentations.map((inst: any, index: number) => (
-                      <tr key={index} className="hover:bg-gray-50">
-                        <td className="px-4 py-2 text-sm text-gray-900">
-                          {inst.venue === 'ABEBECH_GOBENA' ? 'Abebech Gobena' : inst.venue}
-                        </td>
-                        <td className="px-4 py-2 text-sm font-semibold text-right text-green-600">{inst.count}</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            </>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           ) : (
             <p className="text-gray-500 text-center py-12">No data available</p>
           )}

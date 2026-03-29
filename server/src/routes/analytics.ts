@@ -190,6 +190,18 @@ router.get('/resident', authenticate, async (req: AuthRequest, res) => {
       [targetResidentId, yearId]
     );
 
+    // Supervisor distribution - who the resident works with most
+    const supervisorDistributionResult = await query(
+      `SELECT u.name as supervisor_name, COUNT(*) as count, 
+              ROUND(AVG(CASE WHEN sl.rating IS NOT NULL THEN sl.rating END)) as avg_rating
+       FROM surgical_logs sl
+       JOIN users u ON sl.supervisor_id = u.id
+       WHERE sl.resident_id = $1 AND sl.year_id = $2
+       GROUP BY u.name
+       ORDER BY count DESC`,
+      [targetResidentId, yearId]
+    );
+
     res.json({
       totalSurgeries: parseInt(totalResult.rows[0].count),
       monthSurgeries: parseInt(monthResult.rows[0].count),
@@ -209,6 +221,7 @@ router.get('/resident', authenticate, async (req: AuthRequest, res) => {
       avgPresentationRating: parseFloat(presentationRatingResult.rows[0].avg_rating) || 0,
       institutionProcedures: institutionProceduresResult.rows,
       institutionPresentations: institutionPresentationsResult.rows,
+      supervisorDistribution: supervisorDistributionResult.rows,
       comments: commentsResult.rows,
       presentationComments: presentationCommentsResult.rows
     });
