@@ -126,34 +126,36 @@ export default function MonthlyActivities() {
     const firstDayOfWeek = mStart.getDay();
     const pw = doc.internal.pageSize.getWidth();
 
-    // Legend
+    // Legend - centered
     let y = 35;
     doc.setFontSize(8);
-    doc.setTextColor(80, 80, 80);
-    let lx = 10;
+    doc.setFont('helvetica', 'normal');
+    let totalLegendW = 0;
+    categories.forEach(cat => { totalLegendW += 6 + doc.getTextWidth(cat.name) + 8; });
+    let lx = (pw - totalLegendW) / 2;
     categories.forEach(cat => {
       const hex = cat.color || '#9333EA';
       const r = parseInt(hex.slice(1, 3), 16);
       const g = parseInt(hex.slice(3, 5), 16);
       const b = parseInt(hex.slice(5, 7), 16);
       doc.setFillColor(r, g, b);
-      doc.rect(lx, y - 2.5, 4, 4, 'F');
+      doc.roundedRect(lx, y - 2.5, 4, 4, 0.5, 0.5, 'F');
+      doc.setTextColor(80, 80, 80);
       doc.text(cat.name, lx + 6, y + 0.5);
-      lx += doc.getTextWidth(cat.name) + 12;
-      if (lx > pw - 30) { lx = 10; y += 6; }
+      lx += 6 + doc.getTextWidth(cat.name) + 8;
     });
     y += 8;
 
     const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
     const cellW = (pw - 20) / 7;
-    const cellH = 18;
+    const cellH = 20;
 
     doc.setFillColor(30, 58, 138);
+    doc.rect(10, y, pw - 20, 7, 'F');
+    doc.setTextColor(255, 255, 255);
+    doc.setFontSize(8);
+    doc.setFont('helvetica', 'bold');
     dayNames.forEach((d, i) => {
-      doc.rect(10 + i * cellW, y, cellW, 7, 'F');
-      doc.setTextColor(255, 255, 255);
-      doc.setFontSize(8);
-      doc.setFont('helvetica', 'bold');
       doc.text(d, 10 + i * cellW + cellW / 2, y + 5, { align: 'center' });
     });
     y += 7;
@@ -192,8 +194,8 @@ export default function MonthlyActivities() {
           doc.setTextColor(255, 255, 255);
           doc.setFontSize(5);
           doc.setFont('helvetica', 'normal');
-          const label = `${cat.name}: ${res?.name?.split(' ')[0] || ''}`;
-          doc.text(label, x + 2, dy + 0.8, { maxWidth: cellW - 4 });
+          const label = res?.name || '';
+          doc.text(label, x + cellW / 2, dy + 0.8, { maxWidth: cellW - 3, align: 'center' });
           dy += 4.5;
         }
       });
