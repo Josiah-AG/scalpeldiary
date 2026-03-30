@@ -1,6 +1,7 @@
 import { useEffect } from 'react';
 import { X, Calendar } from 'lucide-react';
 import { format, startOfMonth, endOfMonth, eachDayOfInterval, isSameDay } from 'date-fns';
+import { useAuthStore } from '../store/authStore';
 
 // Lock body scroll when modal is open
 function useBodyScrollLock(isOpen: boolean) {
@@ -75,6 +76,8 @@ export function DutyModal({ isOpen, onClose, duties }: DutyModalProps) {
   useBodyScrollLock(isOpen);
   if (!isOpen) return null;
 
+  const { user } = useAuthStore();
+  const currentUserId = user?.id;
   const now = new Date();
   const dutyByDate = new Map<string, any[]>();
   duties.forEach(duty => {
@@ -106,11 +109,14 @@ export function DutyModal({ isOpen, onClose, duties }: DutyModalProps) {
                     {format(new Date(date + 'T00:00:00'), 'EEE, MMM dd')} {isToday && '(Today)'}
                   </div>
                   <div className="flex flex-wrap gap-1.5">
-                    {dayDuties.map((duty: any, idx: number) => (
-                      <div key={idx} className="text-white px-2 py-1 rounded text-xs font-medium" style={{ backgroundColor: duty.duty_color || '#D97706' }}>
-                        {duty.duty_category_name} · {duty.resident_name}
-                      </div>
-                    ))}
+                    {dayDuties.map((duty: any, idx: number) => {
+                      const isMe = duty.resident_id === currentUserId;
+                      return (
+                        <div key={idx} className={'text-white px-2 py-1 rounded text-xs font-medium ' + (isMe ? 'ring-2 ring-offset-1 ring-black' : '')} style={{ backgroundColor: duty.duty_color || '#D97706' }}>
+                          {duty.duty_category_name} · {duty.resident_name}{isMe ? ' ★' : ''}
+                        </div>
+                      );
+                    })}
                   </div>
                 </div>
               );
@@ -143,6 +149,8 @@ export function ActivityModal({ isOpen, onClose, activities }: ActivityModalProp
   useBodyScrollLock(isOpen);
   if (!isOpen) return null;
 
+  const { user } = useAuthStore();
+  const currentUserId = user?.id;
   const now = new Date();
   const actByDate = new Map<string, any[]>();
   activities.forEach(act => {
@@ -174,11 +182,14 @@ export function ActivityModal({ isOpen, onClose, activities }: ActivityModalProp
                     {format(new Date(date + 'T00:00:00'), 'EEE, MMM dd')} {isToday && '(Today)'}
                   </div>
                   <div className="flex flex-wrap gap-1.5">
-                    {dayActs.map((act: any, idx: number) => (
-                      <div key={idx} className="text-white px-2 py-1 rounded text-xs font-medium" style={{ backgroundColor: act.color || '#9333EA' }}>
-                        {act.activity_category_name} · {act.resident_name}
-                      </div>
-                    ))}
+                    {dayActs.map((act: any, idx: number) => {
+                      const isMe = act.resident_id === currentUserId;
+                      return (
+                        <div key={idx} className={'text-white px-2 py-1 rounded text-xs font-medium ' + (isMe ? 'ring-2 ring-offset-1 ring-black' : '')} style={{ backgroundColor: act.color || '#9333EA' }}>
+                          {act.activity_category_name} · {act.resident_name}{isMe ? ' ★' : ''}
+                        </div>
+                      );
+                    })}
                   </div>
                 </div>
               );
@@ -207,6 +218,8 @@ function CalendarGrid({ days, dataMap, color, categoryKey }: {
   color: string;
   categoryKey: string;
 }) {
+  const { user } = useAuthStore();
+  const currentUserId = user?.id;
   const c = color === 'purple'
     ? { bg: 'bg-purple-50', border: 'border-purple-400', badge: 'bg-purple-600' }
     : { bg: 'bg-amber-50', border: 'border-amber-400', badge: 'bg-amber-600' };
@@ -239,8 +252,9 @@ function CalendarGrid({ days, dataMap, color, categoryKey }: {
                 {Array.from(groups.entries()).map(([cat, residents], idx) => {
                   // Find the color from the original items
                   const itemColor = items.find((i: any) => i[categoryKey] === cat)?.color || items.find((i: any) => i[categoryKey] === cat)?.duty_color || (color === 'purple' ? '#9333EA' : '#D97706');
+                  const hasMe = residents.some((r: string) => items.some((i: any) => i[categoryKey] === cat && i.resident_id === currentUserId));
                   return (
-                    <div key={idx} className="text-white px-1 py-0.5 rounded text-[10px] leading-tight" style={{ backgroundColor: itemColor }}>
+                    <div key={idx} className={'text-white px-1 py-0.5 rounded text-[10px] leading-tight ' + (hasMe ? 'ring-1 ring-black' : '')} style={{ backgroundColor: itemColor }}>
                       <div className="font-bold truncate">{cat}</div>
                       <div className="opacity-90 truncate">{residents.join(', ')}</div>
                     </div>
