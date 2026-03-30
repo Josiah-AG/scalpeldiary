@@ -4,7 +4,7 @@ import api from '../../api/axios';
 import { useAuthStore } from '../../store/authStore';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
-import { Camera, User, Download, FileText } from 'lucide-react';
+import { Camera, User, Download, FileText, X } from 'lucide-react';
 import { format } from 'date-fns';
 import { getRatingLabel } from '../../utils/ratingUtils';
 
@@ -19,6 +19,7 @@ export default function Settings() {
   const { user, setAuth } = useAuthStore();
 
   // Export state
+  const [showExportModal, setShowExportModal] = useState(false);
   const [exportYear, setExportYear] = useState<string>('');
   const [exportMonth, setExportMonth] = useState<string>('');
   const [exportIncludeAnalytics, setExportIncludeAnalytics] = useState(false);
@@ -118,11 +119,19 @@ export default function Settings() {
     reader.readAsDataURL(file);
   };
 
+  const fmtDate = (d: string) => {
+    if (!d) return '';
+    const dt = new Date(d);
+    const day = dt.getDate();
+    const mon = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][dt.getMonth()];
+    const yr = String(dt.getFullYear()).slice(2);
+    return `${day}, ${mon}, ${yr}`;
+  };
+
   const handleExportPDF = async () => {
     if (!exportYear) { alert('Please select a year'); return; }
     setExporting(true);
     try {
-      // Fetch data
       const [logsRes, presRes] = await Promise.all([
         api.get(`/logs/my-logs?yearId=${exportYear}`),
         api.get(`/presentations/my-presentations?yearId=${exportYear}`)
@@ -131,187 +140,168 @@ export default function Settings() {
       let logs = logsRes.data;
       let presentations = presRes.data;
 
-      // Apply filters
       if (exportMonth) {
         logs = logs.filter((l: any) => l.date?.startsWith(exportMonth));
         presentations = presentations.filter((p: any) => p.date?.startsWith(exportMonth));
       }
-      if (exportCategory) {
-        logs = logs.filter((l: any) => l.procedure_category === exportCategory);
-      }
+      if (exportCategory) logs = logs.filter((l: any) => l.procedure_category === exportCategory);
       if (exportInstitution) {
         logs = logs.filter((l: any) => l.place_of_practice === exportInstitution);
         presentations = presentations.filter((p: any) => p.venue === exportInstitution);
       }
 
-      // Fetch analytics if needed
       let analytics: any = null;
       if (exportIncludeAnalytics) {
-        const analyticsRes = await api.get(`/analytics/resident?yearId=${exportYear}`);
-        analytics = analyticsRes.data;
+        const r = await api.get(`/analytics/resident?yearId=${exportYear}`);
+        analytics = r.data;
       }
 
       const yearData = years.find((y: any) => y.id == exportYear);
       const yearLabel = yearData ? `Year ${yearData.year}` : '';
       const monthLabel = exportMonth ? format(new Date(exportMonth + '-01'), 'MMMM yyyy') : 'Full Year';
 
-      // Create PDF
-      const doc = new jsPDF('p', 'mm', 'a4');
-      const pageWidth = doc.internal.pageSize.getWidth();
-      let y = 15;
+      const doc = new jsPDF('l', 'mm', 'a4'); // landscape for wider tables
+      const pw = doc.internal.pageSize.getWidth();
+      const ph = doc.internal.pageSize.getHeight();
+      let y = 10;
 
-      // Header
-      doc.setFillColor(37, 99, 235);
-      doc.rect(0, 0, pageWidth, 35, 'F');
+      // === HEADER ===
+      doc.setFillColor(30, 64, 175);
+      doc.rect(0, 0, pw, 28, 'F');
+      // Accent line
+      doc.setFillColor(59, 130, 246);
+      doc.rect(0, 28, pw, 2, 'F');
+
       doc.setTextColor(255, 255, 255);
-      doc.setFontSize(20);
+      doc.setFontSize(22);
       doc.setFont('helvetica', 'bold');
-      doc.text('ScalpelDiary', 14, 15);
-      doc.setFontSize(11);
+      doc.text('ScalpelDiary', 14, 14);
+      doc.setFontSize(10);
       doc.setFont('helvetica', 'normal');
-      doc.text(`${user?.name} — ${yearLabel}`, 14, 23);
-      doc.text(`Report: ${monthLabel}  |  Generated: ${format(new Date(), 'MMM dd, yyyy')}`, 14, 30);
-      y = 42;
+      doc.text('Surgical Log Book', 14, 21);
 
-      // Analytics summary
+      // Right side info
+      doc.setFontSize(11);
+      doc.setFont('helvetica', 'bold');
+      doc.text(user?.name || '', pw - 14, 12, { align: 'right' });
+      doc.setFontSize(9);
+      doc.setFont('helvetica', 'normal');
+      doc.text(`${yearLabel}  |  ${monthLabel}`, pw - 14, 18, { align: 'right' });
+      doc.text(`Generated: ${format(new Date(), 'dd MMM yyyy')}`, pw - 14, 24, { align: 'right' });
+
+      y = 36;
+
+      // === ANALYTICS SUMMARY ===
       if (analytics && exportIncludeAnalytics) {
-        doc.setTextColor(37, 99, 235);
-        doc.setFontSize(14);
+        doc.setTextColor(30, 64, 175);
+        doc.setFontSize(13);
         doc.setFont('helvetica', 'bold');
-        doc.text('Summary', 14, y);
-        y += 8;
+        doc.text('Summary', 14, y); y += 7;
 
-        doc.setTextColor(60, 60, 60);
-        doc.setFontSize(10);
-        doc.setFont('helvetica', 'normal');
-        const stats = [
-          ['Total Procedures', String(analytics.totalSurgeries), 'Verified Procedures', String(analytics.verifiedSurgeries)],
-          ['Total Presentations', String(analytics.totalPresentations), 'Verified Presentations', String(analytics.verifiedPresentations)],
-          ['Avg Procedure Rating', analytics.averageRating ? analytics.averageRating.toFixed(1) : 'N/A', 'Avg Presentation Rating', analytics.avgPresentationRating ? analytics.avgPresentationRating.toFixed(1) : 'N/A'],
-        ];
         autoTable(doc, {
           startY: y,
-          head: [['Metric', 'Value', 'Metric', 'Value']],
-          body: stats,
+          head: [['Procedures', 'Verified', 'Presentations', 'Verified', 'Avg Rating']],
+          body: [[
+            analytics.totalSurgeries, analytics.verifiedSurgeries,
+            analytics.totalPresentations, analytics.verifiedPresentations,
+            analytics.averageRating ? analytics.averageRating.toFixed(1) : 'N/A'
+          ]],
           theme: 'grid',
-          headStyles: { fillColor: [37, 99, 235], fontSize: 9 },
-          bodyStyles: { fontSize: 9 },
-          columnStyles: { 0: { fontStyle: 'bold' }, 2: { fontStyle: 'bold' } },
-          margin: { left: 14, right: 14 },
+          headStyles: { fillColor: [30, 64, 175], fontSize: 8, halign: 'center' },
+          bodyStyles: { fontSize: 9, halign: 'center', fontStyle: 'bold' },
+          margin: { left: 14, right: pw / 2 + 14 },
         });
-        y = (doc as any).lastAutoTable.finalY + 10;
-
-        // Role distribution
-        if (analytics.roleDistribution && Object.keys(analytics.roleDistribution).length > 0) {
-          doc.setTextColor(37, 99, 235);
-          doc.setFontSize(11);
-          doc.setFont('helvetica', 'bold');
-          doc.text('Role Distribution', 14, y);
-          y += 6;
-          autoTable(doc, {
-            startY: y,
-            head: [['Role', 'Count']],
-            body: Object.entries(analytics.roleDistribution).map(([role, count]) => [role.replace(/_/g, ' '), String(count)]),
-            theme: 'striped',
-            headStyles: { fillColor: [59, 130, 246], fontSize: 9 },
-            bodyStyles: { fontSize: 9 },
-            margin: { left: 14, right: 14 },
-            tableWidth: 100,
-          });
-          y = (doc as any).lastAutoTable.finalY + 10;
-        }
+        y = (doc as any).lastAutoTable.finalY + 8;
       }
 
-      // Procedures table
+      // === PROCEDURES TABLE ===
       if (logs.length > 0) {
-        if (y > 240) { doc.addPage(); y = 15; }
-        doc.setTextColor(37, 99, 235);
-        doc.setFontSize(14);
+        if (y > ph - 30) { doc.addPage(); y = 12; }
+        doc.setTextColor(30, 64, 175);
+        doc.setFontSize(13);
         doc.setFont('helvetica', 'bold');
-        doc.text(`Procedures (${logs.length})`, 14, y);
-        y += 6;
+        doc.text(`Procedures (${logs.length})`, 14, y); y += 5;
 
         autoTable(doc, {
           startY: y,
-          head: [['#', 'Date', 'MRN', 'Procedure', 'Category', 'Role', 'Institution', 'Supervisor', 'Rating']],
+          head: [['#', 'Date', 'Procedure', 'Diagnosis', 'Category', 'Role', 'Rating']],
           body: logs.map((log: any, i: number) => [
             i + 1,
-            log.date ? format(new Date(log.date), 'MM/dd/yy') : '',
-            log.mrn,
+            fmtDate(log.date),
             log.procedure,
+            log.diagnosis,
             log.procedure_category || '',
             (log.surgery_role || '').replace(/_/g, ' '),
-            log.place_of_practice || '',
-            log.supervisor_name || log.external_supervisor_name || '',
-            log.rating ? getRatingLabel(log.rating) : log.status === 'NOT_WITNESSED' ? 'N/A' : log.is_detachment ? 'Detachment' : 'Pending',
+            log.rating ? getRatingLabel(log.rating) : log.status === 'NOT_WITNESSED' ? 'N/A' : log.is_detachment ? 'N/A' : 'Pending',
           ]),
-          theme: 'grid',
-          headStyles: { fillColor: [37, 99, 235], fontSize: 7, cellPadding: 2 },
-          bodyStyles: { fontSize: 7, cellPadding: 1.5 },
-          columnStyles: { 0: { cellWidth: 8 }, 1: { cellWidth: 18 }, 2: { cellWidth: 16 } },
-          margin: { left: 8, right: 8 },
+          theme: 'striped',
+          headStyles: { fillColor: [30, 64, 175], fontSize: 8, cellPadding: 2.5 },
+          bodyStyles: { fontSize: 7.5, cellPadding: 2 },
+          alternateRowStyles: { fillColor: [240, 245, 255] },
+          columnStyles: { 0: { cellWidth: 8, halign: 'center' }, 1: { cellWidth: 22 }, 6: { cellWidth: 20, halign: 'center' } },
+          margin: { left: 10, right: 10 },
           didParseCell: (data: any) => {
-            if (data.column.index === 8 && data.section === 'body') {
-              const val = data.cell.text[0];
-              if (val === 'Excellent') data.cell.styles.textColor = [22, 163, 74];
-              else if (val === 'Good') data.cell.styles.textColor = [37, 99, 235];
-              else if (val === 'Satisfactory') data.cell.styles.textColor = [202, 138, 4];
-              else if (val === 'Poor') data.cell.styles.textColor = [220, 38, 38];
+            if (data.column.index === 6 && data.section === 'body') {
+              const v = data.cell.text[0];
+              if (v === 'Excellent') data.cell.styles.textColor = [22, 163, 74];
+              else if (v === 'Good') data.cell.styles.textColor = [37, 99, 235];
+              else if (v === 'Satisfactory') data.cell.styles.textColor = [202, 138, 4];
+              else if (v === 'Poor') data.cell.styles.textColor = [220, 38, 38];
             }
           },
         });
         y = (doc as any).lastAutoTable.finalY + 10;
       }
 
-      // Presentations table
+      // === PRESENTATIONS TABLE ===
       if (presentations.length > 0) {
-        if (y > 240) { doc.addPage(); y = 15; }
-        doc.setTextColor(37, 99, 235);
-        doc.setFontSize(14);
+        if (y > ph - 30) { doc.addPage(); y = 12; }
+        doc.setTextColor(16, 130, 90);
+        doc.setFontSize(13);
         doc.setFont('helvetica', 'bold');
-        doc.text(`Presentations (${presentations.length})`, 14, y);
-        y += 6;
+        doc.text(`Presentations (${presentations.length})`, 14, y); y += 5;
 
         autoTable(doc, {
           startY: y,
           head: [['#', 'Date', 'Title', 'Type', 'Venue', 'Moderator', 'Rating']],
           body: presentations.map((p: any, i: number) => [
             i + 1,
-            p.date ? format(new Date(p.date), 'MM/dd/yy') : '',
+            fmtDate(p.date),
             p.title,
             (p.presentation_type || '').replace(/_/g, ' '),
             p.venue || '',
             p.supervisor_name || p.external_supervisor_name || '',
-            p.rating ? getRatingLabel(p.rating) : p.status === 'NOT_WITNESSED' ? 'N/A' : p.is_detachment ? 'Detachment' : 'Pending',
+            p.rating ? getRatingLabel(p.rating) : p.is_detachment ? 'N/A' : 'Pending',
           ]),
-          theme: 'grid',
-          headStyles: { fillColor: [16, 185, 129], fontSize: 8, cellPadding: 2 },
-          bodyStyles: { fontSize: 8, cellPadding: 1.5 },
-          columnStyles: { 0: { cellWidth: 8 }, 1: { cellWidth: 18 } },
-          margin: { left: 8, right: 8 },
+          theme: 'striped',
+          headStyles: { fillColor: [16, 130, 90], fontSize: 8, cellPadding: 2.5 },
+          bodyStyles: { fontSize: 7.5, cellPadding: 2 },
+          alternateRowStyles: { fillColor: [236, 253, 245] },
+          columnStyles: { 0: { cellWidth: 8, halign: 'center' }, 1: { cellWidth: 22 }, 6: { cellWidth: 20, halign: 'center' } },
+          margin: { left: 10, right: 10 },
           didParseCell: (data: any) => {
             if (data.column.index === 6 && data.section === 'body') {
-              const val = data.cell.text[0];
-              if (val === 'Excellent') data.cell.styles.textColor = [22, 163, 74];
-              else if (val === 'Good') data.cell.styles.textColor = [37, 99, 235];
-              else if (val === 'Satisfactory') data.cell.styles.textColor = [202, 138, 4];
-              else if (val === 'Poor') data.cell.styles.textColor = [220, 38, 38];
+              const v = data.cell.text[0];
+              if (v === 'Excellent') data.cell.styles.textColor = [22, 163, 74];
+              else if (v === 'Good') data.cell.styles.textColor = [37, 99, 235];
+              else if (v === 'Satisfactory') data.cell.styles.textColor = [202, 138, 4];
+              else if (v === 'Poor') data.cell.styles.textColor = [220, 38, 38];
             }
           },
         });
       }
 
-      // Footer on each page
-      const totalPages = doc.getNumberOfPages();
-      for (let i = 1; i <= totalPages; i++) {
+      // Footer
+      const tp = (doc as any).getNumberOfPages();
+      for (let i = 1; i <= tp; i++) {
         doc.setPage(i);
-        doc.setFontSize(8);
-        doc.setTextColor(150, 150, 150);
-        doc.text(`ScalpelDiary — ${user?.name} — Page ${i}/${totalPages}`, pageWidth / 2, doc.internal.pageSize.getHeight() - 8, { align: 'center' });
+        doc.setFontSize(7);
+        doc.setTextColor(150);
+        doc.text(`ScalpelDiary  |  ${user?.name}  |  Page ${i} of ${tp}`, pw / 2, ph - 6, { align: 'center' });
       }
 
-      const fileName = `ScalpelDiary_${user?.name?.replace(/\s+/g, '_')}_${yearLabel.replace(/\s+/g, '')}_${monthLabel.replace(/\s+/g, '_')}.pdf`;
-      doc.save(fileName);
+      doc.save(`ScalpelDiary_${user?.name?.replace(/\s+/g, '_')}_${yearLabel.replace(/\s/g, '')}.pdf`);
+      setShowExportModal(false);
     } catch (error) {
       console.error('Export failed:', error);
       alert('Failed to export. Please try again.');
@@ -455,68 +445,87 @@ export default function Settings() {
         <div className="bg-white p-6 rounded-xl shadow-lg">
           <h3 className="text-lg font-semibold mb-4 flex items-center">
             <Download className="mr-2 text-green-600" size={20} />
-            Export Report (PDF)
+            Export Report
           </h3>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Year</label>
-              <select value={exportYear} onChange={(e) => setExportYear(e.target.value)}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500">
-                {years.map((y: any) => (
-                  <option key={y.id} value={y.id}>Year {y.year}{y.id === years[years.length - 1]?.id ? ' (Current)' : ''}</option>
-                ))}
-              </select>
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Month (optional)</label>
-              <input type="month" value={exportMonth} onChange={(e) => setExportMonth(e.target.value)}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500" />
-              {exportMonth && (
-                <button onClick={() => setExportMonth('')} className="text-xs text-blue-600 mt-1 hover:underline">Clear (export full year)</button>
-              )}
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Category Filter (optional)</label>
-              <select value={exportCategory} onChange={(e) => setExportCategory(e.target.value)}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500">
-                <option value="">All Categories</option>
-                <option value="GI Surgery">GI Surgery</option>
-                <option value="Hepatobiliary">Hepatobiliary</option>
-                <option value="Urology">Urology</option>
-                <option value="Orthopedic Surgery">Orthopedic Surgery</option>
-                <option value="Plastic Surgery">Plastic Surgery</option>
-                <option value="Pediatric Surgery">Pediatric Surgery</option>
-                <option value="Cardiothoracic">Cardiothoracic</option>
-                <option value="Neurosurgery">Neurosurgery</option>
-                <option value="Minor Surgery">Minor Surgery</option>
-              </select>
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Institution Filter (optional)</label>
-              <select value={exportInstitution} onChange={(e) => setExportInstitution(e.target.value)}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500">
-                <option value="">All Institutions</option>
-                <option value="Y12HMC">Y12HMC</option>
-                <option value="ALERT">ALERT</option>
-                <option value="TASH">TASH</option>
-                <option value="ABEBECH_GOBENA">Abebech Gobena</option>
-              </select>
-            </div>
-          </div>
-          <label className="flex items-center space-x-2 mb-4 cursor-pointer">
-            <input type="checkbox" checked={exportIncludeAnalytics} onChange={(e) => setExportIncludeAnalytics(e.target.checked)}
-              className="w-4 h-4 text-green-600 rounded" />
-            <span className="text-sm text-gray-700">Include analytics summary (stats, role distribution)</span>
-          </label>
+          <p className="text-sm text-gray-600 mb-4">Export your procedures and presentations as a professional PDF report.</p>
           <button
-            onClick={handleExportPDF}
-            disabled={exporting}
-            className="flex items-center space-x-2 bg-green-600 text-white py-3 px-6 rounded-lg hover:bg-green-700 disabled:bg-green-300 transition-colors font-medium"
+            onClick={() => setShowExportModal(true)}
+            className="flex items-center space-x-2 bg-green-600 text-white py-3 px-6 rounded-lg hover:bg-green-700 transition-colors font-medium"
           >
             <FileText size={18} />
-            <span>{exporting ? 'Generating PDF...' : 'Export to PDF'}</span>
+            <span>Export to PDF</span>
           </button>
         </div>
+
+        {/* Export Filter Modal */}
+        {showExportModal && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+            <div className="bg-white rounded-xl shadow-2xl max-w-lg w-full max-h-[90vh] overflow-y-auto">
+              <div className="bg-gradient-to-r from-green-600 to-green-700 text-white px-6 py-4 flex justify-between items-center rounded-t-xl">
+                <h3 className="text-lg font-bold flex items-center"><FileText className="mr-2" size={20} />Export PDF Report</h3>
+                <button onClick={() => setShowExportModal(false)} className="hover:bg-green-800 p-2 rounded-lg"><X size={20} /></button>
+              </div>
+              <div className="p-6 space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Year</label>
+                  <select value={exportYear} onChange={(e) => setExportYear(e.target.value)}
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500">
+                    {years.map((y: any) => (
+                      <option key={y.id} value={y.id}>Year {y.year}{y.id === years[years.length - 1]?.id ? ' (Current)' : ''}</option>
+                    ))}
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Month (optional — leave empty for full year)</label>
+                  <input type="month" value={exportMonth} onChange={(e) => setExportMonth(e.target.value)}
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500" />
+                  {exportMonth && <button onClick={() => setExportMonth('')} className="text-xs text-blue-600 mt-1 hover:underline">Clear</button>}
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Category (optional)</label>
+                  <select value={exportCategory} onChange={(e) => setExportCategory(e.target.value)}
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500">
+                    <option value="">All Categories</option>
+                    <option value="GI Surgery">GI Surgery</option>
+                    <option value="Hepatobiliary">Hepatobiliary</option>
+                    <option value="Urology">Urology</option>
+                    <option value="Orthopedic Surgery">Orthopedic Surgery</option>
+                    <option value="Plastic Surgery">Plastic Surgery</option>
+                    <option value="Pediatric Surgery">Pediatric Surgery</option>
+                    <option value="Cardiothoracic">Cardiothoracic</option>
+                    <option value="Neurosurgery">Neurosurgery</option>
+                    <option value="Minor Surgery">Minor Surgery</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Institution (optional)</label>
+                  <select value={exportInstitution} onChange={(e) => setExportInstitution(e.target.value)}
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500">
+                    <option value="">All Institutions</option>
+                    <option value="Y12HMC">Y12HMC</option>
+                    <option value="ALERT">ALERT</option>
+                    <option value="TASH">TASH</option>
+                    <option value="ABEBECH_GOBENA">Abebech Gobena</option>
+                  </select>
+                </div>
+                <label className="flex items-center space-x-2 cursor-pointer p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                  <input type="checkbox" checked={exportIncludeAnalytics} onChange={(e) => setExportIncludeAnalytics(e.target.checked)}
+                    className="w-4 h-4 text-blue-600 rounded" />
+                  <span className="text-sm text-gray-700">Include analytics summary</span>
+                </label>
+                <div className="flex space-x-3 pt-2">
+                  <button onClick={handleExportPDF} disabled={exporting}
+                    className="flex-1 flex items-center justify-center space-x-2 bg-green-600 text-white py-3 rounded-lg hover:bg-green-700 disabled:bg-green-300 font-medium transition-colors">
+                    <Download size={18} />
+                    <span>{exporting ? 'Generating...' : 'Download PDF'}</span>
+                  </button>
+                  <button onClick={() => setShowExportModal(false)}
+                    className="flex-1 bg-gray-200 text-gray-700 py-3 rounded-lg hover:bg-gray-300 font-medium">Cancel</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </Layout>
   );
