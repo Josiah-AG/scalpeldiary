@@ -1,7 +1,9 @@
 import { useState, useEffect } from 'react';
 import Layout from '../../components/Layout';
 import api from '../../api/axios';
-import { Activity, Plus, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Activity, Plus, ChevronLeft, ChevronRight, Download } from 'lucide-react';
+import { createPdfHeader, addPdfFooter, jsPDF, autoTable } from '../../utils/pdfExport';
+import { format, startOfMonth, endOfMonth, eachDayOfInterval } from 'date-fns';
 
 interface ActivityCategory {
   id: number;
@@ -111,6 +113,39 @@ export default function MonthlyActivities() {
   const getResidentName = (residentId: string) => {
     const resident = residents.find(r => r.id === residentId);
     return resident?.name || 'Unknown';
+  };
+
+  const handleExportActivities = () => {
+    const monthLabel = format(currentDate, 'MMMM yyyy');
+    const doc = new jsPDF('l', 'mm', 'a4');
+    createPdfHeader(doc, 'Monthly Activity Schedule', monthLabel);
+    
+    const days = eachDayOfInterval({ start: startOfMonth(currentDate), end: endOfMonth(currentDate) });
+    const body = days.map(day => {
+      const dateStr = format(day, 'yyyy-MM-dd');
+      const dayActs = activities.filter(a => a.activity_date === dateStr);
+      const assignments = dayActs.map(a => {
+        const cat = categories.find(c => c.id === a.activity_category_id);
+        const res = residents.find(r => r.id === a.resident_id);
+        return `${cat?.name || ''}: ${res?.name || ''}`;
+      }).join(', ');
+      return [format(day, 'dd'), format(day, 'EEE'), assignments || '—'];
+    });
+
+    autoTable(doc, {
+      startY: 35,
+      head: [['Day', 'Weekday', 'Activity Assignments']],
+      body,
+      theme: 'grid',
+      headStyles: { fillColor: [30, 58, 138], fontSize: 8 },
+      bodyStyles: { fontSize: 7.5, cellPadding: 2 },
+      alternateRowStyles: { fillColor: [245, 247, 255] },
+      columnStyles: { 0: { cellWidth: 12, halign: 'center' }, 1: { cellWidth: 18 } },
+      margin: { left: 10, right: 10 },
+    });
+
+    addPdfFooter(doc, `Activity Schedule — ${monthLabel}`);
+    doc.save(`ScalpelDiary_Activities_${format(currentDate, 'yyyy_MM')}.pdf`);
   };
 
   const previousMonth = () => {
@@ -420,11 +455,18 @@ export default function MonthlyActivities() {
     <Layout title="Monthly Activities">
       {/* Header */}
       <div className="bg-gradient-to-r from-amber-500 to-amber-600 text-white p-6 rounded-xl shadow-lg mb-6">
-        <div className="flex items-center space-x-3 mb-2">
-          <Activity size={32} />
-          <h2 className="text-2xl font-bold">Monthly Activity Scheduling</h2>
+        <div className="flex items-center justify-between">
+          <div>
+            <div className="flex items-center space-x-3 mb-2">
+              <Activity size={32} />
+              <h2 className="text-2xl font-bold">Monthly Activity Scheduling</h2>
+            </div>
+            <p className="text-amber-100">Track daily clinical activities for residents</p>
+          </div>
+          <button onClick={handleExportActivities} className="bg-white/20 hover:bg-white/30 text-white px-4 py-2 rounded-lg font-medium flex items-center space-x-2 transition-colors">
+            <Download size={18} /><span>Export PDF</span>
+          </button>
         </div>
-        <p className="text-amber-100">Track daily clinical activities for residents</p>
       </div>
 
       {/* Controls */}

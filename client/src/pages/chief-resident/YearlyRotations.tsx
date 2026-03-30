@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
 import Layout from '../../components/Layout';
 import api from '../../api/axios';
-import { CalendarDays, Plus } from 'lucide-react';
+import { CalendarDays, Plus, Download } from 'lucide-react';
+import { createPdfHeader, addPdfFooter, jsPDF, autoTable } from '../../utils/pdfExport';
 
 interface RotationCategory {
   id: number;
@@ -121,6 +122,42 @@ export default function YearlyRotations() {
     } catch (error) {
       console.error('Failed to fetch rotations:', error);
     }
+  };
+
+  const handleExportRotations = () => {
+    const doc = new jsPDF('l', 'mm', 'a4');
+    createPdfHeader(doc, 'Yearly Rotation Schedule', selectedYear?.name || 'Academic Year');
+
+    const head = [['Resident', ...months]];
+    const body = residents.map(r => {
+      const row = [r.name];
+      for (let m = 1; m <= 12; m++) {
+        let monthNumber = m;
+        if (academicYear) {
+          monthNumber = m - academicYear.start_month + 1;
+          if (monthNumber <= 0) monthNumber += 12;
+        }
+        const rot = rotations.find(rt => rt.resident_id === r.id && rt.month_number === monthNumber);
+        const cat = rot ? categories.find(c => c.id === rot.rotation_category_id) : null;
+        row.push(cat?.name || '—');
+      }
+      return row;
+    });
+
+    autoTable(doc, {
+      startY: 35,
+      head,
+      body,
+      theme: 'grid',
+      headStyles: { fillColor: [30, 58, 138], fontSize: 7, cellPadding: 2 },
+      bodyStyles: { fontSize: 6.5, cellPadding: 1.5 },
+      alternateRowStyles: { fillColor: [245, 247, 255] },
+      columnStyles: { 0: { cellWidth: 30, fontStyle: 'bold' } },
+      margin: { left: 6, right: 6 },
+    });
+
+    addPdfFooter(doc, `Rotation Schedule — ${selectedYear?.name || ''}`);
+    doc.save(`ScalpelDiary_Rotations_${selectedYear?.name?.replace(/\s+/g, '_') || 'schedule'}.pdf`);
   };
 
   const getRotationsForMonthAndCategory = (calendarMonth: number, categoryId: number) => {
@@ -260,11 +297,18 @@ export default function YearlyRotations() {
     <Layout title="Yearly Rotations">
       {/* Header */}
       <div className="bg-gradient-to-r from-amber-500 to-amber-600 text-white p-6 rounded-xl shadow-lg mb-6">
-        <div className="flex items-center space-x-3 mb-2">
-          <CalendarDays size={32} />
-          <h2 className="text-2xl font-bold">Yearly Rotation Scheduling</h2>
+        <div className="flex items-center justify-between">
+          <div>
+            <div className="flex items-center space-x-3 mb-2">
+              <CalendarDays size={32} />
+              <h2 className="text-2xl font-bold">Yearly Rotation Scheduling</h2>
+            </div>
+            <p className="text-amber-100">Assign residents to monthly rotations</p>
+          </div>
+          <button onClick={handleExportRotations} className="bg-white/20 hover:bg-white/30 text-white px-4 py-2 rounded-lg font-medium flex items-center space-x-2 transition-colors">
+            <Download size={18} /><span>Export PDF</span>
+          </button>
         </div>
-        <p className="text-amber-100">Assign residents to monthly rotations</p>
       </div>
 
       {/* Controls */}
