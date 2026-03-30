@@ -21,8 +21,11 @@ export default function Settings() {
   // Export state
   const [showExportModal, setShowExportModal] = useState(false);
   const [exportYear, setExportYear] = useState<string>('');
+  const [exportDateMode, setExportDateMode] = useState<'year' | 'month' | 'range'>('year');
   const [exportMonth, setExportMonth] = useState<string>('');
-  const [exportIncludeAnalytics, setExportIncludeAnalytics] = useState(false);
+  const [exportStartDate, setExportStartDate] = useState<string>('');
+  const [exportEndDate, setExportEndDate] = useState<string>('');
+  const [exportIncludeAnalytics, setExportIncludeAnalytics] = useState(true);
   const [exportCategory, setExportCategory] = useState<string>('');
   const [exportInstitution, setExportInstitution] = useState<string>('');
   const [years, setYears] = useState<any[]>([]);
@@ -128,6 +131,22 @@ export default function Settings() {
     return `${day}, ${mon}, ${yr}`;
   };
 
+  const shortType = (t: string) => {
+    if (!t) return '';
+    if (t === 'ELECTIVE') return 'Elec';
+    if (t === 'SEMI_ELECTIVE') return 'Semi';
+    if (t === 'EMERGENCY') return 'Emrg';
+    return t.slice(0, 4);
+  };
+
+  const getReportLabel = () => {
+    const yd = years.find((y: any) => y.id == exportYear);
+    const yl = yd ? `Year ${yd.year}` : '';
+    if (exportDateMode === 'month' && exportMonth) return `${yl} — ${format(new Date(exportMonth + '-01'), 'MMMM yyyy')}`;
+    if (exportDateMode === 'range' && exportStartDate && exportEndDate) return `${yl} — ${fmtDate(exportStartDate)} to ${fmtDate(exportEndDate)}`;
+    return `${yl} — Full Year Report`;
+  };
+
   const handleExportPDF = async () => {
     if (!exportYear) { alert('Please select a year'); return; }
     setExporting(true);
@@ -136,18 +155,21 @@ export default function Settings() {
         api.get(`/logs/my-logs?yearId=${exportYear}`),
         api.get(`/presentations/my-presentations?yearId=${exportYear}`)
       ]);
-
       let logs = logsRes.data;
-      let presentations = presRes.data;
+      let pres = presRes.data;
 
-      if (exportMonth) {
+      // Date filtering
+      if (exportDateMode === 'month' && exportMonth) {
         logs = logs.filter((l: any) => l.date?.startsWith(exportMonth));
-        presentations = presentations.filter((p: any) => p.date?.startsWith(exportMonth));
+        pres = pres.filter((p: any) => p.date?.startsWith(exportMonth));
+      } else if (exportDateMode === 'range' && exportStartDate && exportEndDate) {
+        logs = logs.filter((l: any) => l.date >= exportStartDate && l.date <= exportEndDate);
+        pres = pres.filter((p: any) => p.date >= exportStartDate && p.date <= exportEndDate);
       }
       if (exportCategory) logs = logs.filter((l: any) => l.procedure_category === exportCategory);
       if (exportInstitution) {
         logs = logs.filter((l: any) => l.place_of_practice === exportInstitution);
-        presentations = presentations.filter((p: any) => p.venue === exportInstitution);
+        pres = pres.filter((p: any) => p.venue === exportInstitution);
       }
 
       let analytics: any = null;
@@ -156,151 +178,218 @@ export default function Settings() {
         analytics = r.data;
       }
 
-      const yearData = years.find((y: any) => y.id == exportYear);
-      const yearLabel = yearData ? `Year ${yearData.year}` : '';
-      const monthLabel = exportMonth ? format(new Date(exportMonth + '-01'), 'MMMM yyyy') : 'Full Year';
-
-      const doc = new jsPDF('l', 'mm', 'a4'); // landscape for wider tables
+      const reportLabel = getReportLabel();
+      const doc = new jsPDF('l', 'mm', 'a4');
       const pw = doc.internal.pageSize.getWidth();
       const ph = doc.internal.pageSize.getHeight();
       let y = 10;
 
-      // === HEADER ===
-      doc.setFillColor(30, 64, 175);
-      doc.rect(0, 0, pw, 28, 'F');
-      // Accent line
+      // ===== HEADER =====
+      doc.setFillColor(30, 58, 138);
+      doc.rect(0, 0, pw, 30, 'F');
       doc.setFillColor(59, 130, 246);
-      doc.rect(0, 28, pw, 2, 'F');
+      doc.rect(0, 30, pw, 1.5, 'F');
+
+      // Logo icon (scalpel shape)
+      doc.setDrawColor(255, 255, 255);
+      doc.setLineWidth(0.8);
+      doc.line(12, 8, 12, 22); // blade
+      doc.line(12, 8, 15, 10);
+      doc.line(12, 22, 10, 24);
+      doc.line(12, 22, 14, 24);
 
       doc.setTextColor(255, 255, 255);
-      doc.setFontSize(22);
+      doc.setFontSize(20);
       doc.setFont('helvetica', 'bold');
-      doc.text('ScalpelDiary', 14, 14);
-      doc.setFontSize(10);
-      doc.setFont('helvetica', 'normal');
-      doc.text('Surgical Log Book', 14, 21);
-
-      // Right side info
-      doc.setFontSize(11);
-      doc.setFont('helvetica', 'bold');
-      doc.text(user?.name || '', pw - 14, 12, { align: 'right' });
+      doc.text('ScalpelDiary', 20, 15);
       doc.setFontSize(9);
       doc.setFont('helvetica', 'normal');
-      doc.text(`${yearLabel}  |  ${monthLabel}`, pw - 14, 18, { align: 'right' });
-      doc.text(`Generated: ${format(new Date(), 'dd MMM yyyy')}`, pw - 14, 24, { align: 'right' });
+      doc.text('Surgical Log Book', 20, 22);
+      doc.setFontSize(8);
+      doc.text('Shaping Tomorrow\'s Surgeons', 20, 27);
 
-      y = 36;
+      // Right side
+      doc.setFontSize(12);
+      doc.setFont('helvetica', 'bold');
+      doc.text(user?.name || '', pw - 14, 13, { align: 'right' });
+      doc.setFontSize(9);
+      doc.setFont('helvetica', 'normal');
+      doc.text(reportLabel, pw - 14, 20, { align: 'right' });
+      doc.text(`Generated: ${format(new Date(), 'dd MMM yyyy')}`, pw - 14, 26, { align: 'right' });
 
-      // === ANALYTICS SUMMARY ===
-      if (analytics && exportIncludeAnalytics) {
-        doc.setTextColor(30, 64, 175);
-        doc.setFontSize(13);
+      y = 37;
+
+      // ===== PROCEDURES TABLE =====
+      if (logs.length > 0) {
+        doc.setTextColor(30, 58, 138);
+        doc.setFontSize(12);
         doc.setFont('helvetica', 'bold');
-        doc.text('Summary', 14, y); y += 7;
+        doc.text(`Surgical Procedures (${logs.length})`, 10, y); y += 5;
 
         autoTable(doc, {
           startY: y,
-          head: [['Procedures', 'Verified', 'Presentations', 'Verified', 'Avg Rating']],
-          body: [[
-            analytics.totalSurgeries, analytics.verifiedSurgeries,
-            analytics.totalPresentations, analytics.verifiedPresentations,
-            analytics.averageRating ? analytics.averageRating.toFixed(1) : 'N/A'
-          ]],
+          head: [['#', 'Date', 'MRN', 'Procedure', 'Diagnosis', 'Cat.', 'Type', 'Role', 'Supervisor', 'Rating']],
+          body: logs.map((l: any, i: number) => [
+            i + 1, fmtDate(l.date), l.mrn || '', l.procedure || '', l.diagnosis || '',
+            l.procedure_category || '', shortType(l.procedure_type),
+            (l.surgery_role || '').replace(/_/g, ' '),
+            l.supervisor_name || l.external_supervisor_name || '',
+            l.rating ? getRatingLabel(l.rating) : l.status === 'NOT_WITNESSED' ? 'N/A' : l.is_detachment ? 'N/A' : 'Pending',
+          ]),
           theme: 'grid',
-          headStyles: { fillColor: [30, 64, 175], fontSize: 8, halign: 'center' },
-          bodyStyles: { fontSize: 9, halign: 'center', fontStyle: 'bold' },
-          margin: { left: 14, right: pw / 2 + 14 },
+          headStyles: { fillColor: [30, 58, 138], fontSize: 7, cellPadding: 2, lineColor: [30, 58, 138], lineWidth: 0.3 },
+          bodyStyles: { fontSize: 7, cellPadding: 1.8, lineColor: [200, 200, 200], lineWidth: 0.2 },
+          alternateRowStyles: { fillColor: [245, 247, 255] },
+          columnStyles: {
+            0: { cellWidth: 7, halign: 'center' }, 1: { cellWidth: 20 }, 2: { cellWidth: 16 },
+            5: { cellWidth: 20 }, 6: { cellWidth: 12, halign: 'center' },
+            9: { cellWidth: 16, halign: 'center' }
+          },
+          margin: { left: 8, right: 8 },
+          didParseCell: (data: any) => {
+            if (data.column.index === 9 && data.section === 'body') {
+              const v = data.cell.text[0];
+              if (v === 'Excellent') data.cell.styles.textColor = [22, 163, 74];
+              else if (v === 'Good') data.cell.styles.textColor = [37, 99, 235];
+              else if (v === 'Satisfactory') data.cell.styles.textColor = [180, 120, 0];
+              else if (v === 'Poor') data.cell.styles.textColor = [220, 38, 38];
+            }
+            if (data.column.index === 6 && data.section === 'body') {
+              const v = data.cell.text[0];
+              if (v === 'Emrg') data.cell.styles.textColor = [220, 38, 38];
+            }
+          },
         });
         y = (doc as any).lastAutoTable.finalY + 8;
       }
 
-      // === PROCEDURES TABLE ===
-      if (logs.length > 0) {
+      // ===== PRESENTATIONS TABLE =====
+      if (pres.length > 0) {
         if (y > ph - 30) { doc.addPage(); y = 12; }
-        doc.setTextColor(30, 64, 175);
-        doc.setFontSize(13);
+        doc.setTextColor(5, 102, 68);
+        doc.setFontSize(12);
         doc.setFont('helvetica', 'bold');
-        doc.text(`Procedures (${logs.length})`, 14, y); y += 5;
-
-        autoTable(doc, {
-          startY: y,
-          head: [['#', 'Date', 'Procedure', 'Diagnosis', 'Category', 'Role', 'Rating']],
-          body: logs.map((log: any, i: number) => [
-            i + 1,
-            fmtDate(log.date),
-            log.procedure,
-            log.diagnosis,
-            log.procedure_category || '',
-            (log.surgery_role || '').replace(/_/g, ' '),
-            log.rating ? getRatingLabel(log.rating) : log.status === 'NOT_WITNESSED' ? 'N/A' : log.is_detachment ? 'N/A' : 'Pending',
-          ]),
-          theme: 'striped',
-          headStyles: { fillColor: [30, 64, 175], fontSize: 8, cellPadding: 2.5 },
-          bodyStyles: { fontSize: 7.5, cellPadding: 2 },
-          alternateRowStyles: { fillColor: [240, 245, 255] },
-          columnStyles: { 0: { cellWidth: 8, halign: 'center' }, 1: { cellWidth: 22 }, 6: { cellWidth: 20, halign: 'center' } },
-          margin: { left: 10, right: 10 },
-          didParseCell: (data: any) => {
-            if (data.column.index === 6 && data.section === 'body') {
-              const v = data.cell.text[0];
-              if (v === 'Excellent') data.cell.styles.textColor = [22, 163, 74];
-              else if (v === 'Good') data.cell.styles.textColor = [37, 99, 235];
-              else if (v === 'Satisfactory') data.cell.styles.textColor = [202, 138, 4];
-              else if (v === 'Poor') data.cell.styles.textColor = [220, 38, 38];
-            }
-          },
-        });
-        y = (doc as any).lastAutoTable.finalY + 10;
-      }
-
-      // === PRESENTATIONS TABLE ===
-      if (presentations.length > 0) {
-        if (y > ph - 30) { doc.addPage(); y = 12; }
-        doc.setTextColor(16, 130, 90);
-        doc.setFontSize(13);
-        doc.setFont('helvetica', 'bold');
-        doc.text(`Presentations (${presentations.length})`, 14, y); y += 5;
+        doc.text(`Presentations (${pres.length})`, 10, y); y += 5;
 
         autoTable(doc, {
           startY: y,
           head: [['#', 'Date', 'Title', 'Type', 'Venue', 'Moderator', 'Rating']],
-          body: presentations.map((p: any, i: number) => [
-            i + 1,
-            fmtDate(p.date),
-            p.title,
-            (p.presentation_type || '').replace(/_/g, ' '),
-            p.venue || '',
+          body: pres.map((p: any, i: number) => [
+            i + 1, fmtDate(p.date), p.title || '',
+            (p.presentation_type || '').replace(/_/g, ' '), p.venue || '',
             p.supervisor_name || p.external_supervisor_name || '',
             p.rating ? getRatingLabel(p.rating) : p.is_detachment ? 'N/A' : 'Pending',
           ]),
-          theme: 'striped',
-          headStyles: { fillColor: [16, 130, 90], fontSize: 8, cellPadding: 2.5 },
-          bodyStyles: { fontSize: 7.5, cellPadding: 2 },
-          alternateRowStyles: { fillColor: [236, 253, 245] },
-          columnStyles: { 0: { cellWidth: 8, halign: 'center' }, 1: { cellWidth: 22 }, 6: { cellWidth: 20, halign: 'center' } },
-          margin: { left: 10, right: 10 },
+          theme: 'grid',
+          headStyles: { fillColor: [5, 102, 68], fontSize: 7.5, cellPadding: 2, lineColor: [5, 102, 68], lineWidth: 0.3 },
+          bodyStyles: { fontSize: 7.5, cellPadding: 1.8, lineColor: [200, 200, 200], lineWidth: 0.2 },
+          alternateRowStyles: { fillColor: [240, 253, 245] },
+          columnStyles: { 0: { cellWidth: 7, halign: 'center' }, 1: { cellWidth: 20 }, 6: { cellWidth: 16, halign: 'center' } },
+          margin: { left: 8, right: 8 },
           didParseCell: (data: any) => {
             if (data.column.index === 6 && data.section === 'body') {
               const v = data.cell.text[0];
               if (v === 'Excellent') data.cell.styles.textColor = [22, 163, 74];
               else if (v === 'Good') data.cell.styles.textColor = [37, 99, 235];
-              else if (v === 'Satisfactory') data.cell.styles.textColor = [202, 138, 4];
+              else if (v === 'Satisfactory') data.cell.styles.textColor = [180, 120, 0];
               else if (v === 'Poor') data.cell.styles.textColor = [220, 38, 38];
             }
           },
         });
+        y = (doc as any).lastAutoTable.finalY + 8;
       }
 
-      // Footer
+      // ===== ANALYTICS (after tables) =====
+      if (analytics && exportIncludeAnalytics) {
+        if (y > ph - 60) { doc.addPage(); y = 12; }
+        doc.setFillColor(245, 247, 255);
+        doc.rect(8, y - 2, pw - 16, 6, 'F');
+        doc.setTextColor(30, 58, 138);
+        doc.setFontSize(11);
+        doc.setFont('helvetica', 'bold');
+        doc.text('Analytics Summary', 10, y + 2); y += 8;
+
+        // Summary stats - compact 2-column layout
+        const summaryData = [
+          ['Total Procedures', String(analytics.totalSurgeries || 0), 'Verified Procedures', String(analytics.verifiedSurgeries || 0)],
+          ['Total Presentations', String(analytics.totalPresentations || 0), 'Verified Presentations', String(analytics.verifiedPresentations || 0)],
+          ['Avg Procedure Rating', analytics.averageRating ? analytics.averageRating.toFixed(1) : 'N/A', 'Senior Supervisor Rating', analytics.seniorSupervisorRating ? analytics.seniorSupervisorRating.toFixed(1) : 'N/A'],
+          ['Avg Presentation Rating', analytics.avgPresentationRating ? analytics.avgPresentationRating.toFixed(1) : 'N/A', 'This Month', String(analytics.monthSurgeries || 0)],
+        ];
+        autoTable(doc, {
+          startY: y, body: summaryData, theme: 'plain',
+          bodyStyles: { fontSize: 8, cellPadding: 1.5 },
+          columnStyles: { 0: { fontStyle: 'bold', cellWidth: 45 }, 1: { cellWidth: 20, halign: 'center' }, 2: { fontStyle: 'bold', cellWidth: 50 }, 3: { cellWidth: 20, halign: 'center' } },
+          margin: { left: 10, right: pw / 2 },
+        });
+        const summaryEndY = (doc as any).lastAutoTable.finalY;
+
+        // Role distribution - right side
+        if (analytics.roleDistribution && Object.keys(analytics.roleDistribution).length > 0) {
+          autoTable(doc, {
+            startY: y, head: [['Role', 'Count']],
+            body: Object.entries(analytics.roleDistribution).map(([r, c]) => [r.replace(/_/g, ' '), String(c)]),
+            theme: 'striped', headStyles: { fillColor: [59, 130, 246], fontSize: 7 },
+            bodyStyles: { fontSize: 7 }, margin: { left: pw / 2 + 10, right: pw / 4 },
+          });
+        }
+        y = Math.max(summaryEndY, (doc as any).lastAutoTable?.finalY || summaryEndY) + 6;
+
+        // Procedure type + Top procedures side by side
+        const leftX = 10;
+        const rightX = pw / 2 + 10;
+
+        if (analytics.procedureTypeDistribution && Object.keys(analytics.procedureTypeDistribution).length > 0) {
+          autoTable(doc, {
+            startY: y, head: [['Procedure Type', 'Count']],
+            body: Object.entries(analytics.procedureTypeDistribution).map(([t, c]) => [t.replace(/_/g, ' '), String(c)]),
+            theme: 'striped', headStyles: { fillColor: [107, 114, 128], fontSize: 7 },
+            bodyStyles: { fontSize: 7 }, margin: { left: leftX, right: pw / 2 },
+          });
+        }
+
+        if (analytics.topProcedures && analytics.topProcedures.length > 0) {
+          autoTable(doc, {
+            startY: y, head: [['Top Procedure', 'Count']],
+            body: analytics.topProcedures.map((p: any) => [p.procedure, p.count]),
+            theme: 'striped', headStyles: { fillColor: [107, 114, 128], fontSize: 7 },
+            bodyStyles: { fontSize: 7 }, margin: { left: rightX, right: 10 },
+          });
+        }
+        y = (doc as any).lastAutoTable?.finalY + 6 || y + 6;
+
+        // Institution + Supervisor distribution side by side
+        if (analytics.institutionProcedures && analytics.institutionProcedures.length > 0) {
+          autoTable(doc, {
+            startY: y, head: [['Institution', 'Count']],
+            body: analytics.institutionProcedures.map((i: any) => [i.place_of_practice === 'ABEBECH_GOBENA' ? 'Abebech Gobena' : i.place_of_practice, i.count]),
+            theme: 'striped', headStyles: { fillColor: [107, 114, 128], fontSize: 7 },
+            bodyStyles: { fontSize: 7 }, margin: { left: leftX, right: pw / 2 },
+          });
+        }
+
+        if (analytics.supervisorDistribution && analytics.supervisorDistribution.length > 0) {
+          autoTable(doc, {
+            startY: y, head: [['Supervisor', 'Procedures', 'Avg Rating']],
+            body: analytics.supervisorDistribution.map((s: any) => [s.supervisor_name, s.count, s.avg_rating || '-']),
+            theme: 'striped', headStyles: { fillColor: [107, 114, 128], fontSize: 7 },
+            bodyStyles: { fontSize: 7 }, margin: { left: rightX, right: 10 },
+          });
+        }
+      }
+
+      // ===== FOOTER =====
       const tp = (doc as any).getNumberOfPages();
       for (let i = 1; i <= tp; i++) {
         doc.setPage(i);
+        doc.setDrawColor(200, 200, 200);
+        doc.line(10, ph - 10, pw - 10, ph - 10);
         doc.setFontSize(7);
-        doc.setTextColor(150);
-        doc.text(`ScalpelDiary  |  ${user?.name}  |  Page ${i} of ${tp}`, pw / 2, ph - 6, { align: 'center' });
+        doc.setTextColor(140, 140, 140);
+        doc.text(`ScalpelDiary  |  ${user?.name}  |  ${reportLabel}  |  Page ${i} of ${tp}`, pw / 2, ph - 6, { align: 'center' });
       }
 
-      doc.save(`ScalpelDiary_${user?.name?.replace(/\s+/g, '_')}_${yearLabel.replace(/\s/g, '')}.pdf`);
+      doc.save(`ScalpelDiary_${(user?.name || '').replace(/\s+/g, '_')}_Report.pdf`);
       setShowExportModal(false);
     } catch (error) {
       console.error('Export failed:', error);
@@ -476,10 +565,27 @@ export default function Settings() {
                   </select>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Month (optional — leave empty for full year)</label>
-                  <input type="month" value={exportMonth} onChange={(e) => setExportMonth(e.target.value)}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500" />
-                  {exportMonth && <button onClick={() => setExportMonth('')} className="text-xs text-blue-600 mt-1 hover:underline">Clear</button>}
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Date Range</label>
+                  <div className="flex space-x-2 mb-2">
+                    {(['year', 'month', 'range'] as const).map(mode => (
+                      <button key={mode} onClick={() => setExportDateMode(mode)}
+                        className={`flex-1 py-2 px-3 rounded-lg text-sm font-medium transition-colors ${exportDateMode === mode ? 'bg-green-600 text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}>
+                        {mode === 'year' ? 'Full Year' : mode === 'month' ? 'Month' : 'Custom Range'}
+                      </button>
+                    ))}
+                  </div>
+                  {exportDateMode === 'month' && (
+                    <input type="month" value={exportMonth} onChange={(e) => setExportMonth(e.target.value)}
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500" />
+                  )}
+                  {exportDateMode === 'range' && (
+                    <div className="grid grid-cols-2 gap-2">
+                      <input type="date" value={exportStartDate} onChange={(e) => setExportStartDate(e.target.value)}
+                        className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 text-sm" placeholder="Start" />
+                      <input type="date" value={exportEndDate} onChange={(e) => setExportEndDate(e.target.value)}
+                        className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 text-sm" placeholder="End" />
+                    </div>
+                  )}
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">Category (optional)</label>
