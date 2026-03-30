@@ -132,8 +132,9 @@ export default function SupervisorDashboard() {
             </div>
             <TrendingUp className="w-6 h-6 opacity-70" />
           </div>
-          <h3 className="text-sm font-medium opacity-90 mb-1">Total Surgeries Supervised</h3>
-          <p className="text-4xl font-bold mb-2">{analytics?.totalSurgeries || 0}</p>
+          <h3 className="text-sm font-medium opacity-90 mb-1">Procedures Supervised</h3>
+          <p className="text-4xl font-bold mb-1">{analytics?.uniqueProcedures || 0}</p>
+          <p className="text-xs opacity-75 mb-1">{analytics?.totalSurgeries || 0} resident logs</p>
           <p className="text-xs opacity-75">Click to view all ratings done →</p>
         </button>
 

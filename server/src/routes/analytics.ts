@@ -269,9 +269,15 @@ router.get('/resident', authenticate, async (req: AuthRequest, res) => {
 // Get supervisor analytics
 router.get('/supervisor', authenticate, async (req: AuthRequest, res) => {
   try {
-    // Total surgeries supervised
+    // Total resident log entries supervised (each resident's log counts)
     const totalSurgeriesResult = await query(
       'SELECT COUNT(*) as count FROM surgical_logs WHERE supervisor_id = $1',
+      [req.user!.id]
+    );
+
+    // Unique procedures: distinct (mrn, date) combinations
+    const uniqueProceduresResult = await query(
+      'SELECT COUNT(*) as count FROM (SELECT DISTINCT mrn, date FROM surgical_logs WHERE supervisor_id = $1) sub',
       [req.user!.id]
     );
 
@@ -283,6 +289,7 @@ router.get('/supervisor', authenticate, async (req: AuthRequest, res) => {
 
     res.json({
       totalSurgeries: parseInt(totalSurgeriesResult.rows[0].count),
+      uniqueProcedures: parseInt(uniqueProceduresResult.rows[0].count),
       totalPresentations: parseInt(totalPresentationsResult.rows[0].count)
     });
   } catch (error) {
