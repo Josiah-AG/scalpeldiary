@@ -325,8 +325,14 @@ export default function AllProcedures() {
                     </span>
                   </td>
                   <td className="px-4 py-3 text-sm">{log.surgery_role?.replace(/_/g, ' ')}</td>
-                  <td className="px-4 py-3 text-sm">{log.supervisor_name}</td>
-                  <td className="px-4 py-3 whitespace-nowrap">{getRatingBadge(log.rating, log.status)}</td>
+                  <td className="px-4 py-3 text-sm">{log.supervisor_name || log.external_supervisor_name || 'External'}</td>
+                  <td className="px-4 py-3 whitespace-nowrap">
+                    {log.is_detachment && !log.supervisor_id ? (
+                      <span className={`px-3 py-1 rounded-full font-semibold text-sm ${log.detachment_verified ? 'bg-green-500 text-white' : 'bg-amber-500 text-white'}`}>
+                        {log.detachment_verified ? 'Verified' : 'Detachment'}
+                      </span>
+                    ) : getRatingBadge(log.rating, log.status)}
+                  </td>
                   <td className="px-4 py-3 whitespace-nowrap text-sm space-x-2">
                     {canEdit(log) && (
                       <>
@@ -430,7 +436,7 @@ export default function AllProcedures() {
               </div>
               <div>
                 <label className="text-sm font-semibold text-gray-600">Supervisor</label>
-                <p className="text-gray-900">{selectedLog.supervisor_name}</p>
+                <p className="text-gray-900">{selectedLog.supervisor_name || selectedLog.external_supervisor_name || 'External'}</p>
               </div>
               {selectedLog.status === 'NOT_WITNESSED' && (
                 <div className="bg-gray-50 border-l-4 border-gray-400 p-4 rounded">

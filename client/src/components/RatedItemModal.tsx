@@ -120,7 +120,7 @@ export default function RatedItemModal({ item: providedItem, itemId, itemType, o
             <p><strong>Type:</strong> {item.presentation_type?.replace(/_/g, ' ')}</p>
             <p><strong>Venue:</strong> {item.venue}</p>
             {item.description && <p><strong>Description:</strong> {item.description}</p>}
-            <p><strong>Rated by:</strong> {item.supervisor_name || 'Not assigned'}</p>
+            <p><strong>Rated by:</strong> {item.supervisor_name || item.external_supervisor_name || 'Not assigned'}</p>
             
             {item.rating && (
               <div className="border-t pt-3 mt-3">
