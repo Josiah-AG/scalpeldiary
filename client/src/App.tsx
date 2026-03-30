@@ -12,6 +12,7 @@ import LogsToRate from './pages/resident/LogsToRate';
 import RatedLogs from './pages/resident/RatedLogs';
 import AllProcedures from './pages/resident/AllProcedures';
 import ResidentAnalytics from './pages/resident/Analytics';
+import AllComments from './pages/resident/AllComments';
 import Presentations from './pages/resident/Presentations';
 import Settings from './pages/resident/Settings';
 import SupervisorDashboard from './pages/supervisor/Dashboard';
@@ -100,6 +101,7 @@ function App() {
             <Route path="/rated-logs" element={<RatedLogs />} />
             <Route path="/all-procedures" element={<AllProcedures />} />
             <Route path="/analytics" element={<ResidentAnalytics />} />
+            <Route path="/all-comments" element={<AllComments />} />
             <Route path="/presentations" element={<Presentations />} />
             <Route path="/settings" element={<Settings />} />
             
@@ -123,6 +125,7 @@ function App() {
             <Route path="/resident-view/all-procedures" element={<AllProceduresWrapper />} />
             <Route path="/resident-view/presentations" element={<PresentationsWrapper />} />
             <Route path="/resident-view/analytics" element={<AnalyticsWrapper />} />
+            <Route path="/resident-view/all-comments" element={<AllComments />} />
             <Route path="/resident-view/rated-logs" element={<RatedLogsWrapper />} />
             {/* Management routes for supervisors with management access */}
             {user.has_management_access && (
@@ -146,6 +149,7 @@ function App() {
             <Route path="/resident-view/all-procedures" element={<AllProceduresWrapper />} />
             <Route path="/resident-view/presentations" element={<PresentationsWrapper />} />
             <Route path="/resident-view/analytics" element={<AnalyticsWrapper />} />
+            <Route path="/resident-view/all-comments" element={<AllComments />} />
             <Route path="/resident-view/rated-logs" element={<RatedLogsWrapper />} />
           </>
         )}
@@ -160,6 +164,7 @@ function App() {
             <Route path="/resident-view/all-procedures" element={<AllProceduresWrapper />} />
             <Route path="/resident-view/presentations" element={<PresentationsWrapper />} />
             <Route path="/resident-view/analytics" element={<AnalyticsWrapper />} />
+            <Route path="/resident-view/all-comments" element={<AllComments />} />
             <Route path="/resident-view/rated-logs" element={<RatedLogsWrapper />} />
           </>
         )}

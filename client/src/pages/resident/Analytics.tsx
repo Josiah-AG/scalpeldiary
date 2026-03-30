@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import Layout from '../../components/Layout';
 import api from '../../api/axios';
 import { PieChart, Pie, Cell, ResponsiveContainer, Legend, Tooltip } from 'recharts';
@@ -13,8 +14,8 @@ export default function Analytics() {
   const [loading, setLoading] = useState(true);
   const [yearProgress, setYearProgress] = useState<any>(null);
   const [showProgressModal, setShowProgressModal] = useState(false);
-  const [showAllComments, setShowAllComments] = useState(false);
   const [commentFilter, setCommentFilter] = useState<'all' | 'excellent' | 'good' | 'bad'>('all');
+  const navigate = useNavigate();
 
   // Check if in read-only mode
   const isReadOnlyMode = sessionStorage.getItem('isReadOnlyMode') === 'true';
@@ -524,7 +525,7 @@ export default function Analytics() {
             });
             allComments.sort((a, b) => new Date(b.sortDate).getTime() - new Date(a.sortDate).getTime());
 
-            const displayComments = showAllComments ? allComments : allComments.slice(0, 10);
+            const displayComments = allComments.slice(0, 10);
             const hasMore = allComments.length > 10;
 
             if (allComments.length === 0) {
@@ -576,20 +577,12 @@ export default function Analytics() {
                     </p>
                   </div>
                 ))}
-                {hasMore && !showAllComments && (
+                {hasMore && (
                   <button
-                    onClick={() => setShowAllComments(true)}
-                    className="w-full py-3 text-center text-blue-600 hover:text-blue-800 font-semibold text-sm border-t border-gray-200 mt-2"
+                    onClick={() => navigate(isReadOnlyMode ? '/resident-view/all-comments' : '/all-comments')}
+                    className="w-full py-3 text-center bg-blue-50 hover:bg-blue-100 text-blue-600 hover:text-blue-800 font-semibold text-sm rounded-lg border border-blue-200 mt-2 transition-colors"
                   >
-                    Show All ({allComments.length} comments)
-                  </button>
-                )}
-                {showAllComments && hasMore && (
-                  <button
-                    onClick={() => setShowAllComments(false)}
-                    className="w-full py-3 text-center text-blue-600 hover:text-blue-800 font-semibold text-sm border-t border-gray-200 mt-2"
-                  >
-                    Show Less
+                    View All Comments ({allComments.length})
                   </button>
                 )}
               </>
