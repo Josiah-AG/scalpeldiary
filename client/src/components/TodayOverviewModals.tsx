@@ -74,10 +74,10 @@ interface DutyModalProps {
 
 export function DutyModal({ isOpen, onClose, duties }: DutyModalProps) {
   useBodyScrollLock(isOpen);
-  if (!isOpen) return null;
-
   const { user } = useAuthStore();
   const currentUserId = user?.id;
+  if (!isOpen) return null;
+
   const now = new Date();
   const dutyByDate = new Map<string, any[]>();
   duties.forEach(duty => {
@@ -147,10 +147,10 @@ interface ActivityModalProps {
 
 export function ActivityModal({ isOpen, onClose, activities }: ActivityModalProps) {
   useBodyScrollLock(isOpen);
-  if (!isOpen) return null;
-
   const { user } = useAuthStore();
   const currentUserId = user?.id;
+  if (!isOpen) return null;
+
   const now = new Date();
   const actByDate = new Map<string, any[]>();
   activities.forEach(act => {
