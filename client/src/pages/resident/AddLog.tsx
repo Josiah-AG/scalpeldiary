@@ -67,10 +67,11 @@ export default function AddLog() {
   useEffect(() => {
     const venue = patientData.placeOfPractice;
     const hasOrtho = procedures.some(p => p.procedureCategory === 'Orthopedic Surgery');
+    const hasPlastic = procedures.some(p => p.procedureCategory === 'Plastic Surgery');
     
-    if (venue !== 'Y12HMC' || hasOrtho) {
+    if (venue !== 'Y12HMC' || hasOrtho || hasPlastic) {
       setIsDetachment(true);
-      fetchDetachmentSupervisors(venue, hasOrtho);
+      fetchDetachmentSupervisors(venue, hasOrtho || hasPlastic);
     } else {
       setIsDetachment(false);
       setDetachmentSupervisors([]);
@@ -83,8 +84,8 @@ export default function AddLog() {
   const fetchDetachmentSupervisors = async (venue: string, hasOrtho: boolean) => {
     try {
       const params: any = {};
-      if (hasOrtho) {
-        params.category = 'Orthopedic Surgery';
+      if (hasOrtho || hasPlastic) {
+        params.category = hasOrtho ? 'Orthopedic Surgery' : 'Plastic Surgery';
       } else {
         params.venue = venue;
       }
@@ -168,6 +169,7 @@ export default function AddLog() {
       await Promise.all(
         procedures.map((proc) => {
           const detachmentType = proc.procedureCategory === 'Orthopedic Surgery' ? 'ORTHOPEDICS'
+            : proc.procedureCategory === 'Plastic Surgery' ? 'PLASTIC_SURGERY'
             : patientData.placeOfPractice !== 'Y12HMC' ? patientData.placeOfPractice
             : null;
           

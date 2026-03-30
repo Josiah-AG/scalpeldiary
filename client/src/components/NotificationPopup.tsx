@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import api from '../api/axios';
 import { format } from 'date-fns';
 import RatedItemModal from './RatedItemModal';
+import { useAuthStore } from '../store/authStore';
 
 interface Notification {
   id: string;
@@ -20,6 +21,7 @@ export default function NotificationPopup() {
   const [selectedItem, setSelectedItem] = useState<{ item: any; type: 'procedure' | 'presentation' } | null>(null);
   const [loadingItem, setLoadingItem] = useState(false);
   const navigate = useNavigate();
+  const { user } = useAuthStore();
 
   useEffect(() => {
     fetchUnreadNotifications();
@@ -99,12 +101,18 @@ export default function NotificationPopup() {
     // Close popup first
     setShowPopup(false);
     
-    // Navigate based on notification type
+    // Navigate based on notification type and user role
     if (notification.notification_type === 'procedure') {
-      navigate('/unresponded-logs?tab=procedures');
+      if (user?.role === 'RESIDENT') {
+        navigate('/logs-to-rate');
+      } else {
+        navigate('/unresponded-logs?tab=procedures');
+      }
     } else if (notification.notification_type === 'presentation') {
       if (notification.message?.includes('assigned to present') || notification.message?.includes('cancelled')) {
         navigate('/presentations?tab=assigned');
+      } else if (user?.role === 'RESIDENT') {
+        navigate('/logs-to-rate');
       } else {
         navigate('/unresponded-logs?tab=presentations');
       }

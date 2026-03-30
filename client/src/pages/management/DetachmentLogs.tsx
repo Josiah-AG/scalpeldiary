@@ -77,7 +77,7 @@ export default function DetachmentLogs() {
   const getDetachmentLabel = (type: string) => {
     const labels: Record<string, string> = {
       ALERT: 'ALERT', ORTHOPEDICS: 'Orthopedics', TASH: 'TASH', ABEBECH_GOBENA: 'Abebech Gobena',
-      ER: 'ER', ANESTHESIOLOGY: 'Anesthesiology', ICU: 'ICU'
+      ER: 'ER', ANESTHESIOLOGY: 'Anesthesiology', ICU: 'ICU', PLASTIC_SURGERY: 'Plastic Surgery'
     };
     return labels[type] || type;
   };

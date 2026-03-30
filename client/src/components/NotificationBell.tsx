@@ -101,11 +101,16 @@ export default function NotificationBell({ show, onClose, onCountChange }: Notif
     // For actionable notifications
     onClose();
     if (notification.notification_type === 'procedure') {
-      navigate('/unresponded-logs?tab=procedures');
+      if (user?.role === 'RESIDENT') {
+        navigate('/logs-to-rate');
+      } else {
+        navigate('/unresponded-logs?tab=procedures');
+      }
     } else if (notification.notification_type === 'presentation') {
-      // If it's an assignment notification for resident, go to presentations assigned tab
       if (notification.message?.includes('assigned to present') || notification.message?.includes('cancelled')) {
         navigate('/presentations?tab=assigned');
+      } else if (user?.role === 'RESIDENT') {
+        navigate('/logs-to-rate');
       } else {
         navigate('/unresponded-logs?tab=presentations');
       }

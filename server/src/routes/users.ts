@@ -367,9 +367,14 @@ router.get('/detachment-supervisors', authenticate, async (req: AuthRequest, res
       return res.json({ residents, externalLabel: 'Orthopedics Supervisor' });
     }
 
-    // For other venues (TASH, Abebech Gobena): no resident dropdown, just external name
-    const detachmentLabel = venue === 'TASH' ? 'TASH Supervisor' 
-      : venue === 'ABEBECH_GOBENA' ? 'Abebech Gobena Supervisor' 
+    // For other venues: no resident dropdown, just external name
+    const detachmentLabel = venue === 'TASH' ? 'TASH Supervisor'
+      : venue === 'ABEBECH_GOBENA' ? 'Abebech Gobena Supervisor'
+      : venue === 'ER' ? 'ER Supervisor'
+      : venue === 'ANESTHESIOLOGY' ? 'Anesthesiology Supervisor'
+      : venue === 'ICU' ? 'ICU Supervisor'
+      : venue === 'ORTHOPEDICS' ? 'Orthopedics Supervisor'
+      : venue === 'PLASTIC_SURGERY' ? 'Plastic Surgery Supervisor'
       : 'External Supervisor';
     
     return res.json({ residents: [], externalLabel: detachmentLabel });
