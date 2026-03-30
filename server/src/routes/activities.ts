@@ -235,7 +235,11 @@ router.get('/', authenticate, async (req: AuthRequest, res) => {
 // Get today's activities for current user or specific resident
 router.get('/today', authenticate, async (req: AuthRequest, res) => {
   try {
-    const today = new Date().toISOString().split('T')[0];
+    // Use EAT timezone (UTC+3) for today's date
+    const now = new Date();
+    const eatOffset = 3 * 60 * 60 * 1000;
+    const eatDate = new Date(now.getTime() + eatOffset);
+    const today = eatDate.toISOString().split('T')[0];
     const residentId = req.query.residentId as string || req.user!.id;
 
     const result = await query(
