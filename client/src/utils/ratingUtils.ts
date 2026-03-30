@@ -30,11 +30,11 @@ export function getResidentRatingBadge(rating: number | null, status: string): {
   return { text: label, className: color + ' text-white' };
 }
 
-// Returns the badge for supervisor/master view (exact number)
+// Returns the badge for supervisor/master view (exact number with 4-tier colors)
 export function getSupervisorRatingBadge(rating: number | null, status: string): { text: string; className: string } {
   if (status === 'NOT_WITNESSED') return { text: 'N/A', className: 'bg-gray-200 text-gray-700' };
   if (!rating || status === 'PENDING') return { text: 'Pending', className: 'bg-yellow-100 text-yellow-700' };
-  const color = rating > 50 ? 'bg-green-500' : 'bg-red-500';
+  const color = getRatingColor(rating);
   return { text: `${rating}/100`, className: color + ' text-white' };
 }
 

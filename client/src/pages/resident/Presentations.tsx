@@ -565,7 +565,7 @@ export default function Presentations() {
                             <p><strong>Rated by:</strong> ${presentation.supervisor_name || 'Not yet rated'}</p>
                             ${presentation.rating ? `
                               <div class="border-t pt-3 mt-3">
-                                <p><strong>Rating:</strong> <span class="text-2xl font-bold ${presentation.rating >= 90 ? 'text-green-600' : presentation.rating >= 71 ? 'text-blue-600' : presentation.rating >= 50 ? 'text-yellow-600' : 'text-red-600'}">${presentation.rating >= 90 ? 'Excellent' : presentation.rating >= 71 ? 'Good' : presentation.rating >= 50 ? 'Satisfactory' : 'Poor'}</span></p>
+                                <p><strong>Rating:</strong> <span class="text-2xl font-bold ${presentation.rating >= 90 ? 'text-green-600' : presentation.rating >= 71 ? 'text-blue-600' : presentation.rating >= 50 ? 'text-yellow-600' : 'text-red-600'}">${isReadOnlyMode ? presentation.rating + '/100' : (presentation.rating >= 90 ? 'Excellent' : presentation.rating >= 71 ? 'Good' : presentation.rating >= 50 ? 'Satisfactory' : 'Poor')}</span></p>
                                 ${presentation.comment ? `<p class="mt-2"><strong>Comment:</strong> ${presentation.comment}</p>` : ''}
                               </div>
                             ` : '<p class="text-gray-500 italic">Not yet rated</p>'}
