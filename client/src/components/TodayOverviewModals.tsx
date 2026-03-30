@@ -1,5 +1,16 @@
+import { useEffect } from 'react';
 import { X, Calendar } from 'lucide-react';
 import { format, startOfMonth, endOfMonth, eachDayOfInterval, isSameDay } from 'date-fns';
+
+// Lock body scroll when modal is open
+function useBodyScrollLock(isOpen: boolean) {
+  useEffect(() => {
+    if (isOpen) {
+      document.body.style.overflow = 'hidden';
+      return () => { document.body.style.overflow = ''; };
+    }
+  }, [isOpen]);
+}
 
 interface RotationModalProps {
   isOpen: boolean;
@@ -8,6 +19,7 @@ interface RotationModalProps {
 }
 
 export function RotationModal({ isOpen, onClose, rotations }: RotationModalProps) {
+  useBodyScrollLock(isOpen);
   if (!isOpen) return null;
 
   const months = [
@@ -16,18 +28,16 @@ export function RotationModal({ isOpen, onClose, rotations }: RotationModalProps
   ];
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-end sm:items-center justify-center">
-      <div className="bg-white rounded-t-xl sm:rounded-xl shadow-2xl w-full sm:max-w-4xl max-h-[95vh] sm:max-h-[90vh] overflow-hidden">
-        <div className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white p-4 sm:p-6 flex justify-between items-center">
-          <h2 className="text-lg sm:text-2xl font-bold flex items-center">
-            <Calendar className="mr-2 sm:mr-3" size={22} />
+    <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-0 sm:p-4" onClick={onClose}>
+      <div className="bg-white w-full h-full sm:h-auto sm:rounded-xl shadow-2xl sm:max-w-4xl sm:max-h-[90vh] overflow-hidden" onClick={e => e.stopPropagation()}>
+        <div className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white p-4 flex justify-between items-center">
+          <h2 className="text-lg font-bold flex items-center">
+            <Calendar className="mr-2" size={20} />
             Yearly Rotation Schedule
           </h2>
-          <button onClick={onClose} className="p-2 hover:bg-white/20 rounded-lg">
-            <X size={22} />
-          </button>
+          <button onClick={onClose} className="p-2 hover:bg-white/20 rounded-lg"><X size={22} /></button>
         </div>
-        <div className="p-3 sm:p-6 overflow-y-auto max-h-[calc(95vh-70px)] sm:max-h-[calc(90vh-100px)]">
+        <div className="p-3 sm:p-6 overflow-y-auto" style={{ maxHeight: 'calc(100vh - 60px)' }}>
           {rotations.length > 0 ? (
             <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2 sm:gap-4">
               {months.map((month, index) => {
@@ -35,9 +45,9 @@ export function RotationModal({ isOpen, onClose, rotations }: RotationModalProps
                 return (
                   <div key={month} className="border-2 rounded-lg p-2 sm:p-4"
                     style={{ borderColor: rotation?.color || '#E5E7EB', backgroundColor: rotation ? rotation.color + '10' : '#F9FAFB' }}>
-                    <div className="text-xs sm:text-sm font-semibold text-gray-600 mb-1 sm:mb-2">{month}</div>
+                    <div className="text-xs sm:text-sm font-semibold text-gray-600 mb-1">{month}</div>
                     {rotation ? (
-                      <div className="px-2 py-1 sm:px-3 sm:py-2 rounded-lg font-bold text-white text-center text-xs sm:text-sm"
+                      <div className="px-2 py-1 rounded-lg font-bold text-white text-center text-xs sm:text-sm"
                         style={{ backgroundColor: rotation.color }}>{rotation.category_name}</div>
                     ) : (
                       <div className="text-gray-400 text-xs text-center py-1">Not assigned</div>
@@ -47,10 +57,7 @@ export function RotationModal({ isOpen, onClose, rotations }: RotationModalProps
               })}
             </div>
           ) : (
-            <div className="text-center py-12 text-gray-500">
-              <Calendar size={48} className="mx-auto mb-4 text-gray-300" />
-              <p>No rotations assigned yet</p>
-            </div>
+            <div className="text-center py-12 text-gray-500">No rotations assigned yet</div>
           )}
         </div>
       </div>
@@ -65,11 +72,10 @@ interface DutyModalProps {
 }
 
 export function DutyModal({ isOpen, onClose, duties }: DutyModalProps) {
+  useBodyScrollLock(isOpen);
   if (!isOpen) return null;
 
   const now = new Date();
-
-  // Group duties by date for list view
   const dutyByDate = new Map<string, any[]>();
   duties.forEach(duty => {
     const date = duty.duty_date.split('T')[0];
@@ -79,20 +85,18 @@ export function DutyModal({ isOpen, onClose, duties }: DutyModalProps) {
   const sortedDates = Array.from(dutyByDate.keys()).sort();
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-end sm:items-center justify-center">
-      <div className="bg-white rounded-t-xl sm:rounded-xl shadow-2xl w-full sm:max-w-4xl max-h-[95vh] sm:max-h-[90vh] overflow-hidden">
-        <div className="bg-gradient-to-r from-amber-600 to-orange-600 text-white p-4 sm:p-6 flex justify-between items-center">
-          <h2 className="text-lg sm:text-2xl font-bold flex items-center">
-            <Calendar className="mr-2 sm:mr-3" size={22} />
+    <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-0 sm:p-4" onClick={onClose}>
+      <div className="bg-white w-full h-full sm:h-auto sm:rounded-xl shadow-2xl sm:max-w-4xl sm:max-h-[90vh] overflow-hidden" onClick={e => e.stopPropagation()}>
+        <div className="bg-gradient-to-r from-amber-600 to-orange-600 text-white p-4 flex justify-between items-center">
+          <h2 className="text-lg font-bold flex items-center">
+            <Calendar className="mr-2" size={20} />
             {format(now, 'MMMM yyyy')} - Duty Schedule
           </h2>
-          <button onClick={onClose} className="p-2 hover:bg-white/20 rounded-lg">
-            <X size={22} />
-          </button>
+          <button onClick={onClose} className="p-2 hover:bg-white/20 rounded-lg"><X size={22} /></button>
         </div>
-        <div className="overflow-y-auto max-h-[calc(95vh-70px)] sm:max-h-[calc(90vh-100px)]">
+        <div className="overflow-y-auto" style={{ maxHeight: 'calc(100vh - 60px)' }}>
           {/* Mobile: List View */}
-          <div className="sm:hidden p-3 space-y-2">
+          <div className="sm:hidden p-3 space-y-3">
             {sortedDates.length > 0 ? sortedDates.map(date => {
               const dayDuties = dutyByDate.get(date)!;
               const isToday = date === format(now, 'yyyy-MM-dd');
@@ -101,11 +105,10 @@ export function DutyModal({ isOpen, onClose, duties }: DutyModalProps) {
                   <div className={`text-sm font-bold mb-2 ${isToday ? 'text-blue-600' : 'text-gray-700'}`}>
                     {format(new Date(date + 'T00:00:00'), 'EEE, MMM dd')} {isToday && '(Today)'}
                   </div>
-                  <div className="space-y-1">
+                  <div className="flex flex-wrap gap-1.5">
                     {dayDuties.map((duty: any, idx: number) => (
-                      <div key={idx} className="flex items-center space-x-2">
-                        <span className="bg-amber-600 text-white px-2 py-0.5 rounded text-xs font-bold">{duty.duty_category_name}</span>
-                        <span className="text-sm text-gray-700">{duty.resident_name}</span>
+                      <div key={idx} className="bg-amber-600 text-white px-2 py-1 rounded text-xs font-medium">
+                        {duty.duty_category_name} · {duty.resident_name}
                       </div>
                     ))}
                   </div>
@@ -137,11 +140,10 @@ interface ActivityModalProps {
 }
 
 export function ActivityModal({ isOpen, onClose, activities }: ActivityModalProps) {
+  useBodyScrollLock(isOpen);
   if (!isOpen) return null;
 
   const now = new Date();
-
-  // Group activities by date for list view
   const actByDate = new Map<string, any[]>();
   activities.forEach(act => {
     const date = act.activity_date.split('T')[0];
@@ -151,20 +153,18 @@ export function ActivityModal({ isOpen, onClose, activities }: ActivityModalProp
   const sortedDates = Array.from(actByDate.keys()).sort();
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-end sm:items-center justify-center">
-      <div className="bg-white rounded-t-xl sm:rounded-xl shadow-2xl w-full sm:max-w-4xl max-h-[95vh] sm:max-h-[90vh] overflow-hidden">
-        <div className="bg-gradient-to-r from-purple-600 to-pink-600 text-white p-4 sm:p-6 flex justify-between items-center">
-          <h2 className="text-lg sm:text-2xl font-bold flex items-center">
-            <Calendar className="mr-2 sm:mr-3" size={22} />
+    <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-0 sm:p-4" onClick={onClose}>
+      <div className="bg-white w-full h-full sm:h-auto sm:rounded-xl shadow-2xl sm:max-w-4xl sm:max-h-[90vh] overflow-hidden" onClick={e => e.stopPropagation()}>
+        <div className="bg-gradient-to-r from-purple-600 to-pink-600 text-white p-4 flex justify-between items-center">
+          <h2 className="text-lg font-bold flex items-center">
+            <Calendar className="mr-2" size={20} />
             {format(now, 'MMMM yyyy')} - Activity Schedule
           </h2>
-          <button onClick={onClose} className="p-2 hover:bg-white/20 rounded-lg">
-            <X size={22} />
-          </button>
+          <button onClick={onClose} className="p-2 hover:bg-white/20 rounded-lg"><X size={22} /></button>
         </div>
-        <div className="overflow-y-auto max-h-[calc(95vh-70px)] sm:max-h-[calc(90vh-100px)]">
+        <div className="overflow-y-auto" style={{ maxHeight: 'calc(100vh - 60px)' }}>
           {/* Mobile: List View */}
-          <div className="sm:hidden p-3 space-y-2">
+          <div className="sm:hidden p-3 space-y-3">
             {sortedDates.length > 0 ? sortedDates.map(date => {
               const dayActs = actByDate.get(date)!;
               const isToday = date === format(now, 'yyyy-MM-dd');
@@ -173,11 +173,10 @@ export function ActivityModal({ isOpen, onClose, activities }: ActivityModalProp
                   <div className={`text-sm font-bold mb-2 ${isToday ? 'text-blue-600' : 'text-gray-700'}`}>
                     {format(new Date(date + 'T00:00:00'), 'EEE, MMM dd')} {isToday && '(Today)'}
                   </div>
-                  <div className="space-y-1">
+                  <div className="flex flex-wrap gap-1.5">
                     {dayActs.map((act: any, idx: number) => (
-                      <div key={idx} className="flex items-center space-x-2">
-                        <span className="bg-purple-600 text-white px-2 py-0.5 rounded text-xs font-bold">{act.activity_category_name}</span>
-                        <span className="text-sm text-gray-700">{act.resident_name}</span>
+                      <div key={idx} className="bg-purple-600 text-white px-2 py-1 rounded text-xs font-medium">
+                        {act.activity_category_name} · {act.resident_name}
                       </div>
                     ))}
                   </div>
@@ -202,18 +201,15 @@ export function ActivityModal({ isOpen, onClose, activities }: ActivityModalProp
   );
 }
 
-// Shared calendar grid for desktop
 function CalendarGrid({ days, dataMap, color, categoryKey }: {
   days: Date[];
   dataMap: Map<string, any[]>;
   color: string;
   categoryKey: string;
 }) {
-  const colorMap: Record<string, { bg: string; border: string; badge: string }> = {
-    amber: { bg: 'bg-amber-50', border: 'border-amber-400', badge: 'bg-amber-600' },
-    purple: { bg: 'bg-purple-50', border: 'border-purple-400', badge: 'bg-purple-600' },
-  };
-  const c = colorMap[color] || colorMap.amber;
+  const c = color === 'purple'
+    ? { bg: 'bg-purple-50', border: 'border-purple-400', badge: 'bg-purple-600' }
+    : { bg: 'bg-amber-50', border: 'border-amber-400', badge: 'bg-amber-600' };
 
   return (
     <div className="grid grid-cols-7 gap-1">
