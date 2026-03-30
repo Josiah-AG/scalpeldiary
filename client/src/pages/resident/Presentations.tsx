@@ -55,6 +55,7 @@ export default function Presentations() {
   const venues = [
     { value: 'Y12HMC', label: 'Y12HMC' },
     { value: 'ALERT', label: 'ALERT' },
+    { value: 'TASH', label: 'TASH' },
     { value: 'ABEBECH_GOBENA', label: 'Abebech Gobena' },
   ];
 

@@ -1160,6 +1160,7 @@ export default function Dashboard() {
                   <select value={editFormData.placeOfPractice} onChange={(e) => setEditFormData({ ...editFormData, placeOfPractice: e.target.value })} className="w-full px-4 py-2 border border-gray-300 rounded-md">
                     <option value="Y12HMC">Y12HMC</option>
                     <option value="ALERT">ALERT</option>
+                    <option value="TASH">TASH</option>
                     <option value="ABEBECH_GOBENA">Abebech Gobena</option>
                   </select>
                 </div>
@@ -1233,6 +1234,7 @@ export default function Dashboard() {
                   <select value={editPresFormData.venue} onChange={(e) => setEditPresFormData({ ...editPresFormData, venue: e.target.value })} className="w-full px-4 py-2 border border-gray-300 rounded-md">
                     <option value="Y12HMC">Y12HMC</option>
                     <option value="ALERT">ALERT</option>
+                    <option value="TASH">TASH</option>
                     <option value="ABEBECH_GOBENA">Abebech Gobena</option>
                   </select>
                 </div>

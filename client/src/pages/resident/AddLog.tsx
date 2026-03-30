@@ -298,6 +298,7 @@ export default function AddLog() {
                 >
                   <option value="Y12HMC">Y12HMC</option>
                   <option value="ALERT">ALERT</option>
+                  <option value="TASH">TASH</option>
                   <option value="ABEBECH_GOBENA">Abebech Gobena</option>
                 </select>
               </div>

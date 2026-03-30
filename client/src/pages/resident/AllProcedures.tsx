@@ -255,6 +255,7 @@ export default function AllProcedures() {
                 <option value="">All</option>
                 <option value="Y12HMC">Y12HMC</option>
                 <option value="ALERT">ALERT</option>
+                <option value="TASH">TASH</option>
                 <option value="ABEBECH_GOBENA">Abebech Gobena</option>
               </select>
             </div>
@@ -530,6 +531,7 @@ export default function AllProcedures() {
                   <select value={editFormData.placeOfPractice} onChange={(e) => setEditFormData({ ...editFormData, placeOfPractice: e.target.value })} className="w-full px-4 py-2 border border-gray-300 rounded-md" required>
                     <option value="Y12HMC">Y12HMC</option>
                     <option value="ALERT">ALERT</option>
+                    <option value="TASH">TASH</option>
                     <option value="ABEBECH_GOBENA">Abebech Gobena</option>
                   </select>
                 </div>
