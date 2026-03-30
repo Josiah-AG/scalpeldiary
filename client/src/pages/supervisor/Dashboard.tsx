@@ -28,6 +28,8 @@ export default function SupervisorDashboard() {
   const [showRotationsModal, setShowRotationsModal] = useState(false);
   const [showActivitiesModal, setShowActivitiesModal] = useState(false);
   const [todayDuties, setTodayDuties] = useState<any[]>([]);
+  const [showDutyModal, setShowDutyModal] = useState(false);
+  const [monthlyDuties, setMonthlyDuties] = useState<any[]>([]);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -45,9 +47,10 @@ export default function SupervisorDashboard() {
       const today = new Date();
       const month = today.getMonth() + 1;
       const year = today.getFullYear();
-      const response = await api.get('/duties?month=' + month + '&year=' + year);
       const todayStr = format(today, 'yyyy-MM-dd');
-      const duties = response.data.filter((d: any) => d.duty_date?.split('T')[0] === todayStr);
+      const response = await api.get('/duties/monthly/' + year + '/' + month);
+      setMonthlyDuties(response.data);
+      const duties = response.data.filter((d: any) => d.duty_date === todayStr);
       setTodayDuties(duties);
     } catch (error) {
       console.error('Failed to fetch today duties');
@@ -157,20 +160,26 @@ export default function SupervisorDashboard() {
         </button>
       </div>
 
-      {/* Today's Duty */}
-      <div className="bg-white rounded-xl shadow-lg p-6 mb-8 border-l-4 border-indigo-500">
-        <h3 className="text-lg font-bold text-gray-900 mb-3 flex items-center">
-          <CalendarDays className="mr-2 text-indigo-600" size={22} />
-          Today's Duty Residents — {format(new Date(), 'EEEE, MMM dd')}
+      {/* Today's Duty Residents */}
+      <div 
+        className="bg-white rounded-xl shadow-lg p-6 mb-8 border-l-4 border-indigo-500 cursor-pointer hover:shadow-xl transition-shadow"
+        onClick={() => setShowDutyModal(true)}
+      >
+        <h3 className="text-lg font-bold text-gray-900 mb-3 flex items-center justify-between">
+          <span className="flex items-center">
+            <CalendarDays className="mr-2 text-indigo-600" size={22} />
+            Today's Duty Residents — {format(new Date(), 'EEEE, MMM dd')}
+          </span>
+          <span className="text-xs text-indigo-500 font-medium">View Full Month →</span>
         </h3>
         {todayDuties.length > 0 ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
             {todayDuties.map((duty: any, idx: number) => (
-              <div key={idx} className="flex items-center space-x-3 p-3 rounded-lg" style={{ backgroundColor: (duty.color || '#6366F1') + '15' }}>
-                <div className="w-3 h-3 rounded-full flex-shrink-0" style={{ backgroundColor: duty.color || '#6366F1' }}></div>
+              <div key={idx} className="flex items-center space-x-3 p-3 rounded-lg bg-indigo-50">
+                <div className="w-3 h-3 rounded-full flex-shrink-0 bg-indigo-500"></div>
                 <div>
                   <p className="font-semibold text-gray-900 text-sm">{duty.resident_name}</p>
-                  <p className="text-xs font-medium" style={{ color: duty.color || '#6366F1' }}>{duty.duty_name}</p>
+                  <p className="text-xs font-medium text-indigo-600">{duty.duty_category_name}</p>
                 </div>
               </div>
             ))}
@@ -344,6 +353,56 @@ export default function SupervisorDashboard() {
 
       {/* Activities Modal */}
       {showActivitiesModal && <ActivitiesViewModal onClose={() => setShowActivitiesModal(false)} />}
+
+      {/* Monthly Duty Modal */}
+      {showDutyModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-hidden">
+            <div className="bg-gradient-to-r from-indigo-600 to-indigo-700 text-white p-6 flex justify-between items-center">
+              <h2 className="text-xl font-bold flex items-center">
+                <CalendarDays className="mr-3" size={24} />
+                Monthly Duty Schedule — {format(new Date(), 'MMMM yyyy')}
+              </h2>
+              <button onClick={() => setShowDutyModal(false)} className="p-2 hover:bg-white/20 rounded-lg">
+                <span className="text-2xl">×</span>
+              </button>
+            </div>
+            <div className="p-6 overflow-y-auto max-h-[calc(90vh-100px)]">
+              {monthlyDuties.length > 0 ? (
+                <div className="overflow-x-auto">
+                  <table className="min-w-full divide-y divide-gray-200">
+                    <thead className="bg-gray-50">
+                      <tr>
+                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Date</th>
+                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Resident</th>
+                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Duty</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-gray-200">
+                      {monthlyDuties.map((duty: any, idx: number) => {
+                        const isToday = duty.duty_date === format(new Date(), 'yyyy-MM-dd');
+                        return (
+                          <tr key={idx} className={isToday ? 'bg-indigo-50 font-semibold' : 'hover:bg-gray-50'}>
+                            <td className="px-4 py-3 text-sm">{format(new Date(duty.duty_date + 'T00:00:00'), 'EEE, MMM dd')}</td>
+                            <td className="px-4 py-3 text-sm font-medium">{duty.resident_name}</td>
+                            <td className="px-4 py-3 text-sm">
+                              <span className="px-2 py-1 bg-indigo-100 text-indigo-700 rounded text-xs font-semibold">
+                                {duty.duty_category_name}
+                              </span>
+                            </td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+              ) : (
+                <p className="text-gray-500 text-center py-12">No duties scheduled this month</p>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </Layout>
   );
 }
