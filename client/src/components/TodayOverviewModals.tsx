@@ -26,12 +26,25 @@ export function RotationModal({ isOpen, onClose, rotations }: RotationModalProps
   const allMonthNames = ['January', 'February', 'March', 'April', 'May', 'June',
     'July', 'August', 'September', 'October', 'November', 'December'];
   
-  // Generate 12 months starting from the resident's start month
-  const startMonth = rotations[0]?.residency_start_month || 7; // default July
+  // Batch start month (calendar month 1-12, e.g. 4=April)
+  const batchStartMonth = rotations[0]?.residency_start_month || 7;
+  // Academic year start month (hardcoded as 7=July since that's what the DB uses)
+  const academicStartMonth = 7;
+  
+  // Generate 12 display months starting from batch start month
   const months = Array.from({ length: 12 }, (_, i) => {
-    const idx = (startMonth - 1 + i) % 12;
-    return allMonthNames[idx];
+    const calMonth = ((batchStartMonth - 1 + i) % 12) + 1; // 1-12 calendar month
+    return allMonthNames[calMonth - 1];
   });
+
+  // Map display slot index to the correct academic month_number
+  const getMonthNumber = (displayIndex: number) => {
+    const calMonth = ((batchStartMonth - 1 + displayIndex) % 12) + 1;
+    // Convert calendar month to academic month_number
+    let monthNum = calMonth - academicStartMonth + 1;
+    if (monthNum <= 0) monthNum += 12;
+    return monthNum;
+  };
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-0 sm:p-4" onClick={onClose}>
@@ -47,7 +60,7 @@ export function RotationModal({ isOpen, onClose, rotations }: RotationModalProps
           {rotations.length > 0 ? (
             <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2 sm:gap-4">
               {months.map((month, index) => {
-                const rotation = rotations.find(r => r.month === index + 1);
+                const rotation = rotations.find(r => r.month === getMonthNumber(index));
                 return (
                   <div key={month} className="border-2 rounded-lg p-2 sm:p-4"
                     style={{ borderColor: rotation?.color || '#E5E7EB', backgroundColor: rotation ? rotation.color + '10' : '#F9FAFB' }}>
