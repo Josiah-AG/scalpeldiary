@@ -127,12 +127,14 @@ export default function DetachmentLogs() {
                       <td className="px-6 py-4 text-sm font-bold text-right text-blue-600">{group.procedure_count}</td>
                       <td className="px-6 py-4 text-sm font-bold text-right text-green-600">{group.presentation_count}</td>
                       <td className="px-6 py-4 text-center">
-                        {group.batch_verified ? (
+                        {group.unverified_count > 0 ? (
+                          <span className="px-2 py-1 bg-yellow-100 text-yellow-700 rounded-full text-xs font-semibold">
+                            {group.batch_verified ? `${group.unverified_count} New` : 'Pending'}
+                          </span>
+                        ) : (
                           <span className="px-2 py-1 bg-green-100 text-green-700 rounded-full text-xs font-semibold flex items-center justify-center">
                             <CheckCircle size={14} className="mr-1" />Verified
                           </span>
-                        ) : (
-                          <span className="px-2 py-1 bg-yellow-100 text-yellow-700 rounded-full text-xs font-semibold">Pending</span>
                         )}
                       </td>
                     </tr>
@@ -157,11 +159,11 @@ export default function DetachmentLogs() {
                   {selectedGroup.detachment_month && ` · ${new Date(selectedGroup.detachment_month + '-01').toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}`}
                 </p>
               </div>
-              {!selectedGroup.batch_verified && (
+              {!selectedGroup.batch_verified || selectedGroup.unverified_count > 0 ? (
                 <button onClick={() => setShowVerifyModal(true)} className="bg-white text-amber-700 px-4 py-2 rounded-lg font-semibold hover:bg-amber-50 transition-colors">
-                  Verify All Logs
+                  {selectedGroup.batch_verified ? `Verify New (${selectedGroup.unverified_count})` : 'Verify All Logs'}
                 </button>
-              )}
+              ) : null}
             </div>
 
             {detailLoading ? (

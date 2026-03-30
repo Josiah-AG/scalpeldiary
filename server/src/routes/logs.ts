@@ -540,6 +540,7 @@ router.get('/detachment-summary', authenticate, async (req: AuthRequest, res) =>
         TO_CHAR(sl.date, 'YYYY-MM') as detachment_month,
         COUNT(*) as procedure_count,
         BOOL_OR(sl.detachment_verified) as batch_verified,
+        COUNT(CASE WHEN sl.detachment_verified = false THEN 1 END) as unverified_count,
         MAX(sl.detachment_rating) as detachment_rating,
         MAX(sl.detachment_comment) as detachment_comment
        FROM surgical_logs sl
@@ -557,6 +558,7 @@ router.get('/detachment-summary', authenticate, async (req: AuthRequest, res) =>
         TO_CHAR(p.date, 'YYYY-MM') as detachment_month,
         COUNT(*) as presentation_count,
         BOOL_OR(p.detachment_verified) as batch_verified,
+        COUNT(CASE WHEN p.detachment_verified = false THEN 1 END) as pres_unverified_count,
         MAX(p.detachment_rating) as detachment_rating,
         MAX(p.detachment_comment) as detachment_comment
        FROM presentations p
@@ -565,24 +567,26 @@ router.get('/detachment-summary', authenticate, async (req: AuthRequest, res) =>
        GROUP BY u.id, u.name, p.detachment_type, TO_CHAR(p.date, 'YYYY-MM')`
     );
 
-    // Merge by resident + detachment_type + month
     const merged = new Map<string, any>();
     for (const row of procResult.rows) {
       const key = `${row.resident_id}-${row.detachment_type}-${row.detachment_month}`;
-      merged.set(key, { ...row, procedure_count: parseInt(row.procedure_count), presentation_count: 0 });
+      merged.set(key, { ...row, procedure_count: parseInt(row.procedure_count), presentation_count: 0, 
+        unverified_count: parseInt(row.unverified_count || 0) });
     }
     for (const row of presResult.rows) {
       const key = `${row.resident_id}-${row.detachment_type}-${row.detachment_month}`;
       if (merged.has(key)) {
         const existing = merged.get(key);
         existing.presentation_count = parseInt(row.presentation_count);
+        existing.unverified_count += parseInt(row.pres_unverified_count || 0);
         if (row.batch_verified) existing.batch_verified = true;
         if (row.detachment_rating && (!existing.detachment_rating || row.detachment_rating > existing.detachment_rating)) {
           existing.detachment_rating = row.detachment_rating;
           existing.detachment_comment = row.detachment_comment;
         }
       } else {
-        merged.set(key, { ...row, procedure_count: 0, presentation_count: parseInt(row.presentation_count) });
+        merged.set(key, { ...row, procedure_count: 0, presentation_count: parseInt(row.presentation_count),
+          unverified_count: parseInt(row.pres_unverified_count || 0) });
       }
     }
 
