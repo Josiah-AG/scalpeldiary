@@ -1020,7 +1020,7 @@ export default function Dashboard() {
                             <p><strong>Type:</strong> ${pres.presentation_type?.replace(/_/g, ' ')}</p>
                             <p><strong>Venue:</strong> ${pres.venue}</p>
                             ${pres.description ? `<p><strong>Description:</strong> ${pres.description}</p>` : ''}
-                            <p><strong>Rated by:</strong> ${pres.supervisor_name || 'Not yet rated'}</p>
+                            <p><strong>Rated by:</strong> ${pres.rating ? (pres.supervisor_name || 'Supervisor') : 'Not yet rated'}</p>
                             ${pres.rating ? `
                               <div class="border-t pt-3 mt-3">
                                 <p><strong>Rating:</strong> <span class="text-2xl font-bold ${pres.rating >= 90 ? 'text-green-600' : pres.rating >= 71 ? 'text-blue-600' : pres.rating >= 50 ? 'text-yellow-600' : 'text-red-600'}">${isReadOnlyMode ? pres.rating + '/100' : (pres.rating >= 90 ? 'Excellent' : pres.rating >= 71 ? 'Good' : pres.rating >= 50 ? 'Satisfactory' : 'Poor')}</span></p>
