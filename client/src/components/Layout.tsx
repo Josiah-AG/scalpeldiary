@@ -170,13 +170,17 @@ export default function Layout({ children, title }: LayoutProps) {
         ];
       }
       
-      return [
+      const links = [
         { to: '/', label: 'Dashboard', icon: Calendar },
         { to: '/unresponded-logs', label: 'Unresponded Logs', icon: ClipboardList, count: unrespondedCount },
         { to: '/ratings-done', label: 'Ratings Done', icon: Star },
         { to: '/assign-presentation', label: 'Assign Presentation', icon: FileText, count: moderatorAssignmentsCount },
         { to: '/settings', label: 'Settings', icon: Settings },
       ];
+      if (userDetails?.has_management_access) {
+        links.splice(4, 0, { to: '/detachment-logs', label: 'Detachment Logs', icon: FileText, count: 0 });
+      }
+      return links;
     } else if (user?.role === 'MASTER') {
       // If viewing a resident in read-only mode, show resident navigation
       if (isReadOnly) {

@@ -2,6 +2,8 @@ import { useEffect, useState } from 'react';
 import { X } from 'lucide-react';
 import api from '../api/axios';
 import { format } from 'date-fns';
+import { useAuthStore } from '../store/authStore';
+import { getRatingLabel, getRatingTextColor, canSeeExactScores } from '../utils/ratingUtils';
 
 interface RatedItemModalProps {
   item?: any; // Accept full item object
@@ -13,6 +15,8 @@ interface RatedItemModalProps {
 export default function RatedItemModal({ item: providedItem, itemId, itemType, onClose }: RatedItemModalProps) {
   const [item, setItem] = useState<any>(providedItem || null);
   const [loading, setLoading] = useState(!providedItem);
+  const { user } = useAuthStore();
+  const showExact = canSeeExactScores(user?.role, false);
 
   useEffect(() => {
     // Only fetch if item not provided
@@ -103,7 +107,7 @@ export default function RatedItemModal({ item: providedItem, itemId, itemType, o
             
             {item.rating && (
               <div className="border-t pt-3 mt-3">
-                <p><strong>Rating:</strong> <span className={`text-2xl font-bold ${item.rating > 50 ? 'text-green-600' : 'text-red-600'}`}>{item.rating}/100</span></p>
+                <p><strong>Rating:</strong> <span className={`text-2xl font-bold ${getRatingTextColor(item.rating)}`}>{showExact ? item.rating + '/100' : getRatingLabel(item.rating)}</span></p>
                 {item.comment && <p className="mt-2"><strong>Comment:</strong> {item.comment}</p>}
                 <p className="text-sm text-gray-500 mt-2">Rated on {format(new Date(item.rated_at), 'MMM dd, yyyy')}</p>
               </div>
@@ -120,7 +124,7 @@ export default function RatedItemModal({ item: providedItem, itemId, itemType, o
             
             {item.rating && (
               <div className="border-t pt-3 mt-3">
-                <p><strong>Rating:</strong> <span className={`text-2xl font-bold ${item.rating > 50 ? 'text-green-600' : 'text-red-600'}`}>{item.rating}/100</span></p>
+                <p><strong>Rating:</strong> <span className={`text-2xl font-bold ${getRatingTextColor(item.rating)}`}>{showExact ? item.rating + '/100' : getRatingLabel(item.rating)}</span></p>
                 {item.comment && <p className="mt-2"><strong>Comment:</strong> {item.comment}</p>}
               </div>
             )}
