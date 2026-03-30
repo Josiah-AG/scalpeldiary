@@ -229,9 +229,24 @@ export default function MasterDashboard() {
               }
             }
           }}
-          className="bg-cyan-600 hover:bg-cyan-700 text-white px-4 py-2 rounded-lg font-semibold transition-colors"
+          className="bg-cyan-600 hover:bg-cyan-700 text-white px-4 py-2 rounded-lg font-semibold transition-colors mr-3"
         >
           Add Residency Start Month
+        </button>
+        <button
+          onClick={async () => {
+            if (confirm('Add comments system tables?')) {
+              try {
+                const response = await api.post('/migrations/add-comments-system');
+                alert(response.data.message);
+              } catch (error: any) {
+                alert('Failed: ' + (error.response?.data?.error || error.message));
+              }
+            }
+          }}
+          className="bg-rose-600 hover:bg-rose-700 text-white px-4 py-2 rounded-lg font-semibold transition-colors"
+        >
+          Add Comments System
         </button>
       </div>
 

@@ -19,6 +19,7 @@ import SupervisorDashboard from './pages/supervisor/Dashboard';
 import UnrespondedLogs from './pages/supervisor/UnrespondedLogs';
 import RatingsDone from './pages/supervisor/RatingsDone';
 import SupervisorSettings from './pages/supervisor/Settings';
+import GeneralComments from './pages/supervisor/GeneralComments';
 import AllRatedProcedures from './pages/supervisor/AllRatedProcedures';
 import AllRatedPresentations from './pages/supervisor/AllRatedPresentations';
 import ResidentDashboardWrapper from './pages/supervisor/wrappers/ResidentDashboardWrapper';
@@ -122,6 +123,7 @@ function App() {
             <Route path="/rated-procedures" element={<AllRatedProcedures />} />
             <Route path="/rated-presentations" element={<AllRatedPresentations />} />
             <Route path="/assign-presentation" element={<SupervisorAssignPresentation />} />
+            <Route path="/general-comments" element={<GeneralComments />} />
             <Route path="/resident-view/dashboard" element={<ResidentDashboardWrapper />} />
             <Route path="/resident-view/all-procedures" element={<AllProceduresWrapper />} />
             <Route path="/resident-view/presentations" element={<PresentationsWrapper />} />

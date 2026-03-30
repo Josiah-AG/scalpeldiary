@@ -942,4 +942,30 @@ router.post('/add-residency-start-month', authenticate, async (req: AuthRequest,
   }
 });
 
+// Add general_comments table and anonymous_comment columns
+router.post('/add-comments-system', authenticate, async (req: AuthRequest, res) => {
+  if (req.user!.role !== 'MASTER') {
+    return res.status(403).json({ error: 'Only Master accounts can run migrations' });
+  }
+  try {
+    // General comments table
+    await query(`
+      CREATE TABLE IF NOT EXISTS general_comments (
+        id SERIAL PRIMARY KEY,
+        supervisor_id UUID REFERENCES users(id) ON DELETE CASCADE,
+        resident_id UUID REFERENCES users(id) ON DELETE CASCADE,
+        comment TEXT NOT NULL,
+        is_anonymous BOOLEAN DEFAULT FALSE,
+        created_at TIMESTAMP DEFAULT NOW()
+      )
+    `);
+    // Anonymous comment columns on surgical_logs and presentations
+    try { await query('ALTER TABLE surgical_logs ADD COLUMN IF NOT EXISTS anonymous_comment TEXT'); } catch(e) {}
+    try { await query('ALTER TABLE presentations ADD COLUMN IF NOT EXISTS anonymous_comment TEXT'); } catch(e) {}
+    res.json({ success: true, message: 'Comments system tables and columns added' });
+  } catch (error: any) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
 export default router;

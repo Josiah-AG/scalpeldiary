@@ -170,7 +170,7 @@ router.get('/to-rate/count', authenticate, async (req: AuthRequest, res) => {
 router.post('/:logId/rate', authenticate, async (req: AuthRequest, res) => {
   try {
     const { logId } = req.params;
-    const { rating, comment } = req.body;
+    const { rating, comment, anonymousComment } = req.body;
 
     // Check if trying to rate own procedure
     const selfCheck = await query(
@@ -198,10 +198,10 @@ router.post('/:logId/rate', authenticate, async (req: AuthRequest, res) => {
     
     const result = await query(
       `UPDATE surgical_logs 
-       SET rating = $1, comment = $2, status = $3, rated_at = NOW(), updated_at = NOW()
+       SET rating = $1, comment = $2, status = $3, rated_at = NOW(), updated_at = NOW(), anonymous_comment = $6
        WHERE id = $4 AND supervisor_id = $5
        RETURNING *`,
-      [rating, comment, status, logId, req.user!.id]
+      [rating, comment, status, logId, req.user!.id, anonymousComment || null]
     );
 
     if (result.rows.length === 0) {

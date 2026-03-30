@@ -284,7 +284,7 @@ router.get('/to-rate', authenticate, async (req: AuthRequest, res) => {
 router.post('/:presentationId/rate', authenticate, async (req: AuthRequest, res) => {
   try {
     const { presentationId } = req.params;
-    const { rating, comment } = req.body;
+    const { rating, comment, anonymousComment } = req.body;
 
     // Rating is mandatory for presentations
     if (!rating || rating === null || rating === undefined) {
@@ -303,10 +303,10 @@ router.post('/:presentationId/rate', authenticate, async (req: AuthRequest, res)
     
     const result = await query(
       `UPDATE presentations 
-       SET rating = $1, comment = $2, status = 'RATED', rated_at = NOW(), updated_at = NOW()
+       SET rating = $1, comment = $2, status = 'RATED', rated_at = NOW(), updated_at = NOW(), anonymous_comment = $5
        WHERE id = $3 AND supervisor_id = $4
        RETURNING *`,
-      [rating, comment, presentationId, req.user!.id]
+      [rating, comment, presentationId, req.user!.id, anonymousComment || null]
     );
 
     if (result.rows.length === 0) {

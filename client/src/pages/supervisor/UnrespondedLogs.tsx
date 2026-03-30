@@ -11,6 +11,8 @@ export default function UnrespondedLogs() {
   const [selectedPresentation, setSelectedPresentation] = useState<any>(null);
   const [rating, setRating] = useState('');
   const [comment, setComment] = useState('');
+  const [anonymousComment, setAnonymousComment] = useState('');
+  const [showAnonymousField, setShowAnonymousField] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [hasAutoOpened, setHasAutoOpened] = useState(false); // Track if we've already auto-opened
   const [activeTab, setActiveTab] = useState<'procedures' | 'presentations'>(
@@ -61,12 +63,15 @@ export default function UnrespondedLogs() {
       await api.post(`/logs/${selectedLog.id}/rate`, {
         rating: rating ? parseInt(rating) : null,
         comment,
+        anonymousComment: anonymousComment || null,
       });
       
       // Close modal and clear form
       setSelectedLog(null);
       setRating('');
       setComment('');
+      setAnonymousComment('');
+      setShowAnonymousField(false);
       
       // Refresh list to show updated logs
       const response = await api.get('/logs/to-rate');
@@ -93,12 +98,15 @@ export default function UnrespondedLogs() {
       await api.post(`/presentations/${selectedPresentation.id}/rate`, {
         rating: parseInt(rating),
         comment,
+        anonymousComment: anonymousComment || null,
       });
       
       // Close modal and clear form
       setSelectedPresentation(null);
       setRating('');
       setComment('');
+      setAnonymousComment('');
+      setShowAnonymousField(false);
       
       // Refresh list to show updated presentations
       const response = await api.get('/presentations/to-rate');
@@ -424,6 +432,17 @@ export default function UnrespondedLogs() {
                   required
                 />
               </div>
+              {/* Anonymous Comment */}
+              <label className="flex items-center space-x-2 cursor-pointer">
+                <input type="checkbox" checked={showAnonymousField} onChange={(e) => setShowAnonymousField(e.target.checked)}
+                  className="w-4 h-4 text-yellow-600 rounded" />
+                <span className="text-sm text-gray-700">Add anonymous comment <span className="text-yellow-500 text-xs">(hidden from resident)</span></span>
+              </label>
+              {showAnonymousField && (
+                <textarea value={anonymousComment} onChange={(e) => setAnonymousComment(e.target.value)}
+                  className="w-full px-4 py-2 border border-yellow-300 rounded-md bg-yellow-50"
+                  rows={3} placeholder="Anonymous comment (only visible to supervisors/master)..." />
+              )}
               <div className="flex space-x-3">
                 <button
                   onClick={handleRate}
@@ -548,6 +567,17 @@ export default function UnrespondedLogs() {
                   rows={4}
                 />
               </div>
+              {/* Anonymous Comment */}
+              <label className="flex items-center space-x-2 cursor-pointer">
+                <input type="checkbox" checked={showAnonymousField} onChange={(e) => setShowAnonymousField(e.target.checked)}
+                  className="w-4 h-4 text-yellow-600 rounded" />
+                <span className="text-sm text-gray-700">Add anonymous comment <span className="text-yellow-500 text-xs">(hidden from resident)</span></span>
+              </label>
+              {showAnonymousField && (
+                <textarea value={anonymousComment} onChange={(e) => setAnonymousComment(e.target.value)}
+                  className="w-full px-4 py-2 border border-yellow-300 rounded-md bg-yellow-50"
+                  rows={3} placeholder="Anonymous comment (only visible to supervisors/master)..." />
+              )}
               <div className="flex space-x-3">
                 <button
                   onClick={handleRatePresentation}

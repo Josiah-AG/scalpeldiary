@@ -175,6 +175,7 @@ export default function Layout({ children, title }: LayoutProps) {
         { to: '/unresponded-logs', label: 'Unresponded Logs', icon: ClipboardList, count: unrespondedCount },
         { to: '/ratings-done', label: 'Ratings Done', icon: Star },
         { to: '/assign-presentation', label: 'Assign Presentation', icon: FileText, count: moderatorAssignmentsCount },
+        { to: '/general-comments', label: 'General Comments', icon: FileText, count: 0 },
         { to: '/settings', label: 'Settings', icon: Settings },
       ];
       if (userDetails?.has_management_access) {
