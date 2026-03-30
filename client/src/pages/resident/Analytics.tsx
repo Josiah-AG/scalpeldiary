@@ -197,7 +197,14 @@ export default function Analytics() {
             <TrendingUp size={24} className="text-orange-100" />
           </div>
           <p className="text-orange-100 text-xs sm:text-sm font-medium">Avg Rating</p>
-          <p className="text-2xl sm:text-3xl font-bold mt-1">{analytics?.averageRating?.toFixed(1) || 'N/A'}</p>
+          {(analytics?.verifiedSurgeries || 0) >= 10 ? (
+            <p className="text-2xl sm:text-3xl font-bold mt-1">{analytics?.averageRating?.toFixed(1) || 'N/A'}</p>
+          ) : (
+            <>
+              <p className="text-2xl sm:text-3xl font-bold mt-1">-</p>
+              <p className="text-orange-200 text-xs mt-1">Need 10+ verified</p>
+            </>
+          )}
         </div>
 
         <div className="bg-gradient-to-br from-pink-500 to-pink-600 rounded-xl shadow-lg p-4 sm:p-6 text-white">
@@ -205,7 +212,14 @@ export default function Analytics() {
             <Award size={24} className="text-pink-100" />
           </div>
           <p className="text-pink-100 text-xs sm:text-sm font-medium">Senior Rating</p>
-          <p className="text-2xl sm:text-3xl font-bold mt-1">{analytics?.seniorSupervisorRating?.toFixed(1) || 'N/A'}</p>
+          {(analytics?.verifiedSurgeries || 0) >= 10 ? (
+            <p className="text-2xl sm:text-3xl font-bold mt-1">{analytics?.seniorSupervisorRating?.toFixed(1) || 'N/A'}</p>
+          ) : (
+            <>
+              <p className="text-2xl sm:text-3xl font-bold mt-1">-</p>
+              <p className="text-pink-200 text-xs mt-1">Need 10+ verified</p>
+            </>
+          )}
         </div>
 
         <div className="bg-gradient-to-br from-indigo-500 to-indigo-600 rounded-xl shadow-lg p-4 sm:p-6 text-white">
@@ -213,7 +227,14 @@ export default function Analytics() {
             <Award size={24} className="text-indigo-100" />
           </div>
           <p className="text-indigo-100 text-xs sm:text-sm font-medium">Presentation Rating</p>
-          <p className="text-2xl sm:text-3xl font-bold mt-1">{analytics?.avgPresentationRating?.toFixed(1) || 'N/A'}</p>
+          {(analytics?.verifiedPresentations || 0) >= 5 ? (
+            <p className="text-2xl sm:text-3xl font-bold mt-1">{analytics?.avgPresentationRating?.toFixed(1) || 'N/A'}</p>
+          ) : (
+            <>
+              <p className="text-2xl sm:text-3xl font-bold mt-1">-</p>
+              <p className="text-indigo-200 text-xs mt-1">Need 5+ verified</p>
+            </>
+          )}
         </div>
       </div>
 
