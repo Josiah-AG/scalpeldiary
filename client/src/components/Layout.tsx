@@ -124,11 +124,8 @@ export default function Layout({ children, title }: LayoutProps) {
   };
 
   const handleLogout = () => {
-    // Clear read-only mode
-    sessionStorage.removeItem('viewingResidentId');
-    sessionStorage.removeItem('isReadOnlyMode');
-    // Clear notification check time so popup shows on next login
-    sessionStorage.removeItem('lastNotificationCheck');
+    // Clear ALL session data
+    sessionStorage.clear();
     logout();
     navigate('/login');
   };

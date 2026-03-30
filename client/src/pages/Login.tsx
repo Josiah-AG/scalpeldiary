@@ -19,6 +19,8 @@ export default function Login() {
     setLoading(true);
 
     try {
+      // Clear any stale session data from previous user
+      sessionStorage.clear();
       const response = await api.post('/auth/login', { email, password });
       setAuth(response.data.user, response.data.token);
       navigate('/');
