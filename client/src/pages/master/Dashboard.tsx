@@ -199,9 +199,24 @@ export default function MasterDashboard() {
               }
             }
           }}
-          className="bg-teal-600 hover:bg-teal-700 text-white px-4 py-2 rounded-lg font-semibold transition-colors"
+          className="bg-teal-600 hover:bg-teal-700 text-white px-4 py-2 rounded-lg font-semibold transition-colors mr-3"
         >
           Normalize Data
+        </button>
+        <button
+          onClick={async () => {
+            if (confirm('Add detachment columns to surgical_logs and presentations?')) {
+              try {
+                const response = await api.post('/migrations/add-detachment-columns');
+                alert(response.data.message);
+              } catch (error: any) {
+                alert('Failed: ' + (error.response?.data?.error || error.message));
+              }
+            }
+          }}
+          className="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg font-semibold transition-colors"
+        >
+          Add Detachment Columns
         </button>
       </div>
 

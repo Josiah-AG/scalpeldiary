@@ -192,6 +192,7 @@ export default function Layout({ children, title }: LayoutProps) {
       return [
         { to: '/', label: 'Dashboard', icon: Calendar },
         { to: '/accounts', label: 'Account Management', icon: Settings },
+        { to: '/detachment-logs', label: 'Detachment Logs', icon: FileText },
       ];
     } else if (user?.role === 'MANAGEMENT') {
       // If viewing a resident in read-only mode, show resident navigation
@@ -207,6 +208,7 @@ export default function Layout({ children, title }: LayoutProps) {
       
       return [
         { to: '/management', label: 'Dashboard', icon: Calendar },
+        { to: '/detachment-logs', label: 'Detachment Logs', icon: FileText },
       ];
     }
     return [];

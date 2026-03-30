@@ -17,6 +17,11 @@ export default function AddLog() {
   const [diagnosisSuggestions, setDiagnosisSuggestions] = useState<string[]>([]);
   const [categories, setCategories] = useState<string[]>([]);
   const [supervisors, setSupervisors] = useState<any[]>([]);
+  const [detachmentSupervisors, setDetachmentSupervisors] = useState<any[]>([]);
+  const [detachmentExternalLabel, setDetachmentExternalLabel] = useState('');
+  const [isDetachment, setIsDetachment] = useState(false);
+  const [useExternalSupervisor, setUseExternalSupervisor] = useState(false);
+  const [externalSupervisorName, setExternalSupervisorName] = useState('');
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
 
@@ -57,6 +62,49 @@ export default function AddLog() {
   useEffect(() => {
     fetchSupervisors();
   }, [procedures]);
+
+  // Detect detachment and fetch appropriate supervisors
+  useEffect(() => {
+    const venue = patientData.placeOfPractice;
+    const hasOrtho = procedures.some(p => p.procedureCategory === 'Orthopedics');
+    
+    if (venue !== 'Y12HMC' || hasOrtho) {
+      setIsDetachment(true);
+      fetchDetachmentSupervisors(venue, hasOrtho);
+    } else {
+      setIsDetachment(false);
+      setDetachmentSupervisors([]);
+      setDetachmentExternalLabel('');
+      setUseExternalSupervisor(false);
+      setExternalSupervisorName('');
+    }
+  }, [patientData.placeOfPractice, procedures]);
+
+  const fetchDetachmentSupervisors = async (venue: string, hasOrtho: boolean) => {
+    try {
+      const params: any = {};
+      if (hasOrtho) {
+        params.category = 'Orthopedics';
+      } else {
+        params.venue = venue;
+      }
+      const response = await api.get('/users/detachment-supervisors', { params });
+      setDetachmentSupervisors(response.data.residents || []);
+      setDetachmentExternalLabel(response.data.externalLabel || 'External Supervisor');
+      
+      // For venues with no resident options (TASH, Abebech Gobena), auto-select external
+      if ((response.data.residents || []).length === 0) {
+        setUseExternalSupervisor(true);
+        setSupervisorId('');
+      } else {
+        setUseExternalSupervisor(false);
+      }
+    } catch (error) {
+      console.error('Failed to fetch detachment supervisors:', error);
+      setDetachmentSupervisors([]);
+      setUseExternalSupervisor(true);
+    }
+  };
 
   const fetchSupervisors = async () => {
     try {
@@ -118,16 +166,25 @@ export default function AddLog() {
     try {
       // Submit each procedure as a separate log with shared supervisor
       await Promise.all(
-        procedures.map((proc) =>
-          api.post('/logs', {
+        procedures.map((proc) => {
+          const detachmentType = proc.procedureCategory === 'Orthopedics' ? 'ORTHOPEDICS'
+            : patientData.placeOfPractice === 'ALERT' ? 'ALERT'
+            : patientData.placeOfPractice === 'TASH' ? 'TASH'
+            : patientData.placeOfPractice === 'ABEBECH_GOBENA' ? 'ABEBECH_GOBENA'
+            : null;
+          
+          return api.post('/logs', {
             ...patientData,
             procedure: proc.procedure,
             procedureCategory: proc.procedureCategory,
             surgeryRole: proc.surgeryRole,
-            supervisorId: supervisorId, // Shared supervisor for all procedures
+            supervisorId: useExternalSupervisor ? null : supervisorId,
             remark: proc.remark,
-          })
-        )
+            isDetachment: isDetachment,
+            detachmentType: isDetachment ? detachmentType : null,
+            externalSupervisorName: useExternalSupervisor ? externalSupervisorName : null,
+          });
+        })
       );
       
       setSuccess(true);
@@ -139,6 +196,8 @@ export default function AddLog() {
         diagnosis: '',
       });
       setSupervisorId('');
+      setUseExternalSupervisor(false);
+      setExternalSupervisorName('');
       setProcedures([
         {
           id: Date.now().toString(),
@@ -325,39 +384,86 @@ export default function AddLog() {
 
           {/* Shared Supervisor Section */}
           <div className="border-2 border-blue-200 rounded-lg p-6 bg-blue-50">
-            <h3 className="text-lg font-bold text-gray-900 mb-4">Supervisor</h3>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Supervisor
-              </label>
-              <select
-                value={supervisorId}
-                onChange={(e) => setSupervisorId(e.target.value)}
-                className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500"
-                required
-              >
-                <option value="">Select Supervisor</option>
-                {supervisors.map((supervisor: any) => (
-                  <option key={supervisor.id} value={supervisor.id}>
-                    {supervisor.name}
-                    {supervisor.institution && supervisor.specialty
-                      ? ` (${supervisor.institution} - ${supervisor.specialty})`
-                      : supervisor.institution
-                      ? ` (${supervisor.institution})`
-                      : supervisor.specialty
-                      ? ` (${supervisor.specialty})`
-                      : ''}
+            <h3 className="text-lg font-bold text-gray-900 mb-4">
+              Supervisor
+              {isDetachment && (
+                <span className="ml-2 px-2 py-1 bg-amber-100 text-amber-700 rounded text-xs font-semibold">Detachment</span>
+              )}
+            </h3>
+
+            {!isDetachment ? (
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Supervisor</label>
+                <select
+                  value={supervisorId}
+                  onChange={(e) => setSupervisorId(e.target.value)}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500"
+                  required
+                >
+                  <option value="">Select Supervisor</option>
+                  {supervisors.map((supervisor: any) => (
+                    <option key={supervisor.id} value={supervisor.id}>
+                      {supervisor.name}
+                      {supervisor.institution ? ` (${supervisor.institution})` : ''}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            ) : detachmentSupervisors.length > 0 ? (
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Supervisor</label>
+                <select
+                  value={useExternalSupervisor ? '__EXTERNAL__' : supervisorId}
+                  onChange={(e) => {
+                    if (e.target.value === '__EXTERNAL__') {
+                      setUseExternalSupervisor(true);
+                      setSupervisorId('');
+                    } else {
+                      setUseExternalSupervisor(false);
+                      setSupervisorId(e.target.value);
+                      setExternalSupervisorName('');
+                    }
+                  }}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500"
+                  required
+                >
+                  <option value="">Select Supervisor</option>
+                  {detachmentSupervisors.map((r: any) => (
+                    <option key={r.id} value={r.id}>
+                      {r.name} (Year {r.year})
+                    </option>
+                  ))}
+                  <option value="__EXTERNAL__" style={{ fontWeight: 'bold' }}>
+                    ── {detachmentExternalLabel} ──
                   </option>
-                ))}
-              </select>
-              <p className="text-xs text-gray-600 mt-1">
-                {procedures.some(p => p.procedureCategory === 'Minor Surgery') && procedures.every(p => p.procedureCategory === 'Minor Surgery')
-                  ? 'For Minor Surgery: Year 2+ residents and seniors can supervise minor procedures'
-                  : procedures.some(p => p.procedureCategory === 'Minor Surgery')
-                  ? 'Mixed procedures: Year 3+ residents and seniors required (highest requirement applies)'
-                  : 'For all other categories: Year 3+ residents and seniors can supervise major procedures'}
-              </p>
-            </div>
+                </select>
+                {useExternalSupervisor && (
+                  <input
+                    type="text"
+                    value={externalSupervisorName}
+                    onChange={(e) => setExternalSupervisorName(e.target.value)}
+                    placeholder={`Enter ${detachmentExternalLabel.toLowerCase()} name`}
+                    className="w-full mt-2 px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-amber-500"
+                    required
+                  />
+                )}
+              </div>
+            ) : (
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">{detachmentExternalLabel}</label>
+                <input
+                  type="text"
+                  value={externalSupervisorName}
+                  onChange={(e) => setExternalSupervisorName(e.target.value)}
+                  placeholder={`Enter ${detachmentExternalLabel.toLowerCase()} name`}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-amber-500"
+                  required
+                />
+                <p className="text-xs text-amber-600 mt-1">
+                  This is a detachment log. Enter the name of the supervising doctor at the external site.
+                </p>
+              </div>
+            )}
           </div>
 
           <button

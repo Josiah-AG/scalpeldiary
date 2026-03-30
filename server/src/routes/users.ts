@@ -306,6 +306,101 @@ router.get('/supervisors', authenticate, async (req: AuthRequest, res) => {
   }
 });
 
+// Get detachment supervisors based on venue/category context
+router.get('/detachment-supervisors', authenticate, async (req: AuthRequest, res) => {
+  try {
+    const { venue, category } = req.query;
+    const currentUserId = req.user!.id;
+
+    // Get current user's year
+    const yearResult = await query(
+      'SELECT MAX(year) as max_year FROM resident_years WHERE resident_id = $1',
+      [currentUserId]
+    );
+    const currentYear = yearResult.rows[0]?.max_year || 0;
+
+    // For ALERT venue: get senior residents currently on GS @ ALERT rotation
+    if (venue === 'ALERT') {
+      // Get active academic year
+      const ayResult = await query('SELECT * FROM academic_years WHERE is_active = true LIMIT 1');
+      if (ayResult.rows.length === 0) return res.json({ residents: [], externalLabel: 'ALERT Supervisor' });
+
+      const ay = ayResult.rows[0];
+      const now = new Date();
+      const cm = now.getMonth() + 1;
+      const monthNumber = cm >= ay.start_month ? cm - ay.start_month + 1 : 12 - ay.start_month + cm + 1;
+
+      // Find the rotation category for GS @ ALERT
+      const catResult = await query("SELECT id FROM rotation_categories WHERE name = 'GS @ ALERT' LIMIT 1");
+      const alertCatId = catResult.rows[0]?.id;
+
+      let residents: any[] = [];
+      if (alertCatId) {
+        const result = await query(
+          `SELECT u.id, u.name, ry_max.max_year as year
+           FROM yearly_rotations yr
+           JOIN users u ON yr.resident_id = u.id
+           JOIN (SELECT resident_id, MAX(year) as max_year FROM resident_years GROUP BY resident_id) ry_max ON u.id = ry_max.resident_id
+           WHERE yr.academic_year_id = $1
+             AND yr.month_number = $2
+             AND yr.rotation_category_id = $3
+             AND u.id != $4
+             AND ry_max.max_year > $5
+           ORDER BY ry_max.max_year DESC, u.name`,
+          [ay.id, monthNumber, alertCatId, currentUserId, currentYear]
+        );
+        residents = result.rows;
+      }
+
+      return res.json({ residents, externalLabel: 'ALERT Supervisor' });
+    }
+
+    // For Orthopedics category: get senior residents on Orthopedics rotation
+    if (category === 'Orthopedics') {
+      const ayResult = await query('SELECT * FROM academic_years WHERE is_active = true LIMIT 1');
+      if (ayResult.rows.length === 0) return res.json({ residents: [], externalLabel: 'Orthopedics Supervisor' });
+
+      const ay = ayResult.rows[0];
+      const now = new Date();
+      const cm = now.getMonth() + 1;
+      const monthNumber = cm >= ay.start_month ? cm - ay.start_month + 1 : 12 - ay.start_month + cm + 1;
+
+      const catResult = await query("SELECT id FROM rotation_categories WHERE name = 'Orthopedics' LIMIT 1");
+      const orthoCatId = catResult.rows[0]?.id;
+
+      let residents: any[] = [];
+      if (orthoCatId) {
+        const result = await query(
+          `SELECT u.id, u.name, ry_max.max_year as year
+           FROM yearly_rotations yr
+           JOIN users u ON yr.resident_id = u.id
+           JOIN (SELECT resident_id, MAX(year) as max_year FROM resident_years GROUP BY resident_id) ry_max ON u.id = ry_max.resident_id
+           WHERE yr.academic_year_id = $1
+             AND yr.month_number = $2
+             AND yr.rotation_category_id = $3
+             AND u.id != $4
+             AND ry_max.max_year > $5
+           ORDER BY ry_max.max_year DESC, u.name`,
+          [ay.id, monthNumber, orthoCatId, currentUserId, currentYear]
+        );
+        residents = result.rows;
+      }
+
+      return res.json({ residents, externalLabel: 'Orthopedics Supervisor' });
+    }
+
+    // For other venues (TASH, Abebech Gobena): no resident dropdown, just external name
+    const detachmentLabel = venue === 'TASH' ? 'TASH Supervisor' 
+      : venue === 'ABEBECH_GOBENA' ? 'Abebech Gobena Supervisor' 
+      : 'External Supervisor';
+    
+    return res.json({ residents: [], externalLabel: detachmentLabel });
+  } catch (error) {
+    console.error('Error fetching detachment supervisors:', error);
+    res.status(500).json({ error: 'Failed to fetch detachment supervisors' });
+  }
+});
+
 // Toggle senior supervisor status (Master only)
 router.post('/toggle-senior/:userId', authenticate, authorize('MASTER'), async (req, res) => {
   try {

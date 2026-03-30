@@ -72,7 +72,8 @@ router.post('/', authenticate, async (req: AuthRequest, res) => {
   try {
     const {
       yearId, date, mrn, age, sex, diagnosis, procedure,
-      procedureType, procedureCategory, placeOfPractice, surgeryRole, supervisorId, remark
+      procedureType, procedureCategory, placeOfPractice, surgeryRole, supervisorId, remark,
+      isDetachment, detachmentType, externalSupervisorName
     } = req.body;
 
     // Prevent self-assignment as supervisor
@@ -81,34 +82,52 @@ router.post('/', authenticate, async (req: AuthRequest, res) => {
     }
 
     // If supervisor is a resident, enforce seniority (must be strictly senior)
-    const supervisorCheck = await query('SELECT role FROM users WHERE id = $1', [supervisorId]);
-    if (supervisorCheck.rows.length > 0 && supervisorCheck.rows[0].role === 'RESIDENT') {
-      const [myYearRes, supYearRes] = await Promise.all([
-        query('SELECT MAX(year) as y FROM resident_years WHERE resident_id = $1', [req.user!.id]),
-        query('SELECT MAX(year) as y FROM resident_years WHERE resident_id = $1', [supervisorId])
-      ]);
-      const myYear = myYearRes.rows[0]?.y || 0;
-      const supYear = supYearRes.rows[0]?.y || 0;
-      if (supYear <= myYear) {
-        return res.status(400).json({ error: 'You can only be supervised by a senior resident (higher year) or a supervisor' });
+    // Skip for detachment logs with external supervisor (no supervisorId)
+    if (supervisorId) {
+      const supervisorCheck = await query('SELECT role FROM users WHERE id = $1', [supervisorId]);
+      if (supervisorCheck.rows.length > 0 && supervisorCheck.rows[0].role === 'RESIDENT') {
+        const [myYearRes, supYearRes] = await Promise.all([
+          query('SELECT MAX(year) as y FROM resident_years WHERE resident_id = $1', [req.user!.id]),
+          query('SELECT MAX(year) as y FROM resident_years WHERE resident_id = $1', [supervisorId])
+        ]);
+        const myYear = myYearRes.rows[0]?.y || 0;
+        const supYear = supYearRes.rows[0]?.y || 0;
+        if (supYear <= myYear) {
+          return res.status(400).json({ error: 'You can only be supervised by a senior resident (higher year) or a supervisor' });
+        }
       }
     }
 
     const result = await query(
       `INSERT INTO surgical_logs (
         resident_id, year_id, date, mrn, age, sex, diagnosis, procedure,
-        procedure_type, procedure_category, place_of_practice, surgery_role, supervisor_id, remark
-      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14) RETURNING *`,
+        procedure_type, procedure_category, place_of_practice, surgery_role, supervisor_id, remark,
+        is_detachment, detachment_type, external_supervisor_name
+      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17) RETURNING *`,
       [req.user!.id, yearId, date, mrn, age, sex, diagnosis, procedure,
-       procedureType, procedureCategory || 'MINOR', placeOfPractice, surgeryRole, supervisorId, remark || null]
+       procedureType, procedureCategory || 'MINOR', placeOfPractice, surgeryRole, 
+       isDetachment && !supervisorId ? null : supervisorId, 
+       remark || null,
+       isDetachment || false, detachmentType || null, externalSupervisorName || null]
     );
 
-    await sendNotification(
-      supervisorId,
-      `New surgical log assigned to you by ${await getUserName(req.user!)}`,
-      result.rows[0].id,
-      'procedure'
-    );
+    // Send notification to supervisor if one is assigned (not external detachment)
+    if (supervisorId && !isDetachment) {
+      await sendNotification(
+        supervisorId,
+        `New surgical log assigned to you by ${await getUserName(req.user!)}`,
+        result.rows[0].id,
+        'procedure'
+      );
+    } else if (supervisorId && isDetachment) {
+      // Detachment with a resident supervisor — still notify them
+      await sendNotification(
+        supervisorId,
+        `New detachment surgical log assigned to you by ${await getUserName(req.user!)}`,
+        result.rows[0].id,
+        'procedure'
+      );
+    }
 
     res.status(201).json(result.rows[0]);
   } catch (error) {
@@ -496,6 +515,119 @@ router.delete('/master/:logId', authenticate, authorize('MASTER'), async (req: A
   } catch (error) {
     console.error('Master delete procedure error:', error);
     res.status(500).json({ error: 'Failed to delete procedure' });
+  }
+});
+
+// Get detachment logs summary (for management/master)
+router.get('/detachment-summary', authenticate, async (req: AuthRequest, res) => {
+  try {
+    const userRole = req.user!.role;
+    if (userRole === 'MASTER' || userRole === 'MANAGEMENT') {
+      // allowed
+    } else if (userRole === 'SUPERVISOR') {
+      const check = await query('SELECT has_management_access FROM users WHERE id = $1', [req.user!.id]);
+      if (!check.rows[0]?.has_management_access) return res.status(403).json({ error: 'Forbidden' });
+    } else {
+      return res.status(403).json({ error: 'Forbidden' });
+    }
+
+    const result = await query(
+      `SELECT 
+        u.id as resident_id, u.name as resident_name,
+        (SELECT MAX(year) FROM resident_years WHERE resident_id = u.id) as year,
+        sl.detachment_type,
+        COUNT(*) as procedure_count,
+        COUNT(CASE WHEN sl.status != 'PENDING' OR sl.detachment_verified = true THEN 1 END) as verified_count,
+        MAX(sl.detachment_rating) as detachment_rating,
+        MAX(sl.detachment_comment) as detachment_comment,
+        BOOL_OR(sl.detachment_verified) as batch_verified
+       FROM surgical_logs sl
+       JOIN users u ON sl.resident_id = u.id
+       WHERE sl.is_detachment = true
+       GROUP BY u.id, u.name, sl.detachment_type
+       ORDER BY u.name, sl.detachment_type`
+    );
+
+    res.json(result.rows);
+  } catch (error) {
+    console.error('Error fetching detachment summary:', error);
+    res.status(500).json({ error: 'Failed to fetch detachment summary' });
+  }
+});
+
+// Get detachment logs for a specific resident + detachment type
+router.get('/detachment/:residentId/:detachmentType', authenticate, async (req: AuthRequest, res) => {
+  try {
+    const { residentId, detachmentType } = req.params;
+
+    const result = await query(
+      `SELECT sl.*, u.name as supervisor_name
+       FROM surgical_logs sl
+       LEFT JOIN users u ON sl.supervisor_id = u.id
+       WHERE sl.resident_id = $1 AND sl.is_detachment = true AND sl.detachment_type = $2
+       ORDER BY sl.date DESC`,
+      [residentId, detachmentType]
+    );
+
+    res.json(result.rows);
+  } catch (error) {
+    console.error('Error fetching detachment logs:', error);
+    res.status(500).json({ error: 'Failed to fetch detachment logs' });
+  }
+});
+
+// Verify detachment logs batch (management/master)
+router.post('/detachment-verify', authenticate, async (req: AuthRequest, res) => {
+  try {
+    const userRole = req.user!.role;
+    if (userRole === 'MASTER' || userRole === 'MANAGEMENT') {
+      // allowed
+    } else if (userRole === 'SUPERVISOR') {
+      const check = await query('SELECT has_management_access FROM users WHERE id = $1', [req.user!.id]);
+      if (!check.rows[0]?.has_management_access) return res.status(403).json({ error: 'Forbidden' });
+    } else {
+      return res.status(403).json({ error: 'Forbidden' });
+    }
+
+    const { residentId, detachmentType, rating, comment } = req.body;
+
+    // Update all unverified detachment logs for this resident + type
+    const result = await query(
+      `UPDATE surgical_logs 
+       SET detachment_verified = true, 
+           detachment_rating = $1, 
+           detachment_comment = $2,
+           detachment_verified_by = $3,
+           detachment_verified_at = NOW(),
+           status = CASE WHEN status = 'PENDING' THEN 'RATED' ELSE status END,
+           updated_at = NOW()
+       WHERE resident_id = $4 
+         AND is_detachment = true 
+         AND detachment_type = $5
+         AND detachment_verified = false
+       RETURNING id`,
+      [rating, comment, req.user!.id, residentId, detachmentType]
+    );
+
+    // Send notification to resident
+    const residentResult = await query('SELECT name FROM users WHERE id = $1', [residentId]);
+    const verifierName = await getUserName(req.user!);
+    
+    await sendNotification(
+      residentId,
+      `Your ${detachmentType.replace(/_/g, ' ')} detachment logs have been verified by ${verifierName}`,
+      null,
+      'rated'
+    );
+
+    res.json({ 
+      success: true, 
+      message: `Verified ${result.rowCount} detachment logs`,
+      count: result.rowCount
+    });
+  } catch (error) {
+    console.error('Error verifying detachment logs:', error);
+    res.status(500).json({ error: 'Failed to verify detachment logs' });
   }
 });
 

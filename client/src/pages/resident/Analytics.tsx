@@ -217,6 +217,23 @@ export default function Analytics() {
         </div>
       </div>
 
+      {/* Detachment Rating Cards - only show verified ones */}
+      {analytics?.detachmentRatings?.filter((d: any) => d.verified).length > 0 && (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+          {analytics.detachmentRatings.filter((d: any) => d.verified).map((d: any, idx: number) => {
+            const labels: Record<string, string> = { ALERT: 'ALERT', ORTHOPEDICS: 'Orthopedics', TASH: 'TASH', ABEBECH_GOBENA: 'Abebech Gobena' };
+            const colors: Record<string, string> = { ALERT: 'from-red-500 to-red-600', ORTHOPEDICS: 'from-cyan-500 to-cyan-600', TASH: 'from-emerald-500 to-emerald-600', ABEBECH_GOBENA: 'from-violet-500 to-violet-600' };
+            return (
+              <div key={idx} className={`bg-gradient-to-br ${colors[d.detachment_type] || 'from-gray-500 to-gray-600'} rounded-xl shadow-lg p-4 sm:p-6 text-white`}>
+                <p className="text-white/80 text-xs sm:text-sm font-medium">{labels[d.detachment_type] || d.detachment_type} Rate</p>
+                <p className="text-2xl sm:text-3xl font-bold mt-1">{d.rating}/100</p>
+                <p className="text-white/70 text-xs mt-1">{d.procedure_count} procedures</p>
+              </div>
+            );
+          })}
+        </div>
+      )}
+
       {/* Charts Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
         {/* Role Distribution */}

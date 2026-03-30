@@ -236,6 +236,19 @@ router.get('/resident', authenticate, async (req: AuthRequest, res) => {
       [targetResidentId, yearId]
     );
 
+    // Detachment ratings (per detachment type)
+    const detachmentRatingsResult = await query(
+      `SELECT detachment_type, 
+              MAX(detachment_rating) as rating, 
+              MAX(detachment_comment) as comment,
+              BOOL_OR(detachment_verified) as verified,
+              COUNT(*) as procedure_count
+       FROM surgical_logs 
+       WHERE resident_id = $1 AND year_id = $2 AND is_detachment = true
+       GROUP BY detachment_type`,
+      [targetResidentId, yearId]
+    );
+
     res.json({
       totalSurgeries: parseInt(totalResult.rows[0].count),
       verifiedSurgeries: parseInt(verifiedSurgeriesResult.rows[0].count),
@@ -259,7 +272,8 @@ router.get('/resident', authenticate, async (req: AuthRequest, res) => {
       institutionPresentations: institutionPresentationsResult.rows,
       supervisorDistribution: supervisorDistributionResult.rows,
       comments: commentsResult.rows,
-      presentationComments: presentationCommentsResult.rows
+      presentationComments: presentationCommentsResult.rows,
+      detachmentRatings: detachmentRatingsResult.rows
     });
   } catch (error) {
     res.status(500).json({ error: 'Failed to fetch analytics' });

@@ -32,6 +32,7 @@ import ResidentBrowsing from './pages/master/ResidentBrowsing';
 import SupervisorBrowsing from './pages/master/SupervisorBrowsing';
 import SupervisorView from './pages/master/SupervisorView';
 import ManagementDashboard from './pages/management/Dashboard';
+import DetachmentLogs from './pages/management/DetachmentLogs';
 import ManagementResidentBrowsing from './pages/management/ResidentBrowsing';
 import ManagementSupervisorBrowsing from './pages/management/SupervisorBrowsing';
 import ManagementSupervisorView from './pages/management/SupervisorView';
@@ -134,6 +135,7 @@ function App() {
                 <Route path="/management/browse-residents" element={<ManagementResidentBrowsing />} />
                 <Route path="/management/browse-supervisors" element={<ManagementSupervisorBrowsing />} />
                 <Route path="/management/supervisor-view" element={<ManagementSupervisorView />} />
+                <Route path="/detachment-logs" element={<DetachmentLogs />} />
               </>
             )}
           </>
@@ -151,6 +153,7 @@ function App() {
             <Route path="/resident-view/analytics" element={<AnalyticsWrapper />} />
             <Route path="/resident-view/all-comments" element={<AllComments />} />
             <Route path="/resident-view/rated-logs" element={<RatedLogsWrapper />} />
+            <Route path="/detachment-logs" element={<DetachmentLogs />} />
           </>
         )}
         {user.role === 'MANAGEMENT' && (
@@ -166,6 +169,7 @@ function App() {
             <Route path="/resident-view/analytics" element={<AnalyticsWrapper />} />
             <Route path="/resident-view/all-comments" element={<AllComments />} />
             <Route path="/resident-view/rated-logs" element={<RatedLogsWrapper />} />
+            <Route path="/detachment-logs" element={<DetachmentLogs />} />
           </>
         )}
         <Route path="*" element={<Navigate to="/" />} />
