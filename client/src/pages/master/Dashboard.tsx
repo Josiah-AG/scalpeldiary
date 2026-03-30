@@ -214,11 +214,29 @@ export default function MasterDashboard() {
               }
             }
           }}
-          className="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg font-semibold transition-colors"
+          className="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg font-semibold transition-colors mr-3"
         >
           Add Detachment Columns
         </button>
+        <button
+          onClick={async () => {
+            if (confirm('Add residency_start_month column to resident_years?')) {
+              try {
+                const response = await api.post('/migrations/add-residency-start-month');
+                alert(response.data.message);
+              } catch (error: any) {
+                alert('Failed: ' + (error.response?.data?.error || error.message));
+              }
+            }
+          }}
+          className="bg-cyan-600 hover:bg-cyan-700 text-white px-4 py-2 rounded-lg font-semibold transition-colors"
+        >
+          Add Residency Start Month
+        </button>
       </div>
+
+      {/* Batch Start Month Configuration */}
+      <BatchStartMonthConfig />
 
       {/* Masters List Modal */}
       {showMasters && (
@@ -311,6 +329,67 @@ export default function MasterDashboard() {
       {/* Activities Modal */}
       {showActivitiesModal && <ActivitiesViewModal onClose={() => setShowActivitiesModal(false)} />}
     </Layout>
+  );
+}
+
+// Batch Start Month Configuration
+function BatchStartMonthConfig() {
+  const [batchMonths, setBatchMonths] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+
+  useEffect(() => { fetchBatchMonths(); }, []);
+
+  const fetchBatchMonths = async () => {
+    try {
+      const response = await api.get('/users/batch-start-months');
+      setBatchMonths(response.data);
+    } catch (error) {
+      console.error('Failed to fetch batch months');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const updateBatch = async (year: number, startMonth: number) => {
+    try {
+      await api.post('/users/batch-start-month', { year, startMonth });
+      fetchBatchMonths();
+    } catch (error: any) {
+      alert(error.response?.data?.error || 'Failed to update');
+    }
+  };
+
+  if (loading) return null;
+
+  return (
+    <div className="mb-8 bg-white rounded-xl shadow-md border-2 border-cyan-200 p-6">
+      <h3 className="text-lg font-semibold text-cyan-900 mb-3 flex items-center">
+        <CalendarDays className="w-5 h-5 mr-2" />
+        Batch Residency Start Month
+      </h3>
+      <p className="text-sm text-gray-600 mb-4">Set the starting month for each year's rotation display. This determines the 12-month order shown to residents.</p>
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        {[1, 2, 3, 4].map(year => {
+          const batch = batchMonths.find((b: any) => b.year === year);
+          const currentStart = batch?.start_month || 7;
+          return (
+            <div key={year} className="bg-cyan-50 rounded-lg p-4 border border-cyan-200">
+              <p className="font-bold text-cyan-800 mb-2">Year {year}</p>
+              <select
+                value={currentStart}
+                onChange={(e) => updateBatch(year, parseInt(e.target.value))}
+                className="w-full px-3 py-2 border border-cyan-300 rounded-lg text-sm focus:ring-2 focus:ring-cyan-500"
+              >
+                {monthNames.map((m, i) => (
+                  <option key={i} value={i + 1}>{m}</option>
+                ))}
+              </select>
+            </div>
+          );
+        })}
+      </div>
+    </div>
   );
 }
 

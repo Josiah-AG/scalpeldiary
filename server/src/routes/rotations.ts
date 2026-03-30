@@ -373,7 +373,8 @@ router.get('/my-rotations', authenticate, async (req: AuthRequest, res) => {
     const academicYear = yearResult.rows[0];
 
     const result = await query(
-      `SELECT yr.month_number as month, rc.name as category_name, rc.color
+      `SELECT yr.month_number as month, rc.name as category_name, rc.color,
+              (SELECT ry.residency_start_month FROM resident_years ry WHERE ry.resident_id = $2 ORDER BY ry.year DESC LIMIT 1) as residency_start_month
        FROM yearly_rotations yr
        LEFT JOIN rotation_categories rc ON yr.rotation_category_id = rc.id
        WHERE yr.academic_year_id = $1 
@@ -427,7 +428,8 @@ router.get('/', authenticate, async (req: AuthRequest, res) => {
               u.name as resident_name,
               rc.name as category_name, 
               rc.color,
-              (SELECT MAX(ry.year) FROM resident_years ry WHERE ry.resident_id = yr.resident_id) as resident_year
+              (SELECT MAX(ry.year) FROM resident_years ry WHERE ry.resident_id = yr.resident_id) as resident_year,
+              (SELECT ry.residency_start_month FROM resident_years ry WHERE ry.resident_id = yr.resident_id ORDER BY ry.year DESC LIMIT 1) as residency_start_month
        FROM yearly_rotations yr
        LEFT JOIN rotation_categories rc ON yr.rotation_category_id = rc.id
        LEFT JOIN users u ON yr.resident_id = u.id

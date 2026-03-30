@@ -23,10 +23,15 @@ export function RotationModal({ isOpen, onClose, rotations }: RotationModalProps
   useBodyScrollLock(isOpen);
   if (!isOpen) return null;
 
-  const months = [
-    'July', 'August', 'September', 'October', 'November', 'December',
-    'January', 'February', 'March', 'April', 'May', 'June'
-  ];
+  const allMonthNames = ['January', 'February', 'March', 'April', 'May', 'June',
+    'July', 'August', 'September', 'October', 'November', 'December'];
+  
+  // Generate 12 months starting from the resident's start month
+  const startMonth = rotations[0]?.residency_start_month || 7; // default July
+  const months = Array.from({ length: 12 }, (_, i) => {
+    const idx = (startMonth - 1 + i) % 12;
+    return allMonthNames[idx];
+  });
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-0 sm:p-4" onClick={onClose}>

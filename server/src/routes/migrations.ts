@@ -928,4 +928,17 @@ router.post('/add-detachment-columns', authenticate, async (req: AuthRequest, re
   }
 });
 
+// Add residency_start_month to resident_years table
+router.post('/add-residency-start-month', authenticate, async (req: AuthRequest, res) => {
+  if (req.user!.role !== 'MASTER') {
+    return res.status(403).json({ error: 'Only Master accounts can run migrations' });
+  }
+  try {
+    await query(`ALTER TABLE resident_years ADD COLUMN IF NOT EXISTS residency_start_month INTEGER DEFAULT 7`);
+    res.json({ success: true, message: 'Added residency_start_month column to resident_years (default: July/7)' });
+  } catch (error: any) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
 export default router;
