@@ -10,10 +10,14 @@ router.post('/login', async (req, res) => {
   try {
     const { email, password } = req.body;
 
+    console.log('Login attempt for email:', email);
+
     const result = await query(
-      'SELECT * FROM users WHERE email = $1',
+      'SELECT * FROM users WHERE LOWER(email) = LOWER($1)',
       [email]
     );
+
+    console.log('Users found:', result.rows.length, result.rows.map(u => ({ id: u.id, email: u.email, name: u.name })));
 
     if (result.rows.length === 0) {
       return res.status(401).json({ error: 'Invalid credentials' });
@@ -21,6 +25,8 @@ router.post('/login', async (req, res) => {
 
     const user = result.rows[0];
     const validPassword = await bcrypt.compare(password, user.password);
+
+    console.log('Password valid:', validPassword, 'for user:', user.name, user.email);
 
     if (!validPassword) {
       return res.status(401).json({ error: 'Invalid credentials' });
