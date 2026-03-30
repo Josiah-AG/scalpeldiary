@@ -426,12 +426,13 @@ router.get('/', authenticate, async (req: AuthRequest, res) => {
               yr.resident_id,
               u.name as resident_name,
               rc.name as category_name, 
-              rc.color
+              rc.color,
+              (SELECT MAX(ry.year) FROM resident_years ry WHERE ry.resident_id = yr.resident_id) as resident_year
        FROM yearly_rotations yr
        LEFT JOIN rotation_categories rc ON yr.rotation_category_id = rc.id
        LEFT JOIN users u ON yr.resident_id = u.id
        WHERE yr.academic_year_id = $1
-       ORDER BY u.name, yr.month_number`,
+       ORDER BY (SELECT MAX(ry.year) FROM resident_years ry WHERE ry.resident_id = yr.resident_id) DESC, u.name, yr.month_number`,
       [academicYear.id]
     );
 

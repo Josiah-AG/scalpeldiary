@@ -422,20 +422,29 @@ function RotationMonthModal({ rotations, currentMonth, onMonthChange, onClose, o
   const currentAcademic = academicMonths.find(m => m.name === currentMonthName);
   const currentMonthNum = currentAcademic?.num || 1;
 
-  // Group rotations by resident, filter for current month
-  const residentsThisMonth: { name: string; category: string; color: string }[] = [];
+  // Group by category for this month, residents sorted senior to junior
+  const categoryGroups = new Map<string, { color: string; residents: { name: string; year: number }[] }>();
   const byResident = new Map<string, any>();
   rotations.forEach(r => {
-    if (!byResident.has(r.resident_id)) byResident.set(r.resident_id, { name: r.resident_name, rotations: [] });
+    if (!byResident.has(r.resident_id)) byResident.set(r.resident_id, { name: r.resident_name, year: r.resident_year || 1, rotations: [] });
     byResident.get(r.resident_id).rotations.push(r);
   });
   byResident.forEach((data) => {
     const rot = data.rotations.find((r: any) => r.month === currentMonthNum);
-    residentsThisMonth.push({
-      name: data.name,
-      category: rot?.category_name || 'Not assigned',
-      color: rot?.color || '#9CA3AF'
-    });
+    const cat = rot?.category_name || 'Not assigned';
+    const color = rot?.color || '#9CA3AF';
+    if (!categoryGroups.has(cat)) categoryGroups.set(cat, { color, residents: [] });
+    categoryGroups.get(cat)!.residents.push({ name: data.name, year: data.year });
+  });
+  // Sort residents within each category: senior first
+  categoryGroups.forEach(group => {
+    group.residents.sort((a, b) => b.year - a.year || a.name.localeCompare(b.name));
+  });
+  // Sort categories: assigned first (not "Not assigned"), then alphabetically
+  const sortedCategories = Array.from(categoryGroups.entries()).sort((a, b) => {
+    if (a[0] === 'Not assigned') return 1;
+    if (b[0] === 'Not assigned') return -1;
+    return a[0].localeCompare(b[0]);
   });
 
   const prevMonth = () => onMonthChange(new Date(currentMonth.getFullYear(), currentMonth.getMonth() - 1));
@@ -457,11 +466,20 @@ function RotationMonthModal({ rotations, currentMonth, onMonthChange, onClose, o
             <h3 className="text-lg font-bold text-gray-900">{format(currentMonth, 'MMMM yyyy')}</h3>
             <button onClick={nextMonth} className="px-3 py-1 bg-purple-100 text-purple-700 rounded-lg hover:bg-purple-200 text-sm font-semibold">Next →</button>
           </div>
-          <div className="space-y-2 overflow-y-auto" style={{ maxHeight: 'calc(100vh - 160px)' }}>
-            {residentsThisMonth.length > 0 ? residentsThisMonth.map((r, idx) => (
-              <div key={idx} className="flex items-center justify-between p-3 rounded-lg" style={{ backgroundColor: r.color + '15' }}>
-                <span className="font-medium text-gray-900 text-sm">{r.name}</span>
-                <span className="px-3 py-1 rounded-lg text-white text-xs font-bold" style={{ backgroundColor: r.color }}>{r.category}</span>
+          <div className="space-y-3 overflow-y-auto" style={{ maxHeight: 'calc(100vh - 160px)' }}>
+            {sortedCategories.length > 0 ? sortedCategories.map(([cat, group], idx) => (
+              <div key={idx} className="rounded-lg overflow-hidden border-2" style={{ borderColor: group.color }}>
+                <div className="px-3 py-2 text-white text-sm font-bold" style={{ backgroundColor: group.color }}>
+                  {cat}
+                </div>
+                <div className="divide-y divide-gray-100">
+                  {group.residents.map((r, rIdx) => (
+                    <div key={rIdx} className="flex items-center justify-between px-3 py-2" style={{ backgroundColor: group.color + '08' }}>
+                      <span className="text-sm font-medium text-gray-900">{r.name}</span>
+                      <span className="text-xs text-gray-500 bg-gray-100 px-2 py-0.5 rounded">Year {r.year}</span>
+                    </div>
+                  ))}
+                </div>
               </div>
             )) : (
               <p className="text-gray-500 text-center py-8">No rotations data</p>
