@@ -891,31 +891,35 @@ router.post('/add-detachment-columns', authenticate, async (req: AuthRequest, re
   }
 
   try {
-    // Add detachment columns to surgical_logs
-    await query(`
-      ALTER TABLE surgical_logs 
-      ADD COLUMN IF NOT EXISTS is_detachment BOOLEAN DEFAULT FALSE,
-      ADD COLUMN IF NOT EXISTS detachment_type VARCHAR(50),
-      ADD COLUMN IF NOT EXISTS external_supervisor_name VARCHAR(255),
-      ADD COLUMN IF NOT EXISTS detachment_verified BOOLEAN DEFAULT FALSE,
-      ADD COLUMN IF NOT EXISTS detachment_rating INTEGER,
-      ADD COLUMN IF NOT EXISTS detachment_comment TEXT,
-      ADD COLUMN IF NOT EXISTS detachment_verified_by INTEGER REFERENCES users(id),
-      ADD COLUMN IF NOT EXISTS detachment_verified_at TIMESTAMP
-    `);
+    // Add detachment columns to surgical_logs one by one for robustness
+    const slCols = [
+      'ADD COLUMN IF NOT EXISTS is_detachment BOOLEAN DEFAULT FALSE',
+      'ADD COLUMN IF NOT EXISTS detachment_type VARCHAR(50)',
+      'ADD COLUMN IF NOT EXISTS external_supervisor_name VARCHAR(255)',
+      'ADD COLUMN IF NOT EXISTS detachment_verified BOOLEAN DEFAULT FALSE',
+      'ADD COLUMN IF NOT EXISTS detachment_rating INTEGER',
+      'ADD COLUMN IF NOT EXISTS detachment_comment TEXT',
+      'ADD COLUMN IF NOT EXISTS detachment_verified_by UUID REFERENCES users(id)',
+      'ADD COLUMN IF NOT EXISTS detachment_verified_at TIMESTAMP'
+    ];
+    for (const col of slCols) {
+      try { await query(`ALTER TABLE surgical_logs ${col}`); } catch (e: any) { console.log('Skip:', e.message); }
+    }
 
-    // Add detachment columns to presentations
-    await query(`
-      ALTER TABLE presentations 
-      ADD COLUMN IF NOT EXISTS is_detachment BOOLEAN DEFAULT FALSE,
-      ADD COLUMN IF NOT EXISTS detachment_type VARCHAR(50),
-      ADD COLUMN IF NOT EXISTS external_supervisor_name VARCHAR(255),
-      ADD COLUMN IF NOT EXISTS detachment_verified BOOLEAN DEFAULT FALSE,
-      ADD COLUMN IF NOT EXISTS detachment_rating INTEGER,
-      ADD COLUMN IF NOT EXISTS detachment_comment TEXT,
-      ADD COLUMN IF NOT EXISTS detachment_verified_by INTEGER REFERENCES users(id),
-      ADD COLUMN IF NOT EXISTS detachment_verified_at TIMESTAMP
-    `);
+    // Add detachment columns to presentations one by one
+    const pCols = [
+      'ADD COLUMN IF NOT EXISTS is_detachment BOOLEAN DEFAULT FALSE',
+      'ADD COLUMN IF NOT EXISTS detachment_type VARCHAR(50)',
+      'ADD COLUMN IF NOT EXISTS external_supervisor_name VARCHAR(255)',
+      'ADD COLUMN IF NOT EXISTS detachment_verified BOOLEAN DEFAULT FALSE',
+      'ADD COLUMN IF NOT EXISTS detachment_rating INTEGER',
+      'ADD COLUMN IF NOT EXISTS detachment_comment TEXT',
+      'ADD COLUMN IF NOT EXISTS detachment_verified_by UUID REFERENCES users(id)',
+      'ADD COLUMN IF NOT EXISTS detachment_verified_at TIMESTAMP'
+    ];
+    for (const col of pCols) {
+      try { await query(`ALTER TABLE presentations ${col}`); } catch (e: any) { console.log('Skip:', e.message); }
+    }
 
     res.json({ success: true, message: 'Detachment columns added to surgical_logs and presentations' });
   } catch (error: any) {
