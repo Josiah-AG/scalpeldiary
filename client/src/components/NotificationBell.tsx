@@ -3,6 +3,8 @@ import { Bell, X, Star, FileText, Activity } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import api from '../api/axios';
 import { format } from 'date-fns';
+import { useAuthStore } from '../store/authStore';
+import { getRatingLabel, getRatingTextColor, canSeeExactScores } from '../utils/ratingUtils';
 
 interface Notification {
   id: string;
@@ -25,6 +27,8 @@ export default function NotificationBell({ show, onClose, onCountChange }: Notif
   const [loadingItem, setLoadingItem] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const navigate = useNavigate();
+  const { user } = useAuthStore();
+  const showExact = canSeeExactScores(user?.role, false);
 
   useEffect(() => {
     if (show) {
@@ -366,8 +370,8 @@ export default function NotificationBell({ show, onClose, onCountChange }: Notif
                     <>
                       <div>
                         <label className="text-sm font-semibold text-gray-600">Rating</label>
-                        <p className={`text-2xl font-bold ${selectedLog.rating > 50 ? 'text-green-600' : 'text-red-600'}`}>
-                          {selectedLog.rating}/100
+                        <p className={'text-2xl font-bold ' + getRatingTextColor(selectedLog.rating)}>
+                          {showExact ? selectedLog.rating + '/100' : getRatingLabel(selectedLog.rating)}
                         </p>
                       </div>
                       {selectedLog.comment && (
@@ -432,8 +436,8 @@ export default function NotificationBell({ show, onClose, onCountChange }: Notif
                     <>
                       <div>
                         <label className="text-sm font-semibold text-gray-600">Rating</label>
-                        <p className={`text-2xl font-bold ${selectedLog.rating > 50 ? 'text-green-600' : 'text-red-600'}`}>
-                          {selectedLog.rating}/100
+                        <p className={'text-2xl font-bold ' + getRatingTextColor(selectedLog.rating)}>
+                          {showExact ? selectedLog.rating + '/100' : getRatingLabel(selectedLog.rating)}
                         </p>
                       </div>
                       {selectedLog.comment && (

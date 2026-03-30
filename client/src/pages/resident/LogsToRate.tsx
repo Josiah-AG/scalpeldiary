@@ -257,6 +257,7 @@ export default function LogsToRate() {
                     className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
                     placeholder="Enter rating"
                   />
+                  <p className="text-xs text-blue-600 mt-1">90-100: Excellent · 71-89: Good · 50-70: Satisfactory · Below 50: Poor</p>
                 </div>
 
                 <div>

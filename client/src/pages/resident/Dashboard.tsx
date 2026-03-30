@@ -7,8 +7,11 @@ import { Activity, Award, Calendar, TrendingUp, Edit2, Trash2, X } from 'lucide-
 import YearProgressBar from '../../components/YearProgressBar';
 import ProgressDetailModal from '../../components/ProgressDetailModal';
 import { RotationModal, DutyModal, ActivityModal } from '../../components/TodayOverviewModals';
+import { getRatingLabel, getRatingTextColor, getResidentRatingBadge, canSeeExactScores } from '../../utils/ratingUtils';
+import { useAuthStore } from '../../store/authStore';
 
 export default function Dashboard() {
+  const { user } = useAuthStore();
   const [metrics, setMetrics] = useState<any>(null);
   const [years, setYears] = useState<any[]>([]);
   const [selectedYear, setSelectedYear] = useState<string>('');
@@ -774,7 +777,12 @@ export default function Dashboard() {
           <div className="flex items-center justify-between">
             <div>
               <p className="text-purple-100 text-xs md:text-sm font-medium">Avg Procedure Rating</p>
-              <p className="text-3xl md:text-4xl font-bold mt-1 md:mt-2">{metrics?.averageRating?.toFixed(1) || 'N/A'}</p>
+              <p className="text-3xl md:text-4xl font-bold mt-1 md:mt-2">
+                {!isReadOnlyMode && (metrics?.verifiedSurgeries || 0) < 10 ? '—' : (metrics?.averageRating?.toFixed(1) || 'N/A')}
+              </p>
+              {!isReadOnlyMode && (metrics?.verifiedSurgeries || 0) < 10 && (
+                <p className="text-purple-200 text-xs mt-1">Need 10+ verified</p>
+              )}
             </div>
             <TrendingUp size={32} className="text-purple-200 md:w-10 md:h-10" />
           </div>
@@ -784,7 +792,12 @@ export default function Dashboard() {
           <div className="flex items-center justify-between">
             <div>
               <p className="text-orange-100 text-xs md:text-sm font-medium">Avg Presentation Rating</p>
-              <p className="text-3xl md:text-4xl font-bold mt-1 md:mt-2">{metrics?.avgPresentationRating?.toFixed(1) || 'N/A'}</p>
+              <p className="text-3xl md:text-4xl font-bold mt-1 md:mt-2">
+                {!isReadOnlyMode && (metrics?.verifiedPresentations || 0) < 5 ? '—' : (metrics?.avgPresentationRating?.toFixed(1) || 'N/A')}
+              </p>
+              {!isReadOnlyMode && (metrics?.verifiedPresentations || 0) < 5 && (
+                <p className="text-orange-200 text-xs mt-1">Need 5+ verified</p>
+              )}
             </div>
             <Award size={32} className="text-orange-200 md:w-10 md:h-10" />
           </div>
@@ -913,11 +926,13 @@ export default function Dashboard() {
                       {surgery.status === 'NOT_WITNESSED' ? (
                         <span className="px-2 py-0.5 md:px-3 md:py-1 rounded-full bg-gray-400 text-white font-semibold text-xs">N/A</span>
                       ) : surgery.rating ? (
-                        <span className={`px-2 py-0.5 md:px-3 md:py-1 rounded-full font-semibold text-xs ${
-                          surgery.rating > 50 ? 'bg-green-600 text-white' : 'bg-red-600 text-white'
-                        }`}>
-                          {surgery.rating}
-                        </span>
+                        (() => {
+                          const showExact = canSeeExactScores(user?.role, isReadOnlyMode);
+                          const badge = showExact 
+                            ? { text: surgery.rating, className: surgery.rating > 50 ? 'bg-green-600 text-white' : 'bg-red-600 text-white' }
+                            : getResidentRatingBadge(surgery.rating, surgery.status);
+                          return <span className={`px-2 py-0.5 md:px-3 md:py-1 rounded-full font-semibold text-xs ${badge.className}`}>{badge.text}</span>;
+                        })()
                       ) : (
                         <span className="px-2 py-0.5 md:px-3 md:py-1 rounded-full bg-gray-600 text-white font-semibold text-xs">Pending</span>
                       )}

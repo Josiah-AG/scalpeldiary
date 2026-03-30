@@ -164,8 +164,18 @@ router.post('/:logId/rate', authenticate, async (req: AuthRequest, res) => {
 
     const log = result.rows[0];
     const supervisorName = await getUserName(req.user!);
+    
+    // Convert rating to label for notification
+    let ratingLabel = '';
+    if (rating) {
+      if (rating >= 90) ratingLabel = 'Excellent';
+      else if (rating >= 71) ratingLabel = 'Good';
+      else if (rating >= 50) ratingLabel = 'Satisfactory';
+      else ratingLabel = 'Poor';
+    }
+    
     const notificationMessage = rating 
-      ? `Your surgical log has been rated: ${rating}/100 by ${supervisorName}`
+      ? `Your surgical log has been rated as ${ratingLabel} by ${supervisorName}`
       : `Your surgical log was marked as not witnessed by ${supervisorName}`;
     
     await sendNotification(

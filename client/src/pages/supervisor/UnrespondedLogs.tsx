@@ -412,6 +412,7 @@ export default function UnrespondedLogs() {
                   placeholder="Enter rating"
                 />
                 <p className="text-xs text-gray-500 mt-1">Leave empty if procedure was not witnessed</p>
+                <p className="text-xs text-blue-600 mt-1">90-100: Excellent · 71-89: Good · 50-70: Satisfactory · Below 50: Poor</p>
               </div>
               <div>
                 <label className="block text-sm font-medium mb-2">Comment</label>
@@ -536,6 +537,7 @@ export default function UnrespondedLogs() {
                   placeholder="Enter rating (required)"
                   required
                 />
+                <p className="text-xs text-blue-600 mt-1">90-100: Excellent · 71-89: Good · 50-70: Satisfactory · Below 50: Poor</p>
               </div>
               <div>
                 <label className="block text-sm font-medium mb-2">Comment</label>

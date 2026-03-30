@@ -5,6 +5,7 @@ import { format } from 'date-fns';
 import { X, Edit2, Filter, Trash2 } from 'lucide-react';
 import { getAllCategories } from '@shared/procedureUtils';
 import { useAuthStore } from '../../store/authStore';
+import { getResidentRatingBadge, getSupervisorRatingBadge, canSeeExactScores, getRatingLabel, getRatingTextColor } from '../../utils/ratingUtils';
 
 export default function AllProcedures() {
   const [allLogs, setAllLogs] = useState<any[]>([]);
@@ -183,15 +184,11 @@ export default function AllProcedures() {
     return log.rating > 50 ? 'bg-green-50' : 'bg-red-50';
   };
 
+  const showExactScores = canSeeExactScores(user?.role, isReadOnlyMode);
+
   const getRatingBadge = (rating: number | null, status: string) => {
-    if (status === 'NOT_WITNESSED') {
-      return <span className="px-3 py-1 rounded-full bg-gray-200 text-gray-700 font-semibold text-sm">N/A</span>;
-    }
-    if (!rating || status === 'PENDING') {
-      return <span className="px-3 py-1 rounded-full bg-yellow-100 text-yellow-700 font-semibold text-sm">Pending</span>;
-    }
-    const color = rating > 50 ? 'bg-green-500' : 'bg-red-500';
-    return <span className={'px-3 py-1 rounded-full ' + color + ' text-white font-semibold text-sm'}>{rating}/100</span>;
+    const badge = showExactScores ? getSupervisorRatingBadge(rating, status) : getResidentRatingBadge(rating, status);
+    return <span className={'px-3 py-1 rounded-full font-semibold text-sm ' + badge.className}>{badge.text}</span>;
   };
 
   return (
@@ -443,7 +440,9 @@ export default function AllProcedures() {
                 <>
                   <div>
                     <label className="text-sm font-semibold text-gray-600">Rating</label>
-                    <p className={'text-2xl font-bold ' + (selectedLog.rating > 50 ? 'text-green-600' : 'text-red-600')}>{selectedLog.rating}/100</p>
+                    <p className={'text-2xl font-bold ' + getRatingTextColor(selectedLog.rating)}>
+                      {showExactScores ? selectedLog.rating + '/100' : getRatingLabel(selectedLog.rating)}
+                    </p>
                   </div>
                   {selectedLog.comment && (
                     <div>

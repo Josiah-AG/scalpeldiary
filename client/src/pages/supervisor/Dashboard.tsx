@@ -4,6 +4,7 @@ import Layout from '../../components/Layout';
 import api from '../../api/axios';
 import { Users, ChevronRight, FileText, Presentation, TrendingUp, Activity, Star, User, CalendarDays, ClipboardCheck } from 'lucide-react';
 import { format, startOfMonth, endOfMonth, eachDayOfInterval, isSameDay } from 'date-fns';
+import { DutyModal } from '../../components/TodayOverviewModals';
 
 interface ResidentSummary {
   id: number;
@@ -354,55 +355,12 @@ export default function SupervisorDashboard() {
       {/* Activities Modal */}
       {showActivitiesModal && <ActivitiesViewModal onClose={() => setShowActivitiesModal(false)} />}
 
-      {/* Monthly Duty Modal */}
-      {showDutyModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-hidden">
-            <div className="bg-gradient-to-r from-indigo-600 to-indigo-700 text-white p-6 flex justify-between items-center">
-              <h2 className="text-xl font-bold flex items-center">
-                <CalendarDays className="mr-3" size={24} />
-                Monthly Duty Schedule — {format(new Date(), 'MMMM yyyy')}
-              </h2>
-              <button onClick={() => setShowDutyModal(false)} className="p-2 hover:bg-white/20 rounded-lg">
-                <span className="text-2xl">×</span>
-              </button>
-            </div>
-            <div className="p-6 overflow-y-auto max-h-[calc(90vh-100px)]">
-              {monthlyDuties.length > 0 ? (
-                <div className="overflow-x-auto">
-                  <table className="min-w-full divide-y divide-gray-200">
-                    <thead className="bg-gray-50">
-                      <tr>
-                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Date</th>
-                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Resident</th>
-                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Duty</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-gray-200">
-                      {monthlyDuties.map((duty: any, idx: number) => {
-                        const isToday = duty.duty_date === format(new Date(), 'yyyy-MM-dd');
-                        return (
-                          <tr key={idx} className={isToday ? 'bg-indigo-50 font-semibold' : 'hover:bg-gray-50'}>
-                            <td className="px-4 py-3 text-sm">{format(new Date(duty.duty_date + 'T00:00:00'), 'EEE, MMM dd')}</td>
-                            <td className="px-4 py-3 text-sm font-medium">{duty.resident_name}</td>
-                            <td className="px-4 py-3 text-sm">
-                              <span className="px-2 py-1 rounded text-xs font-semibold text-white" style={{ backgroundColor: duty.duty_color || '#6366F1' }}>
-                                {duty.duty_category_name}
-                              </span>
-                            </td>
-                          </tr>
-                        );
-                      })}
-                    </tbody>
-                  </table>
-                </div>
-              ) : (
-                <p className="text-gray-500 text-center py-12">No duties scheduled this month</p>
-              )}
-            </div>
-          </div>
-        </div>
-      )}
+      {/* Monthly Duty Modal - uses shared component */}
+      <DutyModal
+        isOpen={showDutyModal}
+        onClose={() => setShowDutyModal(false)}
+        duties={monthlyDuties}
+      />
     </Layout>
   );
 }

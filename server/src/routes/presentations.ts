@@ -299,7 +299,14 @@ router.post('/:presentationId/rate', authenticate, async (req: AuthRequest, res)
     // Send notification to the resident
     const presentation = result.rows[0];
     const supervisorName = await getUserName(req.user!);
-    const notificationMessage = `Your presentation "${presentation.title}" has been rated: ${rating}/100 by ${supervisorName}`;
+    
+    let ratingLabel = '';
+    if (rating >= 90) ratingLabel = 'Excellent';
+    else if (rating >= 71) ratingLabel = 'Good';
+    else if (rating >= 50) ratingLabel = 'Satisfactory';
+    else ratingLabel = 'Poor';
+    
+    const notificationMessage = `Your presentation "${presentation.title}" has been rated as ${ratingLabel} by ${supervisorName}`;
     
     await sendNotification(
       presentation.resident_id,
