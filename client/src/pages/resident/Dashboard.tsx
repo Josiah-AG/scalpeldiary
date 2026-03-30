@@ -926,8 +926,8 @@ export default function Dashboard() {
                       {surgery.status === 'NOT_WITNESSED' ? (
                         <span className="px-2 py-0.5 md:px-3 md:py-1 rounded-full bg-gray-400 text-white font-semibold text-xs">N/A</span>
                       ) : surgery.is_detachment && !surgery.supervisor_id ? (
-                        <span className={`px-2 py-0.5 md:px-3 md:py-1 rounded-full font-semibold text-xs ${surgery.detachment_verified ? 'bg-green-500 text-white' : 'bg-amber-500 text-white'}`}>
-                          {surgery.detachment_verified ? 'Verified' : 'Detachment'}
+                        <span className="px-2 py-0.5 md:px-3 md:py-1 rounded-full bg-gray-400 text-white font-semibold text-xs">
+                          {surgery.detachment_verified ? 'N/A' : 'Detachment'}
                         </span>
                       ) : surgery.rating ? (
                         (() => {

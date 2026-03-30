@@ -328,8 +328,8 @@ export default function AllProcedures() {
                   <td className="px-4 py-3 text-sm">{log.supervisor_name || log.external_supervisor_name || 'External'}</td>
                   <td className="px-4 py-3 whitespace-nowrap">
                     {log.is_detachment && !log.supervisor_id ? (
-                      <span className={`px-3 py-1 rounded-full font-semibold text-sm ${log.detachment_verified ? 'bg-green-500 text-white' : 'bg-amber-500 text-white'}`}>
-                        {log.detachment_verified ? 'Verified' : 'Detachment'}
+                      <span className="px-3 py-1 rounded-full font-semibold text-sm bg-gray-200 text-gray-700">
+                        {log.detachment_verified ? 'N/A' : 'Detachment'}
                       </span>
                     ) : getRatingBadge(log.rating, log.status)}
                   </td>
