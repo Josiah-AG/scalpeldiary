@@ -4,7 +4,7 @@ import Layout from '../../components/Layout';
 import api from '../../api/axios';
 import { Users, ChevronRight, FileText, Presentation, TrendingUp, Activity, Star, User, CalendarDays, ClipboardCheck } from 'lucide-react';
 import { format, startOfMonth, endOfMonth, eachDayOfInterval, isSameDay } from 'date-fns';
-import { DutyModal } from '../../components/TodayOverviewModals';
+import { DutyModal, ActivityModal } from '../../components/TodayOverviewModals';
 
 interface ResidentSummary {
   id: number;
@@ -31,6 +31,9 @@ export default function SupervisorDashboard() {
   const [todayDuties, setTodayDuties] = useState<any[]>([]);
   const [showDutyModal, setShowDutyModal] = useState(false);
   const [monthlyDuties, setMonthlyDuties] = useState<any[]>([]);
+  const [monthlyActivities, setMonthlyActivities] = useState<any[]>([]);
+  const [rotations, setRotations] = useState<any[]>([]);
+  const [rotationMonth, setRotationMonth] = useState(new Date());
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -55,6 +58,25 @@ export default function SupervisorDashboard() {
       setTodayDuties(duties);
     } catch (error) {
       console.error('Failed to fetch today duties');
+    }
+  };
+
+  const fetchMonthlyActivities = async () => {
+    try {
+      const now = new Date();
+      const response = await api.get('/activities/monthly/' + now.getFullYear() + '/' + (now.getMonth() + 1));
+      setMonthlyActivities(response.data);
+    } catch (error) {
+      console.error('Failed to fetch activities');
+    }
+  };
+
+  const fetchRotations = async () => {
+    try {
+      const response = await api.get('/rotations');
+      setRotations(response.data);
+    } catch (error) {
+      console.error('Failed to fetch rotations');
     }
   };
 
@@ -131,7 +153,7 @@ export default function SupervisorDashboard() {
         </button>
 
         <button
-          onClick={() => setShowRotationsModal(true)}
+          onClick={() => { fetchRotations(); setShowRotationsModal(true); }}
           className="bg-gradient-to-br from-purple-500 to-purple-600 text-white p-6 rounded-xl shadow-lg hover:shadow-2xl transition-all transform hover:scale-105"
         >
           <div className="flex items-center justify-between mb-4">
@@ -146,7 +168,7 @@ export default function SupervisorDashboard() {
         </button>
 
         <button
-          onClick={() => setShowActivitiesModal(true)}
+          onClick={() => { fetchMonthlyActivities(); setShowActivitiesModal(true); }}
           className="bg-gradient-to-br from-amber-500 to-amber-600 text-white p-6 rounded-xl shadow-lg hover:shadow-2xl transition-all transform hover:scale-105"
         >
           <div className="flex items-center justify-between mb-4">
@@ -349,11 +371,25 @@ export default function SupervisorDashboard() {
         </div>
       )}
 
-      {/* Rotations Modal */}
-      {showRotationsModal && <RotationsViewModal onClose={() => setShowRotationsModal(false)} />}
+      {/* Rotations Modal - Monthly view */}
+      {showRotationsModal && (
+        <RotationMonthModal 
+          rotations={rotations} 
+          currentMonth={rotationMonth}
+          onMonthChange={setRotationMonth}
+          onClose={() => setShowRotationsModal(false)} 
+          onOpen={fetchRotations}
+        />
+      )}
 
-      {/* Activities Modal */}
-      {showActivitiesModal && <ActivitiesViewModal onClose={() => setShowActivitiesModal(false)} />}
+      {/* Activities Modal - uses shared component */}
+      {showActivitiesModal && (
+        <ActivityModal
+          isOpen={showActivitiesModal}
+          onClose={() => setShowActivitiesModal(false)}
+          activities={monthlyActivities}
+        />
+      )}
 
       {/* Monthly Duty Modal - uses shared component */}
       <DutyModal
@@ -365,249 +401,72 @@ export default function SupervisorDashboard() {
   );
 }
 
-// Rotations View Modal Component
-function RotationsViewModal({ onClose }: { onClose: () => void }) {
-  const [rotations, setRotations] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
+// Rotation Month Modal - shows all residents' rotations for a selected month
+function RotationMonthModal({ rotations, currentMonth, onMonthChange, onClose, onOpen }: { 
+  rotations: any[]; currentMonth: Date; onMonthChange: (d: Date) => void; onClose: () => void; onOpen: () => void;
+}) {
+  useEffect(() => { onOpen(); }, []);
 
-  useEffect(() => {
-    fetchRotations();
-  }, []);
-
-  const fetchRotations = async () => {
-    try {
-      const response = await api.get('/rotations');
-      setRotations(response.data);
-    } catch (error) {
-      console.error('Failed to fetch rotations:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const months = [
-    'July', 'August', 'September', 'October', 'November', 'December',
-    'January', 'February', 'March', 'April', 'May', 'June'
+  // Academic year months: July=1, Aug=2, ..., June=12
+  const academicMonths = [
+    { name: 'July', num: 1 }, { name: 'August', num: 2 }, { name: 'September', num: 3 },
+    { name: 'October', num: 4 }, { name: 'November', num: 5 }, { name: 'December', num: 6 },
+    { name: 'January', num: 7 }, { name: 'February', num: 8 }, { name: 'March', num: 9 },
+    { name: 'April', num: 10 }, { name: 'May', num: 11 }, { name: 'June', num: 12 }
   ];
 
-  // Group rotations by resident
-  const rotationsByResident = rotations.reduce((acc: any, rotation: any) => {
-    if (!acc[rotation.resident_id]) {
-      acc[rotation.resident_id] = {
-        resident_name: rotation.resident_name,
-        rotations: []
-      };
-    }
-    acc[rotation.resident_id].rotations.push(rotation);
-    return acc;
-  }, {});
+  // Determine current academic month number
+  const jsMonth = currentMonth.getMonth(); // 0-11
+  const calendarMonthNames = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+  const currentMonthName = calendarMonthNames[jsMonth];
+  const currentAcademic = academicMonths.find(m => m.name === currentMonthName);
+  const currentMonthNum = currentAcademic?.num || 1;
 
-  return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
-      <div className="bg-white rounded-xl shadow-2xl max-w-6xl w-full max-h-[90vh] overflow-hidden">
-        <div className="bg-gradient-to-r from-purple-600 to-indigo-600 text-white p-6 flex justify-between items-center">
-          <h2 className="text-2xl font-bold flex items-center">
-            <CalendarDays className="mr-3" size={28} />
-            Yearly Rotation Schedule - All Residents
-          </h2>
-          <button
-            onClick={onClose}
-            className="p-2 hover:bg-white/20 rounded-lg transition-colors"
-          >
-            <span className="text-2xl">×</span>
-          </button>
-        </div>
-        
-        <div className="p-6 overflow-y-auto max-h-[calc(90vh-100px)]">
-          {loading ? (
-            <div className="text-center py-12">
-              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600 mx-auto"></div>
-              <p className="mt-4 text-gray-600">Loading rotations...</p>
-            </div>
-          ) : Object.keys(rotationsByResident).length > 0 ? (
-            <div className="space-y-8">
-              {Object.entries(rotationsByResident).map(([residentId, data]: [string, any]) => (
-                <div key={residentId} className="border-2 border-gray-200 rounded-xl p-6 bg-gray-50">
-                  <h3 className="text-xl font-bold text-gray-900 mb-4">{data.resident_name}</h3>
-                  <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
-                    {months.map((month, index) => {
-                      const rotation = data.rotations.find((r: any) => r.month === index + 1);
-                      return (
-                        <div
-                          key={month}
-                          className="border-2 rounded-lg p-3 transition-all"
-                          style={{
-                            borderColor: rotation?.color || '#E5E7EB',
-                            backgroundColor: rotation ? `${rotation.color}15` : '#FFFFFF'
-                          }}
-                        >
-                          <div className="text-xs font-semibold text-gray-600 mb-2">{month}</div>
-                          {rotation ? (
-                            <div
-                              className="px-2 py-1 rounded text-xs font-bold text-white text-center"
-                              style={{ backgroundColor: rotation.color }}
-                            >
-                              {rotation.category_name}
-                            </div>
-                          ) : (
-                            <div className="text-gray-400 text-xs text-center py-1">
-                              Not assigned
-                            </div>
-                          )}
-                        </div>
-                      );
-                    })}
-                  </div>
-                </div>
-              ))}
-            </div>
-          ) : (
-            <div className="text-center py-12 text-gray-500">
-              <CalendarDays size={48} className="mx-auto mb-4 text-gray-300" />
-              <p>No rotations assigned yet</p>
-            </div>
-          )}
-        </div>
-      </div>
-    </div>
-  );
-}
-
-// Activities View Modal Component
-function ActivitiesViewModal({ onClose }: { onClose: () => void }) {
-  const [activities, setActivities] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [currentMonth, setCurrentMonth] = useState(new Date());
-
-  useEffect(() => {
-    fetchActivities();
-  }, [currentMonth]);
-
-  const fetchActivities = async () => {
-    try {
-      const month = currentMonth.getMonth() + 1;
-      const year = currentMonth.getFullYear();
-      const response = await api.get(`/activities?month=${month}&year=${year}`);
-      setActivities(response.data);
-    } catch (error) {
-      console.error('Failed to fetch activities:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const monthStart = startOfMonth(currentMonth);
-  const monthEnd = endOfMonth(currentMonth);
-  const days = eachDayOfInterval({ start: monthStart, end: monthEnd });
-
-  // Create a map of activities by date
-  const activityMap = new Map();
-  activities.forEach(activity => {
-    const date = activity.activity_date.split('T')[0];
-    if (!activityMap.has(date)) {
-      activityMap.set(date, []);
-    }
-    activityMap.get(date).push(activity);
+  // Group rotations by resident, filter for current month
+  const residentsThisMonth: { name: string; category: string; color: string }[] = [];
+  const byResident = new Map<string, any>();
+  rotations.forEach(r => {
+    if (!byResident.has(r.resident_id)) byResident.set(r.resident_id, { name: r.resident_name, rotations: [] });
+    byResident.get(r.resident_id).rotations.push(r);
+  });
+  byResident.forEach((data) => {
+    const rot = data.rotations.find((r: any) => r.month === currentMonthNum);
+    residentsThisMonth.push({
+      name: data.name,
+      category: rot?.category_name || 'Not assigned',
+      color: rot?.color || '#9CA3AF'
+    });
   });
 
-  const previousMonth = () => {
-    setCurrentMonth(new Date(currentMonth.getFullYear(), currentMonth.getMonth() - 1));
-  };
-
-  const nextMonth = () => {
-    setCurrentMonth(new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1));
-  };
+  const prevMonth = () => onMonthChange(new Date(currentMonth.getFullYear(), currentMonth.getMonth() - 1));
+  const nextMonth = () => onMonthChange(new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1));
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
-      <div className="bg-white rounded-xl shadow-2xl max-w-6xl w-full max-h-[90vh] overflow-hidden">
-        <div className="bg-gradient-to-r from-amber-600 to-orange-600 text-white p-6 flex justify-between items-center">
-          <h2 className="text-2xl font-bold flex items-center">
-            <ClipboardCheck className="mr-3" size={28} />
-            Monthly Activities - All Residents
+    <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-0 sm:p-4" onClick={onClose}>
+      <div className="bg-white w-full h-full sm:h-auto sm:rounded-xl shadow-2xl sm:max-w-2xl sm:max-h-[90vh] overflow-hidden" onClick={e => e.stopPropagation()}>
+        <div className="bg-gradient-to-r from-purple-600 to-indigo-600 text-white p-4 flex justify-between items-center">
+          <h2 className="text-lg font-bold flex items-center">
+            <CalendarDays className="mr-2" size={20} />
+            Rotations
           </h2>
-          <button
-            onClick={onClose}
-            className="p-2 hover:bg-white/20 rounded-lg transition-colors"
-          >
-            <span className="text-2xl">×</span>
-          </button>
+          <button onClick={onClose} className="p-2 hover:bg-white/20 rounded-lg"><span className="text-xl">×</span></button>
         </div>
-        
-        <div className="p-6 overflow-y-auto max-h-[calc(90vh-100px)]">
-          {/* Month Navigation */}
-          <div className="flex justify-between items-center mb-6">
-            <button
-              onClick={previousMonth}
-              className="px-4 py-2 bg-amber-100 text-amber-700 rounded-lg hover:bg-amber-200 font-semibold"
-            >
-              ← Previous
-            </button>
-            <h3 className="text-xl font-bold text-gray-900">
-              {format(currentMonth, 'MMMM yyyy')}
-            </h3>
-            <button
-              onClick={nextMonth}
-              className="px-4 py-2 bg-amber-100 text-amber-700 rounded-lg hover:bg-amber-200 font-semibold"
-            >
-              Next →
-            </button>
+        <div className="p-4">
+          <div className="flex justify-between items-center mb-4">
+            <button onClick={prevMonth} className="px-3 py-1 bg-purple-100 text-purple-700 rounded-lg hover:bg-purple-200 text-sm font-semibold">← Prev</button>
+            <h3 className="text-lg font-bold text-gray-900">{format(currentMonth, 'MMMM yyyy')}</h3>
+            <button onClick={nextMonth} className="px-3 py-1 bg-purple-100 text-purple-700 rounded-lg hover:bg-purple-200 text-sm font-semibold">Next →</button>
           </div>
-
-          {loading ? (
-            <div className="text-center py-12">
-              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-amber-600 mx-auto"></div>
-              <p className="mt-4 text-gray-600">Loading activities...</p>
-            </div>
-          ) : (
-            <div className="grid grid-cols-7 gap-2">
-              {/* Day headers */}
-              {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(day => (
-                <div key={day} className="text-center font-bold text-gray-600 py-2">
-                  {day}
-                </div>
-              ))}
-              
-              {/* Empty cells for days before month starts */}
-              {Array.from({ length: monthStart.getDay() }).map((_, i) => (
-                <div key={`empty-${i}`} className="bg-gray-50 rounded-lg p-2 min-h-[100px]"></div>
-              ))}
-              
-              {/* Calendar days */}
-              {days.map(day => {
-                const dateStr = format(day, 'yyyy-MM-dd');
-                const dayActivities = activityMap.get(dateStr) || [];
-                const isToday = isSameDay(day, new Date());
-                
-                return (
-                  <div
-                    key={dateStr}
-                    className={`border-2 rounded-lg p-2 min-h-[100px] ${
-                      isToday ? 'border-amber-500 bg-amber-50' : 'border-gray-200 bg-white'
-                    }`}
-                  >
-                    <div className={`text-sm font-semibold mb-1 ${
-                      isToday ? 'text-amber-600' : 'text-gray-600'
-                    }`}>
-                      {format(day, 'd')}
-                    </div>
-                    <div className="space-y-1">
-                      {dayActivities.map((activity: any, idx: number) => (
-                        <div
-                          key={idx}
-                          className="text-xs p-1 rounded text-white truncate"
-                          style={{ backgroundColor: activity.color || '#F59E0B' }}
-                          title={`${activity.resident_name}: ${activity.activity_name}`}
-                        >
-                          {activity.resident_name}
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          )}
+          <div className="space-y-2 overflow-y-auto" style={{ maxHeight: 'calc(100vh - 160px)' }}>
+            {residentsThisMonth.length > 0 ? residentsThisMonth.map((r, idx) => (
+              <div key={idx} className="flex items-center justify-between p-3 rounded-lg" style={{ backgroundColor: r.color + '15' }}>
+                <span className="font-medium text-gray-900 text-sm">{r.name}</span>
+                <span className="px-3 py-1 rounded-lg text-white text-xs font-bold" style={{ backgroundColor: r.color }}>{r.category}</span>
+              </div>
+            )) : (
+              <p className="text-gray-500 text-center py-8">No rotations data</p>
+            )}
+          </div>
         </div>
       </div>
     </div>
