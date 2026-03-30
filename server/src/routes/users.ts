@@ -8,10 +8,12 @@ const router = Router();
 // Get current user's resident years (must be before /:residentId route)
 router.get('/resident-years/me', authenticate, async (req: AuthRequest, res) => {
   try {
+    console.log('RESIDENT-YEARS/ME - User ID from JWT:', req.user!.id, 'Name:', req.user!.name);
     const result = await query(
       'SELECT * FROM resident_years WHERE resident_id = $1 ORDER BY year',
       [req.user!.id]
     );
+    console.log('RESIDENT-YEARS/ME - Found years:', result.rows.map(r => ({ id: r.id, year: r.year, resident_id: r.resident_id })));
     res.json(result.rows);
   } catch (error) {
     res.status(500).json({ error: 'Failed to fetch resident years' });

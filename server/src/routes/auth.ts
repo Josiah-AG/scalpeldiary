@@ -38,6 +38,8 @@ router.post('/login', async (req, res) => {
       { expiresIn: '7d' }
     );
 
+    console.log('LOGIN SUCCESS - User ID:', user.id, 'Name:', user.name, 'Email:', user.email, 'Role:', user.role);
+
     res.json({
       token,
       user: {
