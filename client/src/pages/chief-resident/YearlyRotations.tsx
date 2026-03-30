@@ -127,6 +127,8 @@ export default function YearlyRotations() {
   const handleExportRotations = () => {
     const monthLabel = `${selectedMonthName} ${selectedYearNum}`;
     const doc = new jsPDF('l', 'mm', 'a4');
+    const pw = doc.internal.pageSize.getWidth();
+    const ph = doc.internal.pageSize.getHeight();
     createPdfHeader(doc, 'Monthly Rotation Schedule', monthLabel);
 
     // Convert selected calendar month to academic month_number
@@ -136,45 +138,70 @@ export default function YearlyRotations() {
       if (monthNumber <= 0) monthNumber += 12;
     }
 
-    // Group residents by category for this month
-    const catGroups = new Map<string, { color: string; residents: string[] }>();
+    // Build category -> residents map (use ALL categories, not just assigned ones)
+    const catMap = new Map<number, { name: string; color: string; residents: string[] }>();
+    categories.forEach(cat => {
+      catMap.set(cat.id, { name: cat.name, color: cat.color || '#3B82F6', residents: [] });
+    });
     residents.forEach(r => {
       const rot = rotations.find(rt => rt.resident_id === r.id && rt.month_number === monthNumber);
-      const cat = rot ? categories.find(c => c.id === rot.rotation_category_id) : null;
-      const catName = cat?.name || 'Not Assigned';
-      const catColor = cat?.color || '#9CA3AF';
-      if (!catGroups.has(catName)) catGroups.set(catName, { color: catColor, residents: [] });
-      catGroups.get(catName)!.residents.push(r.name);
+      if (rot && catMap.has(rot.rotation_category_id)) {
+        catMap.get(rot.rotation_category_id)!.residents.push(r.name);
+      }
     });
 
-    // Build table
-    const body: string[][] = [];
-    catGroups.forEach((group, catName) => {
-      group.residents.forEach((name, i) => {
-        body.push([i === 0 ? catName : '', name]);
-      });
-    });
+    const catList = Array.from(catMap.values());
+    const cols = 3;
+    const rows = Math.ceil(catList.length / cols);
+    const cardW = (pw - 30) / cols;
+    const availH = ph - 50;
+    const cardH = Math.min(40, availH / rows - 4);
+    let y = 38;
 
-    autoTable(doc, {
-      startY: 35,
-      head: [['Rotation', 'Resident']],
-      body,
-      theme: 'grid',
-      headStyles: { fillColor: [30, 58, 138], fontSize: 10 },
-      bodyStyles: { fontSize: 9, cellPadding: 3 },
-      columnStyles: { 0: { cellWidth: 60, fontStyle: 'bold' } },
-      margin: { left: 30, right: 30 },
-      didParseCell: (data: any) => {
-        if (data.column.index === 0 && data.section === 'body' && data.cell.text[0]) {
-          const catName = data.cell.text[0];
-          const group = catGroups.get(catName);
-          if (group) {
-            const hex = group.color;
-            data.cell.styles.fillColor = [parseInt(hex.slice(1, 3), 16), parseInt(hex.slice(3, 5), 16), parseInt(hex.slice(5, 7), 16)];
-            data.cell.styles.textColor = [255, 255, 255];
+    catList.forEach((cat, i) => {
+      const col = i % cols;
+      const row = Math.floor(i / cols);
+      const x = 12 + col * (cardW + 3);
+      const cy = y + row * (cardH + 3);
+
+      const hex = cat.color;
+      const cr = parseInt(hex.slice(1, 3), 16);
+      const cg = parseInt(hex.slice(3, 5), 16);
+      const cb = parseInt(hex.slice(5, 7), 16);
+
+      // Card background with color header
+      doc.setFillColor(cr, cg, cb);
+      doc.roundedRect(x, cy, cardW, 8, 1.5, 1.5, 'F');
+      // White body
+      doc.setFillColor(250, 250, 255);
+      doc.rect(x, cy + 7, cardW, cardH - 7, 'F');
+      // Border
+      doc.setDrawColor(cr, cg, cb);
+      doc.setLineWidth(0.5);
+      doc.roundedRect(x, cy, cardW, cardH, 1.5, 1.5, 'S');
+
+      // Category name in header
+      doc.setTextColor(255, 255, 255);
+      doc.setFontSize(9);
+      doc.setFont('helvetica', 'bold');
+      doc.text(cat.name, x + cardW / 2, cy + 5.5, { align: 'center' });
+
+      // Residents
+      doc.setFont('helvetica', 'normal');
+      doc.setFontSize(8);
+      if (cat.residents.length === 0) {
+        doc.setTextColor(180, 180, 180);
+        doc.text('No Resident', x + cardW / 2, cy + 14, { align: 'center' });
+      } else {
+        doc.setTextColor(50, 50, 50);
+        let ry = cy + 13;
+        cat.residents.forEach(name => {
+          if (ry < cy + cardH - 2) {
+            doc.text(name, x + cardW / 2, ry, { align: 'center', maxWidth: cardW - 6 });
+            ry += 5;
           }
-        }
-      },
+        });
+      }
     });
 
     addPdfFooter(doc, `Rotation Schedule — ${monthLabel}`);
