@@ -161,6 +161,7 @@ router.get('/monthly/:year/:month', authenticate, async (req: AuthRequest, res) 
               md.notes,
               TO_CHAR(md.duty_date, 'YYYY-MM-DD') as duty_date,
               dc.name as duty_category_name,
+              dc.color as duty_color,
               u.name as resident_name
        FROM monthly_duties md
        LEFT JOIN duty_categories dc ON md.duty_category_id = dc.id

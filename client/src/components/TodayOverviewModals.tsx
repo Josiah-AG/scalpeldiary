@@ -107,7 +107,7 @@ export function DutyModal({ isOpen, onClose, duties }: DutyModalProps) {
                   </div>
                   <div className="flex flex-wrap gap-1.5">
                     {dayDuties.map((duty: any, idx: number) => (
-                      <div key={idx} className="bg-amber-600 text-white px-2 py-1 rounded text-xs font-medium">
+                      <div key={idx} className="text-white px-2 py-1 rounded text-xs font-medium" style={{ backgroundColor: duty.duty_color || '#D97706' }}>
                         {duty.duty_category_name} · {duty.resident_name}
                       </div>
                     ))}
@@ -175,7 +175,7 @@ export function ActivityModal({ isOpen, onClose, activities }: ActivityModalProp
                   </div>
                   <div className="flex flex-wrap gap-1.5">
                     {dayActs.map((act: any, idx: number) => (
-                      <div key={idx} className="bg-purple-600 text-white px-2 py-1 rounded text-xs font-medium">
+                      <div key={idx} className="text-white px-2 py-1 rounded text-xs font-medium" style={{ backgroundColor: act.color || '#9333EA' }}>
                         {act.activity_category_name} · {act.resident_name}
                       </div>
                     ))}
@@ -236,12 +236,16 @@ function CalendarGrid({ days, dataMap, color, categoryKey }: {
             <div className={`text-xs font-semibold mb-0.5 ${isToday ? 'text-blue-600' : 'text-gray-700'}`}>{format(day, 'd')}</div>
             {groups.size > 0 && (
               <div className="space-y-0.5">
-                {Array.from(groups.entries()).map(([cat, residents], idx) => (
-                  <div key={idx} className={`${c.badge} text-white px-1 py-0.5 rounded text-[10px] leading-tight`}>
-                    <div className="font-bold truncate">{cat}</div>
-                    <div className="opacity-90 truncate">{residents.join(', ')}</div>
-                  </div>
-                ))}
+                {Array.from(groups.entries()).map(([cat, residents], idx) => {
+                  // Find the color from the original items
+                  const itemColor = items.find((i: any) => i[categoryKey] === cat)?.color || items.find((i: any) => i[categoryKey] === cat)?.duty_color || (color === 'purple' ? '#9333EA' : '#D97706');
+                  return (
+                    <div key={idx} className="text-white px-1 py-0.5 rounded text-[10px] leading-tight" style={{ backgroundColor: itemColor }}>
+                      <div className="font-bold truncate">{cat}</div>
+                      <div className="opacity-90 truncate">{residents.join(', ')}</div>
+                    </div>
+                  );
+                })}
               </div>
             )}
           </div>

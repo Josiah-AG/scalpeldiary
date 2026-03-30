@@ -32,10 +32,21 @@ self.addEventListener('activate', (event) => {
 
 // Fetch with network-first strategy
 self.addEventListener('fetch', (event) => {
+  // Only cache GET requests
+  if (event.request.method !== 'GET') {
+    event.respondWith(fetch(event.request));
+    return;
+  }
+
+  // Skip caching API requests
+  if (event.request.url.includes('/api/')) {
+    event.respondWith(fetch(event.request));
+    return;
+  }
+
   event.respondWith(
     fetch(event.request)
       .then((response) => {
-        // Clone the response
         const responseToCache = response.clone();
         caches.open(CACHE_NAME)
           .then((cache) => {

@@ -175,11 +175,11 @@ export default function SupervisorDashboard() {
         {todayDuties.length > 0 ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
             {todayDuties.map((duty: any, idx: number) => (
-              <div key={idx} className="flex items-center space-x-3 p-3 rounded-lg bg-indigo-50">
-                <div className="w-3 h-3 rounded-full flex-shrink-0 bg-indigo-500"></div>
+              <div key={idx} className="flex items-center space-x-3 p-3 rounded-lg" style={{ backgroundColor: (duty.duty_color || '#6366F1') + '15' }}>
+                <div className="w-3 h-3 rounded-full flex-shrink-0" style={{ backgroundColor: duty.duty_color || '#6366F1' }}></div>
                 <div>
                   <p className="font-semibold text-gray-900 text-sm">{duty.resident_name}</p>
-                  <p className="text-xs font-medium text-indigo-600">{duty.duty_category_name}</p>
+                  <p className="text-xs font-medium" style={{ color: duty.duty_color || '#6366F1' }}>{duty.duty_category_name}</p>
                 </div>
               </div>
             ))}
@@ -386,7 +386,7 @@ export default function SupervisorDashboard() {
                             <td className="px-4 py-3 text-sm">{format(new Date(duty.duty_date + 'T00:00:00'), 'EEE, MMM dd')}</td>
                             <td className="px-4 py-3 text-sm font-medium">{duty.resident_name}</td>
                             <td className="px-4 py-3 text-sm">
-                              <span className="px-2 py-1 bg-indigo-100 text-indigo-700 rounded text-xs font-semibold">
+                              <span className="px-2 py-1 rounded text-xs font-semibold text-white" style={{ backgroundColor: duty.duty_color || '#6366F1' }}>
                                 {duty.duty_category_name}
                               </span>
                             </td>
