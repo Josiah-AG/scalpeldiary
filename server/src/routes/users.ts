@@ -333,38 +333,10 @@ router.get('/detachment-supervisors', authenticate, async (req: AuthRequest, res
       return res.json({ residents, externalLabel: 'ALERT Supervisor' });
     }
 
-    // For Orthopedics category: get senior residents on Orthopedics rotation
-    if (category === 'Orthopedic Surgery') {
-      const ayResult = await query('SELECT * FROM academic_years WHERE is_active = true LIMIT 1');
-      if (ayResult.rows.length === 0) return res.json({ residents: [], externalLabel: 'Orthopedics Supervisor' });
-
-      const ay = ayResult.rows[0];
-      const now = new Date();
-      const cm = now.getMonth() + 1;
-      const monthNumber = cm >= ay.start_month ? cm - ay.start_month + 1 : 12 - ay.start_month + cm + 1;
-
-      const catResult = await query("SELECT id FROM rotation_categories WHERE name = 'Orthopedics' LIMIT 1");
-      const orthoCatId = catResult.rows[0]?.id;
-
-      let residents: any[] = [];
-      if (orthoCatId) {
-        const result = await query(
-          `SELECT u.id, u.name, ry_max.max_year as year
-           FROM yearly_rotations yr
-           JOIN users u ON yr.resident_id = u.id
-           JOIN (SELECT resident_id, MAX(year) as max_year FROM resident_years GROUP BY resident_id) ry_max ON u.id = ry_max.resident_id
-           WHERE yr.academic_year_id = $1
-             AND yr.month_number = $2
-             AND yr.rotation_category_id = $3
-             AND u.id != $4
-             AND ry_max.max_year > $5
-           ORDER BY ry_max.max_year DESC, u.name`,
-          [ay.id, monthNumber, orthoCatId, currentUserId, currentYear]
-        );
-        residents = result.rows;
-      }
-
-      return res.json({ residents, externalLabel: 'Orthopedics Supervisor' });
+    // For Orthopedics/Plastic Surgery category: just text input, no resident dropdown
+    if (category === 'Orthopedic Surgery' || category === 'Plastic Surgery') {
+      const label = category === 'Orthopedic Surgery' ? 'Orthopedics Supervisor' : 'Plastic Surgery Supervisor';
+      return res.json({ residents: [], externalLabel: label });
     }
 
     // For other venues: no resident dropdown, just external name
