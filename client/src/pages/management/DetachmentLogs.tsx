@@ -34,7 +34,8 @@ export default function DetachmentLogs() {
     setSelectedGroup(group);
     setDetailLoading(true);
     try {
-      const response = await api.get(`/logs/detachment/${group.resident_id}/${group.detachment_type}`);
+      const params = group.detachment_month ? `?month=${group.detachment_month}` : '';
+      const response = await api.get(`/logs/detachment/${group.resident_id}/${group.detachment_type}${params}`);
       setDetailLogs(response.data);
     } catch (error) {
       console.error('Failed to fetch detachment details:', error);
@@ -51,6 +52,7 @@ export default function DetachmentLogs() {
         detachmentType: selectedGroup.detachment_type,
         rating: parseInt(verifyRating),
         comment: verifyComment,
+        month: selectedGroup.detachment_month || null,
       });
       alert('Detachment logs verified successfully');
       setShowVerifyModal(false);
@@ -105,6 +107,7 @@ export default function DetachmentLogs() {
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Resident</th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Year</th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Detachment</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Month</th>
                     <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">Procedures</th>
                     <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">Presentations</th>
                     <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase">Status</th>
@@ -117,6 +120,9 @@ export default function DetachmentLogs() {
                       <td className="px-6 py-4 text-sm text-gray-600">Year {group.year}</td>
                       <td className="px-6 py-4 text-sm">
                         <span className="px-2 py-1 bg-amber-100 text-amber-800 rounded text-xs font-semibold">{getDetachmentLabel(group.detachment_type)}</span>
+                      </td>
+                      <td className="px-6 py-4 text-sm text-gray-600">
+                        {group.detachment_month ? new Date(group.detachment_month + '-01').toLocaleDateString('en-US', { month: 'long', year: 'numeric' }) : '—'}
                       </td>
                       <td className="px-6 py-4 text-sm font-bold text-right text-blue-600">{group.procedure_count}</td>
                       <td className="px-6 py-4 text-sm font-bold text-right text-green-600">{group.presentation_count}</td>
@@ -146,7 +152,10 @@ export default function DetachmentLogs() {
             <div className="bg-gradient-to-r from-amber-600 to-orange-600 text-white px-6 py-4 flex justify-between items-center">
               <div>
                 <h3 className="text-xl font-bold">{selectedGroup.resident_name}</h3>
-                <p className="text-amber-100 text-sm">Year {selectedGroup.year} · {getDetachmentLabel(selectedGroup.detachment_type)} Detachment</p>
+                <p className="text-amber-100 text-sm">
+                  Year {selectedGroup.year} · {getDetachmentLabel(selectedGroup.detachment_type)} Detachment
+                  {selectedGroup.detachment_month && ` · ${new Date(selectedGroup.detachment_month + '-01').toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}`}
+                </p>
               </div>
               {!selectedGroup.batch_verified && (
                 <button onClick={() => setShowVerifyModal(true)} className="bg-white text-amber-700 px-4 py-2 rounded-lg font-semibold hover:bg-amber-50 transition-colors">

@@ -518,7 +518,7 @@ router.delete('/master/:logId', authenticate, authorize('MASTER'), async (req: A
   }
 });
 
-// Get detachment logs summary (for management/master) - includes procedures and presentations
+// Get detachment logs summary (for management/master) - includes procedures and presentations, grouped by month
 router.get('/detachment-summary', authenticate, async (req: AuthRequest, res) => {
   try {
     const userRole = req.user!.role;
@@ -531,30 +531,30 @@ router.get('/detachment-summary', authenticate, async (req: AuthRequest, res) =>
       return res.status(403).json({ error: 'Forbidden' });
     }
 
-    // Procedures
+    // Procedures grouped by resident + detachment_type + month
     const procResult = await query(
       `SELECT 
         u.id as resident_id, u.name as resident_name,
         (SELECT MAX(year) FROM resident_years WHERE resident_id = u.id) as year,
         sl.detachment_type,
+        TO_CHAR(sl.date, 'YYYY-MM') as detachment_month,
         COUNT(*) as procedure_count,
-        0 as presentation_count,
         BOOL_OR(sl.detachment_verified) as batch_verified,
         MAX(sl.detachment_rating) as detachment_rating,
         MAX(sl.detachment_comment) as detachment_comment
        FROM surgical_logs sl
        JOIN users u ON sl.resident_id = u.id
        WHERE sl.is_detachment = true
-       GROUP BY u.id, u.name, sl.detachment_type`
+       GROUP BY u.id, u.name, sl.detachment_type, TO_CHAR(sl.date, 'YYYY-MM')`
     );
 
-    // Presentations
+    // Presentations grouped by resident + detachment_type + month
     const presResult = await query(
       `SELECT 
         u.id as resident_id, u.name as resident_name,
         (SELECT MAX(year) FROM resident_years WHERE resident_id = u.id) as year,
         p.detachment_type,
-        0 as procedure_count,
+        TO_CHAR(p.date, 'YYYY-MM') as detachment_month,
         COUNT(*) as presentation_count,
         BOOL_OR(p.detachment_verified) as batch_verified,
         MAX(p.detachment_rating) as detachment_rating,
@@ -562,17 +562,17 @@ router.get('/detachment-summary', authenticate, async (req: AuthRequest, res) =>
        FROM presentations p
        JOIN users u ON p.resident_id = u.id
        WHERE p.is_detachment = true
-       GROUP BY u.id, u.name, p.detachment_type`
+       GROUP BY u.id, u.name, p.detachment_type, TO_CHAR(p.date, 'YYYY-MM')`
     );
 
-    // Merge by resident + detachment_type
+    // Merge by resident + detachment_type + month
     const merged = new Map<string, any>();
     for (const row of procResult.rows) {
-      const key = `${row.resident_id}-${row.detachment_type}`;
+      const key = `${row.resident_id}-${row.detachment_type}-${row.detachment_month}`;
       merged.set(key, { ...row, procedure_count: parseInt(row.procedure_count), presentation_count: 0 });
     }
     for (const row of presResult.rows) {
-      const key = `${row.resident_id}-${row.detachment_type}`;
+      const key = `${row.resident_id}-${row.detachment_type}-${row.detachment_month}`;
       if (merged.has(key)) {
         const existing = merged.get(key);
         existing.presentation_count = parseInt(row.presentation_count);
@@ -586,7 +586,11 @@ router.get('/detachment-summary', authenticate, async (req: AuthRequest, res) =>
       }
     }
 
-    const result = Array.from(merged.values()).sort((a, b) => a.resident_name.localeCompare(b.resident_name));
+    const result = Array.from(merged.values()).sort((a, b) => {
+      const nameComp = a.resident_name.localeCompare(b.resident_name);
+      if (nameComp !== 0) return nameComp;
+      return b.detachment_month.localeCompare(a.detachment_month); // newest first
+    });
     res.json(result);
   } catch (error) {
     console.error('Error fetching detachment summary:', error);
@@ -594,27 +598,42 @@ router.get('/detachment-summary', authenticate, async (req: AuthRequest, res) =>
   }
 });
 
-// Get detachment logs for a specific resident + detachment type (procedures + presentations)
+// Get detachment logs for a specific resident + detachment type + optional month
 router.get('/detachment/:residentId/:detachmentType', authenticate, async (req: AuthRequest, res) => {
   try {
     const { residentId, detachmentType } = req.params;
+    const { month } = req.query;
+
+    const params: any[] = [residentId, detachmentType];
+    let monthFilter = '';
+    if (month) {
+      params.push(month);
+      monthFilter = ` AND TO_CHAR(sl.date, 'YYYY-MM') = $3`;
+    }
 
     const procResult = await query(
       `SELECT sl.*, u.name as supervisor_name, 'procedure' as item_type
        FROM surgical_logs sl
        LEFT JOIN users u ON sl.supervisor_id = u.id
-       WHERE sl.resident_id = $1 AND sl.is_detachment = true AND sl.detachment_type = $2
+       WHERE sl.resident_id = $1 AND sl.is_detachment = true AND sl.detachment_type = $2${monthFilter}
        ORDER BY sl.date DESC`,
-      [residentId, detachmentType]
+      params
     );
+
+    const presParams: any[] = [residentId, detachmentType];
+    let presMonthFilter = '';
+    if (month) {
+      presParams.push(month);
+      presMonthFilter = ` AND TO_CHAR(p.date, 'YYYY-MM') = $3`;
+    }
 
     const presResult = await query(
       `SELECT p.*, u.name as supervisor_name, 'presentation' as item_type
        FROM presentations p
        LEFT JOIN users u ON p.supervisor_id = u.id
-       WHERE p.resident_id = $1 AND p.is_detachment = true AND p.detachment_type = $2
+       WHERE p.resident_id = $1 AND p.is_detachment = true AND p.detachment_type = $2${presMonthFilter}
        ORDER BY p.date DESC`,
-      [residentId, detachmentType]
+      presParams
     );
 
     const combined = [...procResult.rows, ...presResult.rows].sort((a, b) => 
@@ -641,9 +660,13 @@ router.post('/detachment-verify', authenticate, async (req: AuthRequest, res) =>
       return res.status(403).json({ error: 'Forbidden' });
     }
 
-    const { residentId, detachmentType, rating, comment } = req.body;
+    const { residentId, detachmentType, rating, comment, month } = req.body;
 
-    // Update all unverified detachment logs for this resident + type (procedures)
+    // Build month filter
+    const monthFilterProc = month ? ` AND TO_CHAR(date, 'YYYY-MM') = '${month}'` : '';
+    const monthFilterPres = month ? ` AND TO_CHAR(date, 'YYYY-MM') = '${month}'` : '';
+
+    // Update all unverified detachment logs for this resident + type + month (procedures)
     const procResult = await query(
       `UPDATE surgical_logs 
        SET detachment_verified = true, 
@@ -656,12 +679,12 @@ router.post('/detachment-verify', authenticate, async (req: AuthRequest, res) =>
        WHERE resident_id = $4 
          AND is_detachment = true 
          AND detachment_type = $5
-         AND detachment_verified = false
+         AND detachment_verified = false${monthFilterProc}
        RETURNING id`,
       [rating, comment, req.user!.id, residentId, detachmentType]
     );
 
-    // Update all unverified detachment presentations for this resident + type
+    // Update all unverified detachment presentations for this resident + type + month
     const presResult = await query(
       `UPDATE presentations 
        SET detachment_verified = true, 
@@ -674,7 +697,7 @@ router.post('/detachment-verify', authenticate, async (req: AuthRequest, res) =>
        WHERE resident_id = $4 
          AND is_detachment = true 
          AND detachment_type = $5
-         AND detachment_verified = false
+         AND detachment_verified = false${monthFilterPres}
        RETURNING id`,
       [rating, comment, req.user!.id, residentId, detachmentType]
     );
