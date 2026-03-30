@@ -238,9 +238,9 @@ export default function Settings() {
         y = (doc as any).lastAutoTable.finalY + 8;
       }
 
-      // ===== PRESENTATIONS TABLE =====
+      // ===== PRESENTATIONS TABLE — new page =====
       if (pres.length > 0) {
-        if (y > ph - 30) { doc.addPage(); y = 12; }
+        doc.addPage(); y = 12;
         doc.setTextColor(5, 102, 68);
         doc.setFontSize(12);
         doc.setFont('helvetica', 'bold');
