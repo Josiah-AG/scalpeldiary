@@ -140,7 +140,10 @@ export default function MonthlyDuties() {
     // Calendar grid header - draw all 7 day headers
     const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
     const cellW = (pw - 20) / 7;
-    const cellH = 20;
+    // Calculate cell height to fit on one page
+    const weeksNeeded = Math.ceil((firstDayOfWeek + days.length) / 7);
+    const availableH = doc.internal.pageSize.getHeight() - y - 15;
+    const cellH = Math.min(28, availableH / weeksNeeded);
 
     // Draw header background first
     doc.setFillColor(30, 58, 138);
@@ -171,14 +174,14 @@ export default function MonthlyDuties() {
 
       // Day number
       doc.setTextColor(60, 60, 60);
-      doc.setFontSize(7);
+      doc.setFontSize(9);
       doc.setFont('helvetica', 'bold');
-      doc.text(String(day.getDate()), x + 1.5, rowY + 4);
+      doc.text(String(day.getDate()), x + 2, rowY + 5);
 
       // Duty assignments
       const dateStr = format(day, 'yyyy-MM-dd');
       const dayDuties = duties.filter(d => d.duty_date === dateStr);
-      let dy = rowY + 7;
+      let dy = rowY + 9;
       dayDuties.forEach(d => {
         const cat = categories.find(c => c.id === d.duty_category_id);
         const res = residents.find(r => r.id === d.resident_id);
@@ -188,13 +191,13 @@ export default function MonthlyDuties() {
           const cg = parseInt(hex.slice(3, 5), 16);
           const cb = parseInt(hex.slice(5, 7), 16);
           doc.setFillColor(cr, cg, cb);
-          doc.roundedRect(x + 1, dy - 2, cellW - 2, 4, 0.5, 0.5, 'F');
+          doc.roundedRect(x + 1, dy - 3, cellW - 2, 5, 0.8, 0.8, 'F');
           doc.setTextColor(255, 255, 255);
-          doc.setFontSize(5);
-          doc.setFont('helvetica', 'normal');
+          doc.setFontSize(7);
+          doc.setFont('helvetica', 'bold');
           const label = res?.name || '';
-          doc.text(label, x + cellW / 2, dy + 0.8, { maxWidth: cellW - 3, align: 'center' });
-          dy += 4.5;
+          doc.text(label, x + cellW / 2, dy + 0.5, { maxWidth: cellW - 3, align: 'center' });
+          dy += 6;
         }
       });
 
@@ -202,10 +205,6 @@ export default function MonthlyDuties() {
       if (col > 6) {
         col = 0;
         rowY += cellH;
-        if (rowY > doc.internal.pageSize.getHeight() - 20) {
-          doc.addPage();
-          rowY = 12;
-        }
       }
     });
     // Fill remaining cells in last row

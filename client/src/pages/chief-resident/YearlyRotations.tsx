@@ -125,39 +125,60 @@ export default function YearlyRotations() {
   };
 
   const handleExportRotations = () => {
+    const monthLabel = `${selectedMonthName} ${selectedYearNum}`;
     const doc = new jsPDF('l', 'mm', 'a4');
-    createPdfHeader(doc, 'Yearly Rotation Schedule', selectedYear?.name || 'Academic Year');
+    createPdfHeader(doc, 'Monthly Rotation Schedule', monthLabel);
 
-    const head = [['Resident', ...months]];
-    const body = residents.map(r => {
-      const row = [r.name];
-      for (let m = 1; m <= 12; m++) {
-        let monthNumber = m;
-        if (academicYear) {
-          monthNumber = m - academicYear.start_month + 1;
-          if (monthNumber <= 0) monthNumber += 12;
-        }
-        const rot = rotations.find(rt => rt.resident_id === r.id && rt.month_number === monthNumber);
-        const cat = rot ? categories.find(c => c.id === rot.rotation_category_id) : null;
-        row.push(cat?.name || '—');
-      }
-      return row;
+    // Convert selected calendar month to academic month_number
+    let monthNumber = selectedMonth;
+    if (academicYear) {
+      monthNumber = selectedMonth - academicYear.start_month + 1;
+      if (monthNumber <= 0) monthNumber += 12;
+    }
+
+    // Group residents by category for this month
+    const catGroups = new Map<string, { color: string; residents: string[] }>();
+    residents.forEach(r => {
+      const rot = rotations.find(rt => rt.resident_id === r.id && rt.month_number === monthNumber);
+      const cat = rot ? categories.find(c => c.id === rot.rotation_category_id) : null;
+      const catName = cat?.name || 'Not Assigned';
+      const catColor = cat?.color || '#9CA3AF';
+      if (!catGroups.has(catName)) catGroups.set(catName, { color: catColor, residents: [] });
+      catGroups.get(catName)!.residents.push(r.name);
+    });
+
+    // Build table
+    const body: string[][] = [];
+    catGroups.forEach((group, catName) => {
+      group.residents.forEach((name, i) => {
+        body.push([i === 0 ? catName : '', name]);
+      });
     });
 
     autoTable(doc, {
       startY: 35,
-      head,
+      head: [['Rotation', 'Resident']],
       body,
       theme: 'grid',
-      headStyles: { fillColor: [30, 58, 138], fontSize: 7, cellPadding: 2 },
-      bodyStyles: { fontSize: 6.5, cellPadding: 1.5 },
-      alternateRowStyles: { fillColor: [245, 247, 255] },
-      columnStyles: { 0: { cellWidth: 30, fontStyle: 'bold' } },
-      margin: { left: 6, right: 6 },
+      headStyles: { fillColor: [30, 58, 138], fontSize: 10 },
+      bodyStyles: { fontSize: 9, cellPadding: 3 },
+      columnStyles: { 0: { cellWidth: 60, fontStyle: 'bold' } },
+      margin: { left: 30, right: 30 },
+      didParseCell: (data: any) => {
+        if (data.column.index === 0 && data.section === 'body' && data.cell.text[0]) {
+          const catName = data.cell.text[0];
+          const group = catGroups.get(catName);
+          if (group) {
+            const hex = group.color;
+            data.cell.styles.fillColor = [parseInt(hex.slice(1, 3), 16), parseInt(hex.slice(3, 5), 16), parseInt(hex.slice(5, 7), 16)];
+            data.cell.styles.textColor = [255, 255, 255];
+          }
+        }
+      },
     });
 
-    addPdfFooter(doc, `Rotation Schedule — ${selectedYear?.name || ''}`);
-    doc.save(`ScalpelDiary_Rotations_${selectedYear?.name?.replace(/\s+/g, '_') || 'schedule'}.pdf`);
+    addPdfFooter(doc, `Rotation Schedule — ${monthLabel}`);
+    doc.save(`ScalpelDiary_Rotations_${selectedMonthName}_${selectedYearNum}.pdf`);
   };
 
   const getRotationsForMonthAndCategory = (calendarMonth: number, categoryId: number) => {
