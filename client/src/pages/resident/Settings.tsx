@@ -145,7 +145,6 @@ export default function Settings() {
       let logs = logsRes.data;
       let pres = presRes.data;
 
-      // Date filtering
       if (exportDateMode === 'month' && exportMonth) {
         logs = logs.filter((l: any) => l.date?.startsWith(exportMonth));
         pres = pres.filter((p: any) => p.date?.startsWith(exportMonth));
@@ -173,38 +172,27 @@ export default function Settings() {
 
       // ===== HEADER =====
       doc.setFillColor(30, 58, 138);
-      doc.rect(0, 0, pw, 30, 'F');
+      doc.rect(0, 0, pw, 28, 'F');
       doc.setFillColor(59, 130, 246);
-      doc.rect(0, 30, pw, 1.5, 'F');
-
-      // Logo icon (scalpel shape)
-      doc.setDrawColor(255, 255, 255);
-      doc.setLineWidth(0.8);
-      doc.line(12, 8, 12, 22); // blade
-      doc.line(12, 8, 15, 10);
-      doc.line(12, 22, 10, 24);
-      doc.line(12, 22, 14, 24);
+      doc.rect(0, 28, pw, 1.5, 'F');
 
       doc.setTextColor(255, 255, 255);
       doc.setFontSize(20);
       doc.setFont('helvetica', 'bold');
-      doc.text('ScalpelDiary', 20, 15);
+      doc.text('ScalpelDiary', 14, 14);
       doc.setFontSize(9);
       doc.setFont('helvetica', 'normal');
-      doc.text('Surgical Log Book', 20, 22);
-      doc.setFontSize(8);
-      doc.text('Shaping Tomorrow\'s Surgeons', 20, 27);
+      doc.text('Surgical Log Book', 14, 21);
 
-      // Right side
       doc.setFontSize(12);
       doc.setFont('helvetica', 'bold');
-      doc.text(user?.name || '', pw - 14, 13, { align: 'right' });
+      doc.text(user?.name || '', pw - 14, 12, { align: 'right' });
       doc.setFontSize(9);
       doc.setFont('helvetica', 'normal');
-      doc.text(reportLabel, pw - 14, 20, { align: 'right' });
-      doc.text(`Generated: ${format(new Date(), 'dd MMM yyyy')}`, pw - 14, 26, { align: 'right' });
+      doc.text(reportLabel, pw - 14, 19, { align: 'right' });
+      doc.text(`Generated: ${format(new Date(), 'dd MMM yyyy')}`, pw - 14, 25, { align: 'right' });
 
-      y = 37;
+      y = 35;
 
       // ===== PROCEDURES TABLE =====
       if (logs.length > 0) {
@@ -215,26 +203,27 @@ export default function Settings() {
 
         autoTable(doc, {
           startY: y,
-          head: [['#', 'Date', 'MRN', 'Procedure', 'Diagnosis', 'Cat.', 'Type', 'Role', 'Supervisor', 'Rating']],
+          head: [['#', 'Date', 'MRN', 'Procedure', 'Diagnosis', 'Cat.', 'Type', 'Role', 'Inst.', 'Supervisor', 'Rating']],
           body: logs.map((l: any, i: number) => [
             i + 1, fmtDate(l.date), l.mrn || '', l.procedure || '', l.diagnosis || '',
             l.procedure_category || '', shortType(l.procedure_type),
             (l.surgery_role || '').replace(/_/g, ' '),
+            l.place_of_practice || '',
             l.supervisor_name || l.external_supervisor_name || '',
             l.rating ? getRatingLabel(l.rating) : l.status === 'NOT_WITNESSED' ? 'N/A' : l.is_detachment ? 'N/A' : 'Pending',
           ]),
           theme: 'grid',
-          headStyles: { fillColor: [30, 58, 138], fontSize: 7, cellPadding: 2, lineColor: [30, 58, 138], lineWidth: 0.3 },
-          bodyStyles: { fontSize: 7, cellPadding: 1.8, lineColor: [200, 200, 200], lineWidth: 0.2 },
+          headStyles: { fillColor: [30, 58, 138], fontSize: 6.5, cellPadding: 1.8, lineColor: [30, 58, 138], lineWidth: 0.3 },
+          bodyStyles: { fontSize: 6.5, cellPadding: 1.5, lineColor: [180, 180, 180], lineWidth: 0.2 },
           alternateRowStyles: { fillColor: [245, 247, 255] },
           columnStyles: {
-            0: { cellWidth: 7, halign: 'center' }, 1: { cellWidth: 20 }, 2: { cellWidth: 16 },
-            5: { cellWidth: 20 }, 6: { cellWidth: 12, halign: 'center' },
-            9: { cellWidth: 16, halign: 'center' }
+            0: { cellWidth: 6, halign: 'center' }, 1: { cellWidth: 18 }, 2: { cellWidth: 14 },
+            5: { cellWidth: 18 }, 6: { cellWidth: 10, halign: 'center' }, 8: { cellWidth: 16 },
+            10: { cellWidth: 15, halign: 'center' }
           },
-          margin: { left: 8, right: 8 },
+          margin: { left: 6, right: 6 },
           didParseCell: (data: any) => {
-            if (data.column.index === 9 && data.section === 'body') {
+            if (data.column.index === 10 && data.section === 'body') {
               const v = data.cell.text[0];
               if (v === 'Excellent') data.cell.styles.textColor = [22, 163, 74];
               else if (v === 'Good') data.cell.styles.textColor = [37, 99, 235];
@@ -242,8 +231,7 @@ export default function Settings() {
               else if (v === 'Poor') data.cell.styles.textColor = [220, 38, 38];
             }
             if (data.column.index === 6 && data.section === 'body') {
-              const v = data.cell.text[0];
-              if (v === 'Emrg') data.cell.styles.textColor = [220, 38, 38];
+              if (data.cell.text[0] === 'Emrg') data.cell.styles.textColor = [220, 38, 38];
             }
           },
         });
@@ -268,11 +256,11 @@ export default function Settings() {
             p.rating ? getRatingLabel(p.rating) : p.is_detachment ? 'N/A' : 'Pending',
           ]),
           theme: 'grid',
-          headStyles: { fillColor: [5, 102, 68], fontSize: 7.5, cellPadding: 2, lineColor: [5, 102, 68], lineWidth: 0.3 },
-          bodyStyles: { fontSize: 7.5, cellPadding: 1.8, lineColor: [200, 200, 200], lineWidth: 0.2 },
+          headStyles: { fillColor: [5, 102, 68], fontSize: 7, cellPadding: 2, lineColor: [5, 102, 68], lineWidth: 0.3 },
+          bodyStyles: { fontSize: 7, cellPadding: 1.8, lineColor: [180, 180, 180], lineWidth: 0.2 },
           alternateRowStyles: { fillColor: [240, 253, 245] },
           columnStyles: { 0: { cellWidth: 7, halign: 'center' }, 1: { cellWidth: 20 }, 6: { cellWidth: 16, halign: 'center' } },
-          margin: { left: 8, right: 8 },
+          margin: { left: 6, right: 6 },
           didParseCell: (data: any) => {
             if (data.column.index === 6 && data.section === 'body') {
               const v = data.cell.text[0];
@@ -283,85 +271,93 @@ export default function Settings() {
             }
           },
         });
-        y = (doc as any).lastAutoTable.finalY + 8;
       }
 
-      // ===== ANALYTICS (after tables) =====
+      // ===== ANALYTICS — dedicated new page =====
       if (analytics && exportIncludeAnalytics) {
-        if (y > ph - 60) { doc.addPage(); y = 12; }
+        doc.addPage(); y = 12;
+        const hd: [number,number,number] = [30, 58, 138];
+        const gr: [number,number,number] = [107, 114, 128];
+        const bl: [number,number,number] = [59, 130, 246];
+        const lx = 10; const rx = pw / 2 + 10;
+        const pct = (n: number, tot: number) => tot > 0 ? `${Math.round((n / tot) * 100)}%` : '';
+
         doc.setFillColor(245, 247, 255);
-        doc.rect(8, y - 2, pw - 16, 6, 'F');
-        doc.setTextColor(30, 58, 138);
-        doc.setFontSize(11);
+        doc.rect(6, y - 2, pw - 12, 8, 'F');
+        doc.setTextColor(hd[0], hd[1], hd[2]);
+        doc.setFontSize(13);
         doc.setFont('helvetica', 'bold');
-        doc.text('Analytics Summary', 10, y + 2); y += 8;
+        doc.text('Analytics Summary', 10, y + 3);
+        doc.setFontSize(8);
+        doc.setFont('helvetica', 'normal');
+        doc.text(reportLabel, pw - 10, y + 3, { align: 'right' });
+        y += 12;
 
-        // Summary stats - compact 2-column layout
-        const summaryData = [
-          ['Total Procedures', String(analytics.totalSurgeries || 0), 'Verified Procedures', String(analytics.verifiedSurgeries || 0)],
-          ['Total Presentations', String(analytics.totalPresentations || 0), 'Verified Presentations', String(analytics.verifiedPresentations || 0)],
-          ['Avg Procedure Rating', analytics.averageRating ? analytics.averageRating.toFixed(1) : 'N/A', 'Senior Supervisor Rating', analytics.seniorSupervisorRating ? analytics.seniorSupervisorRating.toFixed(1) : 'N/A'],
-          ['Avg Presentation Rating', analytics.avgPresentationRating ? analytics.avgPresentationRating.toFixed(1) : 'N/A', 'This Month', String(analytics.monthSurgeries || 0)],
-        ];
+        // Summary stats
         autoTable(doc, {
-          startY: y, body: summaryData, theme: 'plain',
-          bodyStyles: { fontSize: 8, cellPadding: 1.5 },
-          columnStyles: { 0: { fontStyle: 'bold', cellWidth: 45 }, 1: { cellWidth: 20, halign: 'center' }, 2: { fontStyle: 'bold', cellWidth: 50 }, 3: { cellWidth: 20, halign: 'center' } },
-          margin: { left: 10, right: pw / 2 },
+          startY: y,
+          head: [['Metric', 'Value', 'Metric', 'Value']],
+          body: [
+            ['Total Procedures', String(analytics.totalSurgeries || 0), 'Verified Procedures', String(analytics.verifiedSurgeries || 0)],
+            ['Total Presentations', String(analytics.totalPresentations || 0), 'Verified Presentations', String(analytics.verifiedPresentations || 0)],
+            ['Avg Procedure Rating', analytics.averageRating ? analytics.averageRating.toFixed(1) : 'N/A', 'Senior Supervisor Rating', analytics.seniorSupervisorRating ? analytics.seniorSupervisorRating.toFixed(1) : 'N/A'],
+            ['Avg Presentation Rating', analytics.avgPresentationRating ? analytics.avgPresentationRating.toFixed(1) : 'N/A', '', ''],
+          ],
+          theme: 'grid', headStyles: { fillColor: hd, fontSize: 8 },
+          bodyStyles: { fontSize: 8, cellPadding: 2 },
+          columnStyles: { 0: { fontStyle: 'bold', cellWidth: 50 }, 1: { cellWidth: 25, halign: 'center' }, 2: { fontStyle: 'bold', cellWidth: 50 }, 3: { cellWidth: 25, halign: 'center' } },
+          margin: { left: lx, right: pw - 160 },
         });
-        const summaryEndY = (doc as any).lastAutoTable.finalY;
+        y = (doc as any).lastAutoTable.finalY + 8;
 
-        // Role distribution - right side
-        if (analytics.roleDistribution && Object.keys(analytics.roleDistribution).length > 0) {
-          autoTable(doc, {
-            startY: y, head: [['Role', 'Count']],
-            body: Object.entries(analytics.roleDistribution).map(([r, c]) => [r.replace(/_/g, ' '), String(c)]),
-            theme: 'striped', headStyles: { fillColor: [59, 130, 246], fontSize: 7 },
-            bodyStyles: { fontSize: 7 }, margin: { left: pw / 2 + 10, right: pw / 4 },
-          });
+        // Role + Procedure Type side by side
+        const roleE = analytics.roleDistribution ? Object.entries(analytics.roleDistribution) : [];
+        const totR = roleE.reduce((s: number, [, c]: any) => s + parseInt(c), 0);
+        const typeE = analytics.procedureTypeDistribution ? Object.entries(analytics.procedureTypeDistribution) : [];
+        const totT = typeE.reduce((s: number, [, c]: any) => s + parseInt(c), 0);
+
+        if (roleE.length > 0) {
+          autoTable(doc, { startY: y, head: [['Role', 'Count', '%']],
+            body: roleE.map(([r, c]: any) => [r.replace(/_/g, ' '), String(c), pct(parseInt(c), totR)]),
+            theme: 'striped', headStyles: { fillColor: bl, fontSize: 7.5 },
+            bodyStyles: { fontSize: 7.5 }, margin: { left: lx, right: pw / 2 } });
         }
-        y = Math.max(summaryEndY, (doc as any).lastAutoTable?.finalY || summaryEndY) + 6;
-
-        // Procedure type + Top procedures side by side
-        const leftX = 10;
-        const rightX = pw / 2 + 10;
-
-        if (analytics.procedureTypeDistribution && Object.keys(analytics.procedureTypeDistribution).length > 0) {
-          autoTable(doc, {
-            startY: y, head: [['Procedure Type', 'Count']],
-            body: Object.entries(analytics.procedureTypeDistribution).map(([t, c]) => [t.replace(/_/g, ' '), String(c)]),
-            theme: 'striped', headStyles: { fillColor: [107, 114, 128], fontSize: 7 },
-            bodyStyles: { fontSize: 7 }, margin: { left: leftX, right: pw / 2 },
-          });
+        if (typeE.length > 0) {
+          autoTable(doc, { startY: y, head: [['Procedure Type', 'Count', '%']],
+            body: typeE.map(([t, c]: any) => [t.replace(/_/g, ' '), String(c), pct(parseInt(c), totT)]),
+            theme: 'striped', headStyles: { fillColor: gr, fontSize: 7.5 },
+            bodyStyles: { fontSize: 7.5 }, margin: { left: rx, right: 10 } });
         }
+        y = (doc as any).lastAutoTable?.finalY + 8 || y + 8;
 
-        if (analytics.topProcedures && analytics.topProcedures.length > 0) {
-          autoTable(doc, {
-            startY: y, head: [['Top Procedure', 'Count']],
-            body: analytics.topProcedures.map((p: any) => [p.procedure, p.count]),
-            theme: 'striped', headStyles: { fillColor: [107, 114, 128], fontSize: 7 },
-            bodyStyles: { fontSize: 7 }, margin: { left: rightX, right: 10 },
-          });
+        // Top procedures + Institution side by side
+        const topP = analytics.topProcedures || [];
+        const totTP = topP.reduce((s: number, p: any) => s + parseInt(p.count), 0);
+        const instP = analytics.institutionProcedures || [];
+        const totIP = instP.reduce((s: number, i: any) => s + parseInt(i.count), 0);
+
+        if (topP.length > 0) {
+          autoTable(doc, { startY: y, head: [['Top Procedure', 'Count', '%']],
+            body: topP.map((p: any) => [p.procedure, p.count, pct(parseInt(p.count), totTP)]),
+            theme: 'striped', headStyles: { fillColor: gr, fontSize: 7.5 },
+            bodyStyles: { fontSize: 7.5 }, margin: { left: lx, right: pw / 2 } });
         }
-        y = (doc as any).lastAutoTable?.finalY + 6 || y + 6;
-
-        // Institution + Supervisor distribution side by side
-        if (analytics.institutionProcedures && analytics.institutionProcedures.length > 0) {
-          autoTable(doc, {
-            startY: y, head: [['Institution', 'Count']],
-            body: analytics.institutionProcedures.map((i: any) => [i.place_of_practice === 'ABEBECH_GOBENA' ? 'Abebech Gobena' : i.place_of_practice, i.count]),
-            theme: 'striped', headStyles: { fillColor: [107, 114, 128], fontSize: 7 },
-            bodyStyles: { fontSize: 7 }, margin: { left: leftX, right: pw / 2 },
-          });
+        if (instP.length > 0) {
+          autoTable(doc, { startY: y, head: [['Institution', 'Count', '%']],
+            body: instP.map((i: any) => [i.place_of_practice === 'ABEBECH_GOBENA' ? 'Abebech Gobena' : i.place_of_practice, i.count, pct(parseInt(i.count), totIP)]),
+            theme: 'striped', headStyles: { fillColor: gr, fontSize: 7.5 },
+            bodyStyles: { fontSize: 7.5 }, margin: { left: rx, right: 10 } });
         }
+        y = (doc as any).lastAutoTable?.finalY + 8 || y + 8;
 
-        if (analytics.supervisorDistribution && analytics.supervisorDistribution.length > 0) {
-          autoTable(doc, {
-            startY: y, head: [['Supervisor', 'Procedures', 'Avg Rating']],
-            body: analytics.supervisorDistribution.map((s: any) => [s.supervisor_name, s.count, s.avg_rating || '-']),
-            theme: 'striped', headStyles: { fillColor: [107, 114, 128], fontSize: 7 },
-            bodyStyles: { fontSize: 7 }, margin: { left: rightX, right: 10 },
-          });
+        // Supervisor distribution
+        const supD = analytics.supervisorDistribution || [];
+        const totS = supD.reduce((s: number, sv: any) => s + parseInt(sv.count), 0);
+        if (supD.length > 0) {
+          autoTable(doc, { startY: y, head: [['Supervisor', 'Procedures', '%', 'Avg Rating']],
+            body: supD.map((s: any) => [s.supervisor_name, s.count, pct(parseInt(s.count), totS), s.avg_rating || '-']),
+            theme: 'striped', headStyles: { fillColor: bl, fontSize: 7.5 },
+            bodyStyles: { fontSize: 7.5 }, margin: { left: lx, right: pw / 2 } });
         }
       }
 
