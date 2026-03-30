@@ -573,9 +573,7 @@ router.put('/:userId/supervisor-access', authenticate, authorize('MASTER'), asyn
     if (hasAccess && (!institution || !specialty)) {
       return res.status(400).json({ error: 'Institution and specialty are required for supervisor access' });
     }
-    
-    // If granting access, update institution and specialty
-    // If revoking, clear them
+
     const result = await query(
       'UPDATE users SET institution = $1, specialty = $2, updated_at = NOW() WHERE id = $3 AND role = $4 RETURNING id',
       [hasAccess ? institution : null, hasAccess ? specialty : null, userId, 'MANAGEMENT']
@@ -614,6 +612,41 @@ router.put('/:userId/activate', authenticate, authorize('MASTER'), async (req, r
     }
   } catch (error) {
     res.status(500).json({ error: 'Failed to activate user' });
+  }
+});
+
+// Get batch start months (for all year levels)
+router.get('/batch-start-months', authenticate, async (req: AuthRequest, res) => {
+  try {
+    const result = await query(
+      `SELECT year, MAX(residency_start_month) as start_month, MAX(residency_start_year) as start_year
+       FROM resident_years 
+       GROUP BY year 
+       ORDER BY year`
+    );
+    res.json(result.rows);
+  } catch (error) {
+    res.json([]);
+  }
+});
+
+// Set batch start month and year (Master only)
+router.post('/batch-start-month', authenticate, async (req: AuthRequest, res) => {
+  if (req.user!.role !== 'MASTER') {
+    return res.status(403).json({ error: 'Only Master accounts can set batch start months' });
+  }
+  try {
+    const { year, startMonth, startYear } = req.body;
+    if (!year || !startMonth || startMonth < 1 || startMonth > 12) {
+      return res.status(400).json({ error: 'Valid year and startMonth (1-12) required' });
+    }
+    const result = await query(
+      'UPDATE resident_years SET residency_start_month = $1, residency_start_year = $2 WHERE year = $3',
+      [startMonth, startYear || null, year]
+    );
+    res.json({ success: true, message: `Updated ${result.rowCount} records for Year ${year}` });
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to update batch start month' });
   }
 });
 

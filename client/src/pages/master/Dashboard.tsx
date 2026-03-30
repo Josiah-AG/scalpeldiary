@@ -351,9 +351,9 @@ function BatchStartMonthConfig() {
     }
   };
 
-  const updateBatch = async (year: number, startMonth: number) => {
+  const updateBatch = async (year: number, startMonth: number, startYear: number) => {
     try {
-      await api.post('/users/batch-start-month', { year, startMonth });
+      await api.post('/users/batch-start-month', { year, startMonth, startYear });
       fetchBatchMonths();
     } catch (error: any) {
       alert(error.response?.data?.error || 'Failed to update');
@@ -362,29 +362,43 @@ function BatchStartMonthConfig() {
 
   if (loading) return null;
 
+  const currentCalYear = new Date().getFullYear();
+
   return (
     <div className="mb-8 bg-white rounded-xl shadow-md border-2 border-cyan-200 p-6">
       <h3 className="text-lg font-semibold text-cyan-900 mb-3 flex items-center">
         <CalendarDays className="w-5 h-5 mr-2" />
         Batch Residency Start Month
       </h3>
-      <p className="text-sm text-gray-600 mb-4">Set the starting month for each year's rotation display. This determines the 12-month order shown to residents.</p>
+      <p className="text-sm text-gray-600 mb-4">Set the starting month and year for each batch's rotation display.</p>
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         {[1, 2, 3, 4].map(year => {
           const batch = batchMonths.find((b: any) => b.year === year);
           const currentStart = batch?.start_month || 7;
+          const currentStartYear = batch?.start_year || currentCalYear;
           return (
             <div key={year} className="bg-cyan-50 rounded-lg p-4 border border-cyan-200">
               <p className="font-bold text-cyan-800 mb-2">Year {year}</p>
-              <select
-                value={currentStart}
-                onChange={(e) => updateBatch(year, parseInt(e.target.value))}
-                className="w-full px-3 py-2 border border-cyan-300 rounded-lg text-sm focus:ring-2 focus:ring-cyan-500"
-              >
-                {monthNames.map((m, i) => (
-                  <option key={i} value={i + 1}>{m}</option>
-                ))}
-              </select>
+              <div className="space-y-2">
+                <select
+                  value={currentStart}
+                  onChange={(e) => updateBatch(year, parseInt(e.target.value), currentStartYear)}
+                  className="w-full px-3 py-2 border border-cyan-300 rounded-lg text-sm focus:ring-2 focus:ring-cyan-500"
+                >
+                  {monthNames.map((m, i) => (
+                    <option key={i} value={i + 1}>{m}</option>
+                  ))}
+                </select>
+                <input
+                  type="number"
+                  value={currentStartYear}
+                  onChange={(e) => updateBatch(year, currentStart, parseInt(e.target.value))}
+                  className="w-full px-3 py-2 border border-cyan-300 rounded-lg text-sm focus:ring-2 focus:ring-cyan-500"
+                  placeholder="Year"
+                  min={2020}
+                  max={2035}
+                />
+              </div>
             </div>
           );
         })}

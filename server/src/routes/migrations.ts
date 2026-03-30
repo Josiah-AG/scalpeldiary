@@ -935,7 +935,8 @@ router.post('/add-residency-start-month', authenticate, async (req: AuthRequest,
   }
   try {
     await query(`ALTER TABLE resident_years ADD COLUMN IF NOT EXISTS residency_start_month INTEGER DEFAULT 7`);
-    res.json({ success: true, message: 'Added residency_start_month column to resident_years (default: July/7)' });
+    await query(`ALTER TABLE resident_years ADD COLUMN IF NOT EXISTS residency_start_year INTEGER`);
+    res.json({ success: true, message: 'Added residency_start_month and residency_start_year columns to resident_years' });
   } catch (error: any) {
     res.status(500).json({ success: false, error: error.message });
   }
