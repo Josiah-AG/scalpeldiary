@@ -730,6 +730,28 @@ router.post('/fix-notification-log-id', authenticate, async (req: AuthRequest, r
   }
 });
 
+// Normalize data: presentation types and surgery roles
+router.post('/normalize-data', authenticate, async (req: AuthRequest, res) => {
+  if (req.user!.role !== 'MASTER') {
+    return res.status(403).json({ error: 'Only Master accounts can run migrations' });
+  }
+
+  try {
+    // Normalize presentation types to uppercase
+    const presResult = await query(`UPDATE presentations SET presentation_type = UPPER(REPLACE(presentation_type, ' ', '_')) WHERE presentation_type != UPPER(REPLACE(presentation_type, ' ', '_'))`);
+    
+    // Normalize surgery roles: PRIMARY_SUPERVISED -> PRIMARY_SURGEON
+    const roleResult = await query(`UPDATE surgical_logs SET surgery_role = 'PRIMARY_SURGEON' WHERE surgery_role = 'PRIMARY_SUPERVISED'`);
+    
+    res.json({ 
+      success: true, 
+      message: `Normalized ${presResult.rowCount} presentation types and ${roleResult.rowCount} surgery roles`
+    });
+  } catch (error: any) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
 // Add post-op follow-up comment column to surgical_logs
 router.post('/add-postop-followup', authenticate, async (req: AuthRequest, res) => {
   if (req.user!.role !== 'MASTER') {

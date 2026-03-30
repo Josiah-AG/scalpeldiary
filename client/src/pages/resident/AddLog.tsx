@@ -41,7 +41,7 @@ export default function AddLog() {
       id: Date.now().toString(),
       procedure: '',
       procedureCategory: 'GI Surgery', // Use actual JSON key
-      surgeryRole: 'PRIMARY_SUPERVISED',
+      surgeryRole: 'PRIMARY_SURGEON',
       remark: '',
     },
   ]);
@@ -102,7 +102,7 @@ export default function AddLog() {
         id: Date.now().toString(),
         procedure: '',
         procedureCategory: 'GI Surgery', // Use actual JSON key
-        surgeryRole: 'PRIMARY_SUPERVISED',
+        surgeryRole: 'PRIMARY_SURGEON',
         remark: '',
       },
     ]);
@@ -156,7 +156,7 @@ export default function AddLog() {
           id: Date.now().toString(),
           procedure: '',
           procedureCategory: 'GI Surgery', // Use actual JSON key
-          surgeryRole: 'PRIMARY_SUPERVISED',
+          surgeryRole: 'PRIMARY_SURGEON',
           remark: '',
         },
       ]);

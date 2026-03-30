@@ -184,9 +184,24 @@ export default function MasterDashboard() {
               }
             }
           }}
-          className="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg font-semibold transition-colors"
+          className="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg font-semibold transition-colors mr-3"
         >
           Add Post-Op Follow-Up Columns
+        </button>
+        <button
+          onClick={async () => {
+            if (confirm('Normalize presentation types and surgery roles? This merges duplicates.')) {
+              try {
+                const response = await api.post('/migrations/normalize-data');
+                alert(response.data.message);
+              } catch (error: any) {
+                alert('Failed: ' + (error.response?.data?.error || error.message));
+              }
+            }
+          }}
+          className="bg-teal-600 hover:bg-teal-700 text-white px-4 py-2 rounded-lg font-semibold transition-colors"
+        >
+          Normalize Data
         </button>
       </div>
 

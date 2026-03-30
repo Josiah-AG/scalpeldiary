@@ -30,9 +30,9 @@ router.get('/dashboard', authenticate, async (req: AuthRequest, res) => {
       [targetResidentId, yearId]
     );
 
-    // Role distribution
+    // Role distribution (merge PRIMARY_SUPERVISED into PRIMARY_SURGEON)
     const roleResult = await query(
-      'SELECT surgery_role, COUNT(*) as count FROM surgical_logs WHERE resident_id = $1 AND year_id = $2 GROUP BY surgery_role',
+      `SELECT CASE WHEN surgery_role = 'PRIMARY_SUPERVISED' THEN 'PRIMARY_SURGEON' ELSE surgery_role END as surgery_role, COUNT(*) as count FROM surgical_logs WHERE resident_id = $1 AND year_id = $2 GROUP BY CASE WHEN surgery_role = 'PRIMARY_SUPERVISED' THEN 'PRIMARY_SURGEON' ELSE surgery_role END`,
       [targetResidentId, yearId]
     );
 
@@ -122,9 +122,9 @@ router.get('/resident', authenticate, async (req: AuthRequest, res) => {
       [targetResidentId, yearId, firstDayOfMonth]
     );
 
-    // Role distribution
+    // Role distribution (merge PRIMARY_SUPERVISED into PRIMARY_SURGEON)
     const roleResult = await query(
-      'SELECT surgery_role, COUNT(*) as count FROM surgical_logs WHERE resident_id = $1 AND year_id = $2 GROUP BY surgery_role',
+      `SELECT CASE WHEN surgery_role = 'PRIMARY_SUPERVISED' THEN 'PRIMARY_SURGEON' ELSE surgery_role END as surgery_role, COUNT(*) as count FROM surgical_logs WHERE resident_id = $1 AND year_id = $2 GROUP BY CASE WHEN surgery_role = 'PRIMARY_SUPERVISED' THEN 'PRIMARY_SURGEON' ELSE surgery_role END`,
       [targetResidentId, yearId]
     );
 

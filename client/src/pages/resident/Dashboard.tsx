@@ -34,7 +34,7 @@ export default function Dashboard() {
   const [editFormData, setEditFormData] = useState({
     date: '', mrn: '', age: '', sex: 'MALE', diagnosis: '', procedure: '',
     procedureType: 'ELECTIVE', procedureCategory: 'GI Surgery', placeOfPractice: 'Y12HMC',
-    surgeryRole: 'PRIMARY_SUPERVISED', supervisorId: '', remark: '',
+    surgeryRole: 'PRIMARY_SURGEON', supervisorId: '', remark: '',
   });
   const [supervisorsList, setSupervisorsList] = useState<any[]>([]);
   const [showEditPresModal, setShowEditPresModal] = useState(false);
@@ -1168,7 +1168,6 @@ export default function Dashboard() {
                   <select value={editFormData.surgeryRole} onChange={(e) => setEditFormData({ ...editFormData, surgeryRole: e.target.value })} className="w-full px-4 py-2 border border-gray-300 rounded-md">
                     <option value="PRIMARY_SURGEON">Primary Surgeon</option>
                     <option value="PRIMARY_SURGEON_ASSISTED">Primary Surgeon (Assisted)</option>
-                    <option value="PRIMARY_SUPERVISED">Primary Supervised</option>
                     <option value="FIRST_ASSISTANT">1st Assistant</option>
                     <option value="SECOND_ASSISTANT">2nd Assistant</option>
                     <option value="OBSERVER">Observer</option>
