@@ -325,10 +325,10 @@ router.get('/supervisor/residents', authenticate, async (req: AuthRequest, res) 
         u.is_chief_resident,
         (SELECT COUNT(*) FROM surgical_logs sl 
          JOIN resident_years ry ON sl.year_id = ry.id 
-         WHERE sl.resident_id = u.id AND ry.year = $1) as total_procedures,
+         WHERE sl.resident_id = u.id AND ry.year = $1 AND sl.status != 'PENDING') as total_procedures,
         (SELECT COUNT(*) FROM presentations p 
          JOIN resident_years ry ON p.year_id = ry.id 
-         WHERE p.resident_id = u.id AND ry.year = $1) as total_presentations,
+         WHERE p.resident_id = u.id AND ry.year = $1 AND p.status != 'PENDING') as total_presentations,
         (SELECT AVG(rating) FROM surgical_logs sl 
          JOIN resident_years ry ON sl.year_id = ry.id 
          WHERE sl.resident_id = u.id AND ry.year = $1 AND sl.rating IS NOT NULL) as avg_procedure_rating,
