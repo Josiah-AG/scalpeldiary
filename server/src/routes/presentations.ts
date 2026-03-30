@@ -164,9 +164,9 @@ router.get('/stats', authenticate, async (req: AuthRequest, res) => {
       [targetResidentId, yearId]
     );
 
-    // Type distribution
+    // Type distribution (normalize case)
     const typeResult = await query(
-      'SELECT presentation_type, COUNT(*) as count FROM presentations WHERE resident_id = $1 AND year_id = $2 GROUP BY presentation_type',
+      'SELECT UPPER(presentation_type) as presentation_type, COUNT(*) as count FROM presentations WHERE resident_id = $1 AND year_id = $2 GROUP BY UPPER(presentation_type)',
       [targetResidentId, yearId]
     );
 

@@ -54,8 +54,9 @@ router.get('/dashboard', authenticate, async (req: AuthRequest, res) => {
 
     // Recent presentations
     const recentPresentationsResult = await query(
-      `SELECT p.* 
+      `SELECT p.*, u.name as supervisor_name
        FROM presentations p
+       LEFT JOIN users u ON p.supervisor_id = u.id
        WHERE p.resident_id = $1 AND p.year_id = $2
        ORDER BY p.date DESC LIMIT 5`,
       [targetResidentId, yearId]
