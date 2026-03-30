@@ -15,6 +15,7 @@ export default function DetachmentLogs() {
   const [showVerifyModal, setShowVerifyModal] = useState(false);
   const [verifyRating, setVerifyRating] = useState('');
   const [verifyComment, setVerifyComment] = useState('');
+  const [updateRatingComment, setUpdateRatingComment] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => { fetchSummary(); }, []);
@@ -45,19 +46,27 @@ export default function DetachmentLogs() {
   };
 
   const handleVerify = async () => {
-    if (!selectedGroup || !verifyRating) return;
+    if (!selectedGroup) return;
+    const isReVerify = selectedGroup.batch_verified;
+    // Rating required for first verification, optional for re-verify
+    if (!isReVerify && !verifyRating) {
+      alert('Rating is required for first verification');
+      return;
+    }
     try {
       await api.post('/logs/detachment-verify', {
         residentId: selectedGroup.resident_id,
         detachmentType: selectedGroup.detachment_type,
-        rating: parseInt(verifyRating),
-        comment: verifyComment,
+        rating: verifyRating ? parseInt(verifyRating) : null,
+        comment: verifyComment || null,
         month: selectedGroup.detachment_month || null,
+        overrideAll: updateRatingComment,
       });
       alert('Detachment logs verified successfully');
       setShowVerifyModal(false);
       setVerifyRating('');
       setVerifyComment('');
+      setUpdateRatingComment(false);
       fetchSummary();
       viewDetails(selectedGroup);
     } catch (error: any) {
@@ -225,29 +234,45 @@ export default function DetachmentLogs() {
         <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
           <div className="bg-white rounded-xl shadow-2xl max-w-lg w-full">
             <div className="bg-gradient-to-r from-green-600 to-green-700 text-white px-6 py-4 flex justify-between items-center rounded-t-xl">
-              <h3 className="text-lg font-bold">Verify Detachment Logs</h3>
-              <button onClick={() => setShowVerifyModal(false)} className="hover:bg-green-800 p-2 rounded-lg"><X size={20} /></button>
+              <h3 className="text-lg font-bold">{selectedGroup.batch_verified ? 'Verify New Items' : 'Verify Detachment Logs'}</h3>
+              <button onClick={() => { setShowVerifyModal(false); setUpdateRatingComment(false); }} className="hover:bg-green-800 p-2 rounded-lg"><X size={20} /></button>
             </div>
             <div className="p-6 space-y-4">
               <p className="text-sm text-gray-600">
-                Verifying all unverified {getDetachmentLabel(selectedGroup.detachment_type)} logs for {selectedGroup.resident_name}.
-                Enter the rating and comment from the paper form.
+                {selectedGroup.batch_verified 
+                  ? `Verifying ${selectedGroup.unverified_count} new unverified items for ${selectedGroup.resident_name}.`
+                  : `Verifying all ${getDetachmentLabel(selectedGroup.detachment_type)} logs for ${selectedGroup.resident_name}. Enter the rating and comment from the paper form.`}
               </p>
-              <p className="text-xs text-gray-500 bg-gray-50 p-2 rounded">{RATING_GUIDE}</p>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Rating (0-100)</label>
-                <input type="number" min="0" max="100" value={verifyRating} onChange={(e) => setVerifyRating(e.target.value)}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500" required />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Comment</label>
-                <textarea value={verifyComment} onChange={(e) => setVerifyComment(e.target.value)}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500" rows={3}
-                  placeholder="Comment from the detachment paper form..." />
-              </div>
+
+              {selectedGroup.batch_verified && (
+                <label className="flex items-center space-x-2 p-3 bg-amber-50 border border-amber-200 rounded-lg cursor-pointer">
+                  <input type="checkbox" checked={updateRatingComment} onChange={(e) => setUpdateRatingComment(e.target.checked)} className="w-4 h-4 text-amber-600 rounded" />
+                  <span className="text-sm text-amber-800">Update rating & comment for all items (overrides previous)</span>
+                </label>
+              )}
+
+              {(!selectedGroup.batch_verified || updateRatingComment) && (
+                <>
+                  <p className="text-xs text-gray-500 bg-gray-50 p-2 rounded">{RATING_GUIDE}</p>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Rating (0-100)</label>
+                    <input type="number" min="0" max="100" value={verifyRating} onChange={(e) => setVerifyRating(e.target.value)}
+                      className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500" />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Comment</label>
+                    <textarea value={verifyComment} onChange={(e) => setVerifyComment(e.target.value)}
+                      className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500" rows={3}
+                      placeholder="Comment from the detachment paper form..." />
+                  </div>
+                </>
+              )}
+
               <div className="flex space-x-3">
-                <button onClick={handleVerify} className="flex-1 bg-green-600 text-white py-3 rounded-lg hover:bg-green-700 font-medium">Verify All</button>
-                <button onClick={() => setShowVerifyModal(false)} className="flex-1 bg-gray-200 text-gray-700 py-3 rounded-lg hover:bg-gray-300 font-medium">Cancel</button>
+                <button onClick={handleVerify} className="flex-1 bg-green-600 text-white py-3 rounded-lg hover:bg-green-700 font-medium">
+                  {selectedGroup.batch_verified ? 'Verify New' : 'Verify All'}
+                </button>
+                <button onClick={() => { setShowVerifyModal(false); setUpdateRatingComment(false); }} className="flex-1 bg-gray-200 text-gray-700 py-3 rounded-lg hover:bg-gray-300 font-medium">Cancel</button>
               </div>
             </div>
           </div>

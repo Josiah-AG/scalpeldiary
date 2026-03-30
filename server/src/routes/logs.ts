@@ -664,49 +664,62 @@ router.post('/detachment-verify', authenticate, async (req: AuthRequest, res) =>
       return res.status(403).json({ error: 'Forbidden' });
     }
 
-    const { residentId, detachmentType, rating, comment, month } = req.body;
+    const { residentId, detachmentType, rating, comment, month, overrideAll } = req.body;
 
     // Build month filter
     const monthFilterProc = month ? ` AND TO_CHAR(date, 'YYYY-MM') = '${month}'` : '';
     const monthFilterPres = month ? ` AND TO_CHAR(date, 'YYYY-MM') = '${month}'` : '';
 
-    // Update all unverified detachment logs for this resident + type + month (procedures)
-    const procResult = await query(
-      `UPDATE surgical_logs 
-       SET detachment_verified = true, 
-           detachment_rating = $1, 
-           detachment_comment = $2,
-           detachment_verified_by = $3,
-           detachment_verified_at = NOW(),
-           status = CASE WHEN status = 'PENDING' THEN 'RATED' ELSE status END,
-           updated_at = NOW()
-       WHERE resident_id = $4 
-         AND is_detachment = true 
-         AND detachment_type = $5
-         AND detachment_verified = false${monthFilterProc}
-       RETURNING id`,
-      [rating, comment, req.user!.id, residentId, detachmentType]
-    );
+    let totalVerified = 0;
 
-    // Update all unverified detachment presentations for this resident + type + month
-    const presResult = await query(
-      `UPDATE presentations 
-       SET detachment_verified = true, 
-           detachment_rating = $1, 
-           detachment_comment = $2,
-           detachment_verified_by = $3,
-           detachment_verified_at = NOW(),
-           status = CASE WHEN status = 'PENDING' THEN 'RATED' ELSE status END,
-           updated_at = NOW()
-       WHERE resident_id = $4 
-         AND is_detachment = true 
-         AND detachment_type = $5
-         AND detachment_verified = false${monthFilterPres}
-       RETURNING id`,
-      [rating, comment, req.user!.id, residentId, detachmentType]
-    );
+    if (overrideAll && rating) {
+      // Override ALL items with new rating/comment
+      const procResult = await query(
+        `UPDATE surgical_logs 
+         SET detachment_verified = true, detachment_rating = $1, detachment_comment = $2,
+             detachment_verified_by = $3, detachment_verified_at = NOW(),
+             status = CASE WHEN status = 'PENDING' THEN 'RATED' ELSE status END, updated_at = NOW()
+         WHERE resident_id = $4 AND is_detachment = true AND detachment_type = $5${monthFilterProc}
+         RETURNING id`,
+        [rating, comment, req.user!.id, residentId, detachmentType]
+      );
+      const presResult = await query(
+        `UPDATE presentations 
+         SET detachment_verified = true, detachment_rating = $1, detachment_comment = $2,
+             detachment_verified_by = $3, detachment_verified_at = NOW(),
+             status = CASE WHEN status = 'PENDING' THEN 'RATED' ELSE status END, updated_at = NOW()
+         WHERE resident_id = $4 AND is_detachment = true AND detachment_type = $5${monthFilterPres}
+         RETURNING id`,
+        [rating, comment, req.user!.id, residentId, detachmentType]
+      );
+      totalVerified = (procResult.rowCount || 0) + (presResult.rowCount || 0);
+    } else {
+      // Only verify unverified items — rating/comment optional
+      const setRating = rating ? `, detachment_rating = ${parseInt(rating)}` : '';
+      const setComment = comment ? `, detachment_comment = '${comment.replace(/'/g, "''")}'` : '';
 
-    const totalVerified = (procResult.rowCount || 0) + (presResult.rowCount || 0);
+      const procResult = await query(
+        `UPDATE surgical_logs 
+         SET detachment_verified = true${setRating}${setComment},
+             detachment_verified_by = $1, detachment_verified_at = NOW(),
+             status = CASE WHEN status = 'PENDING' THEN 'RATED' ELSE status END, updated_at = NOW()
+         WHERE resident_id = $2 AND is_detachment = true AND detachment_type = $3
+           AND detachment_verified = false${monthFilterProc}
+         RETURNING id`,
+        [req.user!.id, residentId, detachmentType]
+      );
+      const presResult = await query(
+        `UPDATE presentations 
+         SET detachment_verified = true${setRating}${setComment},
+             detachment_verified_by = $1, detachment_verified_at = NOW(),
+             status = CASE WHEN status = 'PENDING' THEN 'RATED' ELSE status END, updated_at = NOW()
+         WHERE resident_id = $2 AND is_detachment = true AND detachment_type = $3
+           AND detachment_verified = false${monthFilterPres}
+         RETURNING id`,
+        [req.user!.id, residentId, detachmentType]
+      );
+      totalVerified = (procResult.rowCount || 0) + (presResult.rowCount || 0);
+    }
 
     // Send notification to resident
     const residentResult = await query('SELECT name FROM users WHERE id = $1', [residentId]);
