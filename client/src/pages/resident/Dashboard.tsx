@@ -906,7 +906,7 @@ export default function Dashboard() {
                             ${surgery.remark ? `<p><strong>Remark:</strong> ${surgery.remark}</p>` : ''}
                             ${surgery.rating ? `
                               <div class="border-t pt-3 mt-3">
-                                <p><strong>Rating:</strong> <span class="text-2xl font-bold ${surgery.rating > 50 ? 'text-green-600' : 'text-red-600'}">${surgery.rating}/100</span></p>
+                                <p><strong>Rating:</strong> <span class="text-2xl font-bold ${surgery.rating >= 90 ? 'text-green-600' : surgery.rating >= 71 ? 'text-blue-600' : surgery.rating >= 50 ? 'text-yellow-600' : 'text-red-600'}">${surgery.rating >= 90 ? 'Excellent' : surgery.rating >= 71 ? 'Good' : surgery.rating >= 50 ? 'Satisfactory' : 'Poor'}</span></p>
                                 ${surgery.comment ? `<p class="mt-2"><strong>Comment:</strong> ${surgery.comment}</p>` : ''}
                               </div>
                             ` : '<p class="text-gray-500 italic">Not yet rated</p>'}
@@ -1023,7 +1023,7 @@ export default function Dashboard() {
                             <p><strong>Rated by:</strong> ${pres.supervisor_name || 'Not yet rated'}</p>
                             ${pres.rating ? `
                               <div class="border-t pt-3 mt-3">
-                                <p><strong>Rating:</strong> <span class="text-2xl font-bold ${pres.rating > 50 ? 'text-green-600' : 'text-red-600'}">${pres.rating}/100</span></p>
+                                <p><strong>Rating:</strong> <span class="text-2xl font-bold ${pres.rating >= 90 ? 'text-green-600' : pres.rating >= 71 ? 'text-blue-600' : pres.rating >= 50 ? 'text-yellow-600' : 'text-red-600'}">${pres.rating >= 90 ? 'Excellent' : pres.rating >= 71 ? 'Good' : pres.rating >= 50 ? 'Satisfactory' : 'Poor'}</span></p>
                                 ${pres.comment ? `<p class="mt-2"><strong>Comment:</strong> ${pres.comment}</p>` : ''}
                               </div>
                             ` : '<p class="text-gray-500 italic">Not yet rated</p>'}
@@ -1043,11 +1043,13 @@ export default function Dashboard() {
                       {pres.status === 'NOT_WITNESSED' ? (
                         <span className="px-2 py-0.5 md:px-3 md:py-1 rounded-full bg-gray-400 text-white font-semibold text-xs">N/A</span>
                       ) : pres.rating ? (
-                        <span className={`px-2 py-0.5 md:px-3 md:py-1 rounded-full font-semibold text-xs ${
-                          pres.rating > 50 ? 'bg-green-600 text-white' : 'bg-red-600 text-white'
-                        }`}>
-                          {pres.rating}
-                        </span>
+                        (() => {
+                          const showExact = canSeeExactScores(user?.role, isReadOnlyMode);
+                          const badge = showExact 
+                            ? { text: pres.rating, className: pres.rating > 50 ? 'bg-green-600 text-white' : 'bg-red-600 text-white' }
+                            : getResidentRatingBadge(pres.rating, pres.status);
+                          return <span className={`px-2 py-0.5 md:px-3 md:py-1 rounded-full font-semibold text-xs ${badge.className}`}>{badge.text}</span>;
+                        })()
                       ) : (
                         <span className="px-2 py-0.5 md:px-3 md:py-1 rounded-full bg-gray-600 text-white font-semibold text-xs">Pending</span>
                       )}

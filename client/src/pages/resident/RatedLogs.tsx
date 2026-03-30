@@ -3,6 +3,8 @@ import Layout from '../../components/Layout';
 import api from '../../api/axios';
 import { format } from 'date-fns';
 import { X, Filter } from 'lucide-react';
+import { useAuthStore } from '../../store/authStore';
+import { getResidentRatingBadge, getSupervisorRatingBadge, canSeeExactScores, getRatingLabel, getRatingTextColor, getRatingColor } from '../../utils/ratingUtils';
 
 export default function RatedLogs() {
   const [logs, setLogs] = useState<any[]>([]);
@@ -16,9 +18,10 @@ export default function RatedLogs() {
     status: 'rated', // Only show rated logs
   });
 
-  // Check if in read-only mode
   const isReadOnlyMode = sessionStorage.getItem('isReadOnlyMode') === 'true';
   const viewingResidentId = sessionStorage.getItem('viewingResidentId');
+  const { user } = useAuthStore();
+  const showExact = canSeeExactScores(user?.role, isReadOnlyMode);
 
   useEffect(() => {
     fetchYears();
@@ -75,8 +78,8 @@ export default function RatedLogs() {
     if (!rating || status === 'PENDING') {
       return <span className="px-3 py-1 rounded-full bg-gray-200 text-gray-700 font-semibold text-xs sm:text-sm">Unrated</span>;
     }
-    const color = rating > 50 ? 'bg-green-500' : 'bg-red-500';
-    return <span className={`px-3 py-1 rounded-full ${color} text-white font-semibold text-xs sm:text-sm`}>{rating}/100</span>;
+    const badge = showExact ? getSupervisorRatingBadge(rating, status) : getResidentRatingBadge(rating, status);
+    return <span className={`px-3 py-1 rounded-full ${badge.className} font-semibold text-xs sm:text-sm`}>{badge.text}</span>;
   };
 
   const getRowColor = (log: any) => {
@@ -270,7 +273,9 @@ export default function RatedLogs() {
                 <>
                   <div>
                     <label className="text-sm font-semibold text-gray-600">Rating</label>
-                    <p className="text-2xl font-bold text-blue-600">{selectedLog.rating}/100</p>
+                    <p className={'text-2xl font-bold ' + getRatingTextColor(selectedLog.rating)}>
+                      {showExact ? selectedLog.rating + '/100' : getRatingLabel(selectedLog.rating)}
+                    </p>
                   </div>
                   {selectedLog.comment && (
                     <div>

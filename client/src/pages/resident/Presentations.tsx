@@ -5,6 +5,7 @@ import api from '../../api/axios';
 import { format } from 'date-fns';
 import { Plus, Edit2, Trash2, X, Award } from 'lucide-react';
 import { useAuthStore } from '../../store/authStore';
+import { getResidentRatingBadge, getSupervisorRatingBadge, canSeeExactScores, getRatingLabel, getRatingTextColor } from '../../utils/ratingUtils';
 
 interface Presentation {
   id: string;
@@ -317,8 +318,9 @@ export default function Presentations() {
     if (!rating || status === 'PENDING') {
       return <span className="px-3 py-1 rounded-full bg-gray-200 text-gray-700 font-semibold text-sm">Unrated</span>;
     }
-    const color = rating > 50 ? 'bg-green-500' : 'bg-red-500';
-    return <span className={`px-3 py-1 rounded-full ${color} text-white font-semibold text-sm`}>{rating}/100</span>;
+    const showExact = canSeeExactScores(user?.role, isReadOnlyMode);
+    const badge = showExact ? getSupervisorRatingBadge(rating, status) : getResidentRatingBadge(rating, status);
+    return <span className={`px-3 py-1 rounded-full ${badge.className} font-semibold text-sm`}>{badge.text}</span>;
   };
 
 
@@ -563,7 +565,7 @@ export default function Presentations() {
                             <p><strong>Rated by:</strong> ${presentation.supervisor_name || 'Not yet rated'}</p>
                             ${presentation.rating ? `
                               <div class="border-t pt-3 mt-3">
-                                <p><strong>Rating:</strong> <span class="text-2xl font-bold ${presentation.rating > 50 ? 'text-green-600' : 'text-red-600'}">${presentation.rating}/100</span></p>
+                                <p><strong>Rating:</strong> <span class="text-2xl font-bold ${presentation.rating >= 90 ? 'text-green-600' : presentation.rating >= 71 ? 'text-blue-600' : presentation.rating >= 50 ? 'text-yellow-600' : 'text-red-600'}">${presentation.rating >= 90 ? 'Excellent' : presentation.rating >= 71 ? 'Good' : presentation.rating >= 50 ? 'Satisfactory' : 'Poor'}</span></p>
                                 ${presentation.comment ? `<p class="mt-2"><strong>Comment:</strong> ${presentation.comment}</p>` : ''}
                               </div>
                             ` : '<p class="text-gray-500 italic">Not yet rated</p>'}

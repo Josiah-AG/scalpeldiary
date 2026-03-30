@@ -110,9 +110,9 @@ export default function Analytics() {
   // Filter comments based on rating
   const filteredComments = analytics?.comments?.filter((comment: any) => {
     if (commentFilter === 'all') return true;
-    if (commentFilter === 'excellent') return comment.rating > 80;
-    if (commentFilter === 'good') return comment.rating > 50 && comment.rating <= 80;
-    if (commentFilter === 'bad') return comment.rating <= 50;
+    if (commentFilter === 'excellent') return comment.rating >= 90;
+    if (commentFilter === 'good') return comment.rating >= 71 && comment.rating < 90;
+    if (commentFilter === 'bad') return comment.rating < 50;
     return true;
   }) || [];
 
@@ -495,9 +495,9 @@ export default function Analytics() {
               className="px-3 py-1.5 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
             >
               <option value="all">All Comments</option>
-              <option value="excellent">Excellent (&gt;80%)</option>
-              <option value="good">Good (50-80%)</option>
-              <option value="bad">Needs Improvement (&lt;50%)</option>
+              <option value="excellent">Excellent (90+)</option>
+              <option value="good">Good (71-89)</option>
+              <option value="bad">Poor (&lt;50)</option>
             </select>
           </div>
         </div>
@@ -516,9 +516,9 @@ export default function Analytics() {
             // Add presentation comments
             (analytics?.presentationComments || []).forEach((c: any) => {
               if (commentFilter === 'all' ||
-                  (commentFilter === 'excellent' && c.rating > 80) ||
-                  (commentFilter === 'good' && c.rating > 50 && c.rating <= 80) ||
-                  (commentFilter === 'bad' && c.rating <= 50)) {
+                  (commentFilter === 'excellent' && c.rating >= 90) ||
+                  (commentFilter === 'good' && c.rating >= 71 && c.rating < 90) ||
+                  (commentFilter === 'bad' && c.rating < 50)) {
                 allComments.push({ ...c, type: 'presentation', sortDate: c.date, procedure: c.title });
               }
             });
@@ -564,9 +564,9 @@ export default function Analytics() {
                         </span>
                         {item.rating && (
                           <span className={`inline-block px-2 py-0.5 rounded-full text-xs font-bold ${
-                            item.rating > 50 ? 'bg-green-500 text-white' : 'bg-red-500 text-white'
+                            item.rating >= 90 ? 'bg-green-500 text-white' : item.rating >= 71 ? 'bg-blue-500 text-white' : item.rating >= 50 ? 'bg-yellow-500 text-white' : 'bg-red-500 text-white'
                           }`}>
-                            {item.rating}/100
+                            {item.rating >= 90 ? 'Excellent' : item.rating >= 71 ? 'Good' : item.rating >= 50 ? 'Satisfactory' : 'Poor'}
                           </span>
                         )}
                       </div>
