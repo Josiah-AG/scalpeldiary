@@ -120,29 +120,99 @@ export default function MonthlyActivities() {
     const doc = new jsPDF('l', 'mm', 'a4');
     createPdfHeader(doc, 'Monthly Activity Schedule', monthLabel);
     
-    const days = eachDayOfInterval({ start: startOfMonth(currentDate), end: endOfMonth(currentDate) });
-    const body = days.map(day => {
+    const mStart = startOfMonth(currentDate);
+    const mEnd = endOfMonth(currentDate);
+    const days = eachDayOfInterval({ start: mStart, end: mEnd });
+    const firstDayOfWeek = mStart.getDay();
+    const pw = doc.internal.pageSize.getWidth();
+
+    // Legend
+    let y = 35;
+    doc.setFontSize(8);
+    doc.setTextColor(80, 80, 80);
+    let lx = 10;
+    categories.forEach(cat => {
+      const hex = cat.color || '#9333EA';
+      const r = parseInt(hex.slice(1, 3), 16);
+      const g = parseInt(hex.slice(3, 5), 16);
+      const b = parseInt(hex.slice(5, 7), 16);
+      doc.setFillColor(r, g, b);
+      doc.rect(lx, y - 2.5, 4, 4, 'F');
+      doc.text(cat.name, lx + 6, y + 0.5);
+      lx += doc.getTextWidth(cat.name) + 12;
+      if (lx > pw - 30) { lx = 10; y += 6; }
+    });
+    y += 8;
+
+    const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+    const cellW = (pw - 20) / 7;
+    const cellH = 18;
+
+    doc.setFillColor(30, 58, 138);
+    dayNames.forEach((d, i) => {
+      doc.rect(10 + i * cellW, y, cellW, 7, 'F');
+      doc.setTextColor(255, 255, 255);
+      doc.setFontSize(8);
+      doc.setFont('helvetica', 'bold');
+      doc.text(d, 10 + i * cellW + cellW / 2, y + 5, { align: 'center' });
+    });
+    y += 7;
+
+    let col = firstDayOfWeek;
+    let rowY = y;
+    for (let i = 0; i < firstDayOfWeek; i++) {
+      doc.setDrawColor(200, 200, 200);
+      doc.rect(10 + i * cellW, rowY, cellW, cellH);
+    }
+
+    days.forEach(day => {
+      const x = 10 + col * cellW;
+      doc.setDrawColor(200, 200, 200);
+      doc.setFillColor(255, 255, 255);
+      doc.rect(x, rowY, cellW, cellH, 'FD');
+
+      doc.setTextColor(60, 60, 60);
+      doc.setFontSize(7);
+      doc.setFont('helvetica', 'bold');
+      doc.text(String(day.getDate()), x + 1.5, rowY + 4);
+
       const dateStr = format(day, 'yyyy-MM-dd');
       const dayActs = activities.filter(a => a.activity_date === dateStr);
-      const assignments = dayActs.map(a => {
+      let dy = rowY + 7;
+      dayActs.forEach(a => {
         const cat = categories.find(c => c.id === a.activity_category_id);
         const res = residents.find(r => r.id === a.resident_id);
-        return `${cat?.name || ''}: ${res?.name || ''}`;
-      }).join(', ');
-      return [format(day, 'dd'), format(day, 'EEE'), assignments || '—'];
-    });
+        if (cat && dy < rowY + cellH - 2) {
+          const hex = cat.color || '#9333EA';
+          const cr = parseInt(hex.slice(1, 3), 16);
+          const cg = parseInt(hex.slice(3, 5), 16);
+          const cb = parseInt(hex.slice(5, 7), 16);
+          doc.setFillColor(cr, cg, cb);
+          doc.roundedRect(x + 1, dy - 2, cellW - 2, 4, 0.5, 0.5, 'F');
+          doc.setTextColor(255, 255, 255);
+          doc.setFontSize(5);
+          doc.setFont('helvetica', 'normal');
+          const label = `${cat.name}: ${res?.name?.split(' ')[0] || ''}`;
+          doc.text(label, x + 2, dy + 0.8, { maxWidth: cellW - 4 });
+          dy += 4.5;
+        }
+      });
 
-    autoTable(doc, {
-      startY: 35,
-      head: [['Day', 'Weekday', 'Activity Assignments']],
-      body,
-      theme: 'grid',
-      headStyles: { fillColor: [30, 58, 138], fontSize: 8 },
-      bodyStyles: { fontSize: 7.5, cellPadding: 2 },
-      alternateRowStyles: { fillColor: [245, 247, 255] },
-      columnStyles: { 0: { cellWidth: 12, halign: 'center' }, 1: { cellWidth: 18 } },
-      margin: { left: 10, right: 10 },
+      col++;
+      if (col > 6) {
+        col = 0;
+        rowY += cellH;
+        if (rowY > doc.internal.pageSize.getHeight() - 20) {
+          doc.addPage();
+          rowY = 12;
+        }
+      }
     });
+    while (col > 0 && col <= 6) {
+      doc.setDrawColor(200, 200, 200);
+      doc.rect(10 + col * cellW, rowY, cellW, cellH);
+      col++;
+    }
 
     addPdfFooter(doc, `Activity Schedule — ${monthLabel}`);
     doc.save(`ScalpelDiary_Activities_${format(currentDate, 'yyyy_MM')}.pdf`);
