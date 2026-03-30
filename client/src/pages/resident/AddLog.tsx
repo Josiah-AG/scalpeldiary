@@ -81,10 +81,11 @@ export default function AddLog() {
     }
   }, [patientData.placeOfPractice, procedures]);
 
-  const fetchDetachmentSupervisors = async (venue: string, hasOrtho: boolean) => {
+  const fetchDetachmentSupervisors = async (venue: string, hasSpecialCategory: boolean) => {
     try {
       const params: any = {};
-      if (hasOrtho || hasPlastic) {
+      if (hasSpecialCategory) {
+        const hasOrtho = procedures.some(p => p.procedureCategory === 'Orthopedic Surgery');
         params.category = hasOrtho ? 'Orthopedic Surgery' : 'Plastic Surgery';
       } else {
         params.venue = venue;
