@@ -60,7 +60,8 @@ router.get('/my-presentations', authenticate, async (req: AuthRequest, res) => {
 // Create presentation
 router.post('/', authenticate, async (req: AuthRequest, res) => {
   try {
-    const { yearId, date, title, venue, presentationType, description, supervisorId } = req.body;
+    const { yearId, date, title, venue, presentationType, description, supervisorId,
+            isDetachment, detachmentType, externalSupervisorName } = req.body;
 
     // Prevent self-assignment as supervisor
     if (supervisorId === req.user!.id) {
@@ -81,15 +82,18 @@ router.post('/', authenticate, async (req: AuthRequest, res) => {
 
     const result = await query(
       `INSERT INTO presentations (
-        resident_id, year_id, date, title, venue, presentation_type, description, supervisor_id, status
-      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, 'PENDING') RETURNING *`,
-      [req.user!.id, yearId, date, title, venue, presentationType, description, supervisorId || null]
+        resident_id, year_id, date, title, venue, presentation_type, description, supervisor_id, status,
+        is_detachment, detachment_type, external_supervisor_name
+      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, 'PENDING', $9, $10, $11) RETURNING *`,
+      [req.user!.id, yearId, date, title, venue, presentationType, description, 
+       isDetachment ? null : (supervisorId || null),
+       isDetachment || false, detachmentType || null, externalSupervisorName || null]
     );
 
     console.log('Presentation created with ID:', result.rows[0].id);
 
-    // Send notification to supervisor if assigned
-    if (supervisorId) {
+    // Send notification to supervisor if assigned (not detachment)
+    if (supervisorId && !isDetachment) {
       console.log('Attempting to send notification to supervisor:', supervisorId);
       try {
         await sendNotification(

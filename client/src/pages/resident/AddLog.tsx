@@ -168,9 +168,7 @@ export default function AddLog() {
       await Promise.all(
         procedures.map((proc) => {
           const detachmentType = proc.procedureCategory === 'Orthopedic Surgery' ? 'ORTHOPEDICS'
-            : patientData.placeOfPractice === 'ALERT' ? 'ALERT'
-            : patientData.placeOfPractice === 'TASH' ? 'TASH'
-            : patientData.placeOfPractice === 'ABEBECH_GOBENA' ? 'ABEBECH_GOBENA'
+            : patientData.placeOfPractice !== 'Y12HMC' ? patientData.placeOfPractice
             : null;
           
           return api.post('/logs', {
@@ -347,6 +345,10 @@ export default function AddLog() {
                   <option value="ALERT">ALERT</option>
                   <option value="TASH">TASH</option>
                   <option value="ABEBECH_GOBENA">Abebech Gobena</option>
+                  <option value="ORTHOPEDICS">Orthopedics</option>
+                  <option value="ER">ER</option>
+                  <option value="ANESTHESIOLOGY">Anesthesiology</option>
+                  <option value="ICU">ICU</option>
                 </select>
               </div>
             </div>

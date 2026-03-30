@@ -57,7 +57,13 @@ export default function Presentations() {
     { value: 'ALERT', label: 'ALERT' },
     { value: 'TASH', label: 'TASH' },
     { value: 'ABEBECH_GOBENA', label: 'Abebech Gobena' },
+    { value: 'ORTHOPEDICS', label: 'Orthopedics' },
+    { value: 'ER', label: 'ER' },
+    { value: 'ANESTHESIOLOGY', label: 'Anesthesiology' },
+    { value: 'ICU', label: 'ICU' },
   ];
+
+  const detachmentVenues = ['ALERT', 'TASH', 'ABEBECH_GOBENA', 'ORTHOPEDICS', 'ER', 'ANESTHESIOLOGY', 'ICU'];
 
   const [formData, setFormData] = useState({
     date: new Date().toISOString().split('T')[0],
@@ -66,6 +72,7 @@ export default function Presentations() {
     presentationType: 'MORNING_PRESENTATION',
     description: '',
     supervisorId: '',
+    externalSupervisorName: '',
   });
 
   useEffect(() => {
@@ -222,18 +229,26 @@ export default function Presentations() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
+      const isDetachment = detachmentVenues.includes(formData.venue);
+      const payload = {
+        ...formData,
+        supervisorId: isDetachment ? null : formData.supervisorId,
+        isDetachment,
+        detachmentType: isDetachment ? formData.venue : null,
+        externalSupervisorName: isDetachment ? formData.externalSupervisorName : null,
+      };
       if (editingPresentation) {
-        await api.put(`/presentations/${editingPresentation.id}`, formData);
+        await api.put(`/presentations/${editingPresentation.id}`, payload);
       } else {
-        await api.post('/presentations', { ...formData, yearId: selectedYear });
+        await api.post('/presentations', { ...payload, yearId: selectedYear });
       }
       setShowModal(false);
       setEditingPresentation(null);
       resetForm();
       fetchPresentations();
       fetchStats();
-    } catch (error) {
-      alert('Failed to save presentation');
+    } catch (error: any) {
+      alert(error.response?.data?.error || 'Failed to save presentation');
     }
   };
 
@@ -254,6 +269,7 @@ export default function Presentations() {
       presentationType: presentation.presentation_type,
       description: presentation.description || '',
       supervisorId: presentation.supervisor_id || '',
+      externalSupervisorName: (presentation as any).external_supervisor_name || '',
     });
     setShowModal(true);
   };
@@ -298,6 +314,7 @@ export default function Presentations() {
       presentationType: 'MORNING_PRESENTATION',
       description: '',
       supervisorId: '',
+      externalSupervisorName: '',
     });
   };
 
@@ -824,27 +841,43 @@ export default function Presentations() {
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   Moderator <span className="text-red-500">*</span>
                 </label>
-                <select
-                  value={formData.supervisorId}
-                  onChange={(e) => setFormData({ ...formData, supervisorId: e.target.value })}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-                  required
-                >
-                  <option value="">Select Moderator</option>
-                  {supervisors.map((supervisor: any) => (
-                    <option key={supervisor.id} value={supervisor.id}>
-                      {supervisor.name}
-                      {supervisor.institution && supervisor.specialty 
-                        ? ` (${supervisor.institution} - ${supervisor.specialty})`
-                        : supervisor.institution 
-                        ? ` (${supervisor.institution})`
-                        : supervisor.specialty
-                        ? ` (${supervisor.specialty})`
-                        : ''}
-                    </option>
-                  ))}
-                </select>
-                <p className="text-xs text-gray-500 mt-1">Select the supervisor who will moderate this presentation</p>
+                {detachmentVenues.includes(formData.venue) ? (
+                  <>
+                    <input
+                      type="text"
+                      value={formData.externalSupervisorName}
+                      onChange={(e) => setFormData({ ...formData, externalSupervisorName: e.target.value })}
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500"
+                      placeholder={`Enter moderator name at ${venues.find(v => v.value === formData.venue)?.label || 'detachment'}`}
+                      required
+                    />
+                    <p className="text-xs text-amber-600 mt-1">Detachment presentation — type the moderator's name</p>
+                  </>
+                ) : (
+                  <>
+                    <select
+                      value={formData.supervisorId}
+                      onChange={(e) => setFormData({ ...formData, supervisorId: e.target.value })}
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                      required
+                    >
+                      <option value="">Select Moderator</option>
+                      {supervisors.map((supervisor: any) => (
+                        <option key={supervisor.id} value={supervisor.id}>
+                          {supervisor.name}
+                          {supervisor.institution && supervisor.specialty 
+                            ? ` (${supervisor.institution} - ${supervisor.specialty})`
+                            : supervisor.institution 
+                            ? ` (${supervisor.institution})`
+                            : supervisor.specialty
+                            ? ` (${supervisor.specialty})`
+                            : ''}
+                        </option>
+                      ))}
+                    </select>
+                    <p className="text-xs text-gray-500 mt-1">Select the supervisor who will moderate this presentation</p>
+                  </>
+                )}
               </div>
 
               <div>

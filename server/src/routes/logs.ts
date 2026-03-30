@@ -518,7 +518,7 @@ router.delete('/master/:logId', authenticate, authorize('MASTER'), async (req: A
   }
 });
 
-// Get detachment logs summary (for management/master)
+// Get detachment logs summary (for management/master) - includes procedures and presentations
 router.get('/detachment-summary', authenticate, async (req: AuthRequest, res) => {
   try {
     const userRole = req.user!.role;
@@ -531,37 +531,76 @@ router.get('/detachment-summary', authenticate, async (req: AuthRequest, res) =>
       return res.status(403).json({ error: 'Forbidden' });
     }
 
-    const result = await query(
+    // Procedures
+    const procResult = await query(
       `SELECT 
         u.id as resident_id, u.name as resident_name,
         (SELECT MAX(year) FROM resident_years WHERE resident_id = u.id) as year,
         sl.detachment_type,
         COUNT(*) as procedure_count,
-        COUNT(CASE WHEN sl.status != 'PENDING' OR sl.detachment_verified = true THEN 1 END) as verified_count,
+        0 as presentation_count,
+        BOOL_OR(sl.detachment_verified) as batch_verified,
         MAX(sl.detachment_rating) as detachment_rating,
-        MAX(sl.detachment_comment) as detachment_comment,
-        BOOL_OR(sl.detachment_verified) as batch_verified
+        MAX(sl.detachment_comment) as detachment_comment
        FROM surgical_logs sl
        JOIN users u ON sl.resident_id = u.id
        WHERE sl.is_detachment = true
-       GROUP BY u.id, u.name, sl.detachment_type
-       ORDER BY u.name, sl.detachment_type`
+       GROUP BY u.id, u.name, sl.detachment_type`
     );
 
-    res.json(result.rows);
+    // Presentations
+    const presResult = await query(
+      `SELECT 
+        u.id as resident_id, u.name as resident_name,
+        (SELECT MAX(year) FROM resident_years WHERE resident_id = u.id) as year,
+        p.detachment_type,
+        0 as procedure_count,
+        COUNT(*) as presentation_count,
+        BOOL_OR(p.detachment_verified) as batch_verified,
+        MAX(p.detachment_rating) as detachment_rating,
+        MAX(p.detachment_comment) as detachment_comment
+       FROM presentations p
+       JOIN users u ON p.resident_id = u.id
+       WHERE p.is_detachment = true
+       GROUP BY u.id, u.name, p.detachment_type`
+    );
+
+    // Merge by resident + detachment_type
+    const merged = new Map<string, any>();
+    for (const row of procResult.rows) {
+      const key = `${row.resident_id}-${row.detachment_type}`;
+      merged.set(key, { ...row, procedure_count: parseInt(row.procedure_count), presentation_count: 0 });
+    }
+    for (const row of presResult.rows) {
+      const key = `${row.resident_id}-${row.detachment_type}`;
+      if (merged.has(key)) {
+        const existing = merged.get(key);
+        existing.presentation_count = parseInt(row.presentation_count);
+        if (row.batch_verified) existing.batch_verified = true;
+        if (row.detachment_rating && (!existing.detachment_rating || row.detachment_rating > existing.detachment_rating)) {
+          existing.detachment_rating = row.detachment_rating;
+          existing.detachment_comment = row.detachment_comment;
+        }
+      } else {
+        merged.set(key, { ...row, procedure_count: 0, presentation_count: parseInt(row.presentation_count) });
+      }
+    }
+
+    const result = Array.from(merged.values()).sort((a, b) => a.resident_name.localeCompare(b.resident_name));
+    res.json(result);
   } catch (error) {
     console.error('Error fetching detachment summary:', error);
     res.status(500).json({ error: 'Failed to fetch detachment summary' });
   }
 });
 
-// Get detachment logs for a specific resident + detachment type
+// Get detachment logs for a specific resident + detachment type (procedures + presentations)
 router.get('/detachment/:residentId/:detachmentType', authenticate, async (req: AuthRequest, res) => {
   try {
     const { residentId, detachmentType } = req.params;
 
-    const result = await query(
-      `SELECT sl.*, u.name as supervisor_name
+    const procResult = await query(
+      `SELECT sl.*, u.name as supervisor_name, 'procedure' as item_type
        FROM surgical_logs sl
        LEFT JOIN users u ON sl.supervisor_id = u.id
        WHERE sl.resident_id = $1 AND sl.is_detachment = true AND sl.detachment_type = $2
@@ -569,7 +608,20 @@ router.get('/detachment/:residentId/:detachmentType', authenticate, async (req: 
       [residentId, detachmentType]
     );
 
-    res.json(result.rows);
+    const presResult = await query(
+      `SELECT p.*, u.name as supervisor_name, 'presentation' as item_type
+       FROM presentations p
+       LEFT JOIN users u ON p.supervisor_id = u.id
+       WHERE p.resident_id = $1 AND p.is_detachment = true AND p.detachment_type = $2
+       ORDER BY p.date DESC`,
+      [residentId, detachmentType]
+    );
+
+    const combined = [...procResult.rows, ...presResult.rows].sort((a, b) => 
+      new Date(b.date).getTime() - new Date(a.date).getTime()
+    );
+
+    res.json(combined);
   } catch (error) {
     console.error('Error fetching detachment logs:', error);
     res.status(500).json({ error: 'Failed to fetch detachment logs' });
@@ -591,8 +643,8 @@ router.post('/detachment-verify', authenticate, async (req: AuthRequest, res) =>
 
     const { residentId, detachmentType, rating, comment } = req.body;
 
-    // Update all unverified detachment logs for this resident + type
-    const result = await query(
+    // Update all unverified detachment logs for this resident + type (procedures)
+    const procResult = await query(
       `UPDATE surgical_logs 
        SET detachment_verified = true, 
            detachment_rating = $1, 
@@ -609,6 +661,26 @@ router.post('/detachment-verify', authenticate, async (req: AuthRequest, res) =>
       [rating, comment, req.user!.id, residentId, detachmentType]
     );
 
+    // Update all unverified detachment presentations for this resident + type
+    const presResult = await query(
+      `UPDATE presentations 
+       SET detachment_verified = true, 
+           detachment_rating = $1, 
+           detachment_comment = $2,
+           detachment_verified_by = $3,
+           detachment_verified_at = NOW(),
+           status = CASE WHEN status = 'PENDING' THEN 'RATED' ELSE status END,
+           updated_at = NOW()
+       WHERE resident_id = $4 
+         AND is_detachment = true 
+         AND detachment_type = $5
+         AND detachment_verified = false
+       RETURNING id`,
+      [rating, comment, req.user!.id, residentId, detachmentType]
+    );
+
+    const totalVerified = (procResult.rowCount || 0) + (presResult.rowCount || 0);
+
     // Send notification to resident
     const residentResult = await query('SELECT name FROM users WHERE id = $1', [residentId]);
     const verifierName = await getUserName(req.user!);
@@ -622,8 +694,8 @@ router.post('/detachment-verify', authenticate, async (req: AuthRequest, res) =>
 
     res.json({ 
       success: true, 
-      message: `Verified ${result.rowCount} detachment logs`,
-      count: result.rowCount
+      message: `Verified ${totalVerified} detachment items`,
+      count: totalVerified
     });
   } catch (error) {
     console.error('Error verifying detachment logs:', error);

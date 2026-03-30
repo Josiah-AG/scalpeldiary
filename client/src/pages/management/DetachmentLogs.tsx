@@ -65,7 +65,8 @@ export default function DetachmentLogs() {
 
   const getDetachmentLabel = (type: string) => {
     const labels: Record<string, string> = {
-      ALERT: 'ALERT', ORTHOPEDICS: 'Orthopedics', TASH: 'TASH', ABEBECH_GOBENA: 'Abebech Gobena'
+      ALERT: 'ALERT', ORTHOPEDICS: 'Orthopedics', TASH: 'TASH', ABEBECH_GOBENA: 'Abebech Gobena',
+      ER: 'ER', ANESTHESIOLOGY: 'Anesthesiology', ICU: 'ICU'
     };
     return labels[type] || type;
   };
@@ -105,6 +106,7 @@ export default function DetachmentLogs() {
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Year</th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Detachment</th>
                     <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">Procedures</th>
+                    <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">Presentations</th>
                     <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase">Status</th>
                   </tr>
                 </thead>
@@ -117,6 +119,7 @@ export default function DetachmentLogs() {
                         <span className="px-2 py-1 bg-amber-100 text-amber-800 rounded text-xs font-semibold">{getDetachmentLabel(group.detachment_type)}</span>
                       </td>
                       <td className="px-6 py-4 text-sm font-bold text-right text-blue-600">{group.procedure_count}</td>
+                      <td className="px-6 py-4 text-sm font-bold text-right text-green-600">{group.presentation_count}</td>
                       <td className="px-6 py-4 text-center">
                         {group.batch_verified ? (
                           <span className="px-2 py-1 bg-green-100 text-green-700 rounded-full text-xs font-semibold flex items-center justify-center">
@@ -160,8 +163,9 @@ export default function DetachmentLogs() {
                   <thead className="bg-gray-50">
                     <tr>
                       <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Date</th>
-                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">MRN</th>
-                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Procedure</th>
+                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Type</th>
+                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">MRN/Title</th>
+                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Detail</th>
                       <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Supervisor</th>
                       <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
                     </tr>
@@ -170,8 +174,13 @@ export default function DetachmentLogs() {
                     {detailLogs.map((log) => (
                       <tr key={log.id} className={log.detachment_verified ? 'bg-green-50' : log.status !== 'PENDING' ? 'bg-blue-50' : ''}>
                         <td className="px-4 py-3 text-sm">{format(new Date(log.date), 'MMM dd, yyyy')}</td>
-                        <td className="px-4 py-3 text-sm font-medium">{log.mrn}</td>
-                        <td className="px-4 py-3 text-sm">{log.procedure}</td>
+                        <td className="px-4 py-3 text-sm">
+                          <span className={`px-2 py-0.5 rounded text-xs font-semibold ${log.item_type === 'presentation' ? 'bg-green-100 text-green-700' : 'bg-blue-100 text-blue-700'}`}>
+                            {log.item_type === 'presentation' ? 'Presentation' : 'Procedure'}
+                          </span>
+                        </td>
+                        <td className="px-4 py-3 text-sm font-medium">{log.mrn || log.title}</td>
+                        <td className="px-4 py-3 text-sm">{log.procedure || log.presentation_type?.replace(/_/g, ' ')}</td>
                         <td className="px-4 py-3 text-sm">{log.supervisor_name || log.external_supervisor_name || 'External'}</td>
                         <td className="px-4 py-3 text-sm">
                           {log.detachment_verified ? (

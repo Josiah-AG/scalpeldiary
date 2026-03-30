@@ -257,6 +257,10 @@ export default function AllProcedures() {
                 <option value="ALERT">ALERT</option>
                 <option value="TASH">TASH</option>
                 <option value="ABEBECH_GOBENA">Abebech Gobena</option>
+                <option value="ORTHOPEDICS">Orthopedics</option>
+                <option value="ER">ER</option>
+                <option value="ANESTHESIOLOGY">Anesthesiology</option>
+                <option value="ICU">ICU</option>
               </select>
             </div>
             <div>
@@ -539,6 +543,10 @@ export default function AllProcedures() {
                     <option value="ALERT">ALERT</option>
                     <option value="TASH">TASH</option>
                     <option value="ABEBECH_GOBENA">Abebech Gobena</option>
+                    <option value="ORTHOPEDICS">Orthopedics</option>
+                    <option value="ER">ER</option>
+                    <option value="ANESTHESIOLOGY">Anesthesiology</option>
+                    <option value="ICU">ICU</option>
                   </select>
                 </div>
                 <div>
