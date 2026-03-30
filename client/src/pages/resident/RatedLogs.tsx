@@ -21,7 +21,9 @@ export default function RatedLogs() {
   const isReadOnlyMode = sessionStorage.getItem('isReadOnlyMode') === 'true';
   const viewingResidentId = sessionStorage.getItem('viewingResidentId');
   const { user } = useAuthStore();
-  const showExact = canSeeExactScores(user?.role, isReadOnlyMode);
+  // On this page, if not in read-only mode, the resident is viewing logs they rated as supervisor
+  // so they should see exact scores (they gave the rating)
+  const showExact = isReadOnlyMode ? canSeeExactScores(user?.role, true) : true;
 
   useEffect(() => {
     fetchYears();

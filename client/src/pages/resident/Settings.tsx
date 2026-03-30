@@ -14,8 +14,6 @@ export default function Settings() {
   const [confirmPassword, setConfirmPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [profilePicture, setProfilePicture] = useState<string>('');
-  const [specialty, setSpecialty] = useState<string>('');
-  const [editingSpecialty, setEditingSpecialty] = useState(false);
   const { user, setAuth } = useAuthStore();
 
   // Export state
@@ -48,19 +46,8 @@ export default function Settings() {
     try {
       const response = await api.get('/users/me');
       setProfilePicture(response.data.profile_picture || '');
-      setSpecialty(response.data.specialty || '');
     } catch (error) {
       console.error('Failed to fetch profile');
-    }
-  };
-
-  const handleUpdateSpecialty = async () => {
-    try {
-      await api.put('/users/specialty', { specialty });
-      alert('Specialty updated successfully');
-      setEditingSpecialty(false);
-    } catch (error) {
-      alert('Failed to update specialty');
     }
   };
 
@@ -445,44 +432,6 @@ export default function Settings() {
                 Max size: 2MB • Formats: JPG, PNG, GIF
               </p>
             </div>
-          </div>
-          
-          {/* Specialty Field */}
-          <div className="mt-6 pt-6 border-t">
-            <label className="block text-sm font-medium text-gray-700 mb-2">Specialty</label>
-            {editingSpecialty ? (
-              <div className="flex gap-2">
-                <input
-                  type="text"
-                  value={specialty}
-                  onChange={(e) => setSpecialty(e.target.value)}
-                  className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-                  placeholder="e.g., General Surgery"
-                />
-                <button
-                  onClick={handleUpdateSpecialty}
-                  className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
-                >
-                  Save
-                </button>
-                <button
-                  onClick={() => setEditingSpecialty(false)}
-                  className="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300"
-                >
-                  Cancel
-                </button>
-              </div>
-            ) : (
-              <div className="flex items-center justify-between">
-                <p className="text-gray-900">{specialty || 'Not set'}</p>
-                <button
-                  onClick={() => setEditingSpecialty(true)}
-                  className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
-                >
-                  Edit
-                </button>
-              </div>
-            )}
           </div>
         </div>
 
