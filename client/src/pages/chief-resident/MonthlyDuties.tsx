@@ -103,6 +103,7 @@ export default function MonthlyDuties() {
   const getCategoryColor = (categoryId: number) => {
     const category = categories.find(c => c.id === categoryId);
     return category?.color || '#3B82F6';
+  };
 
   const handleExportDuties = () => {
     const monthLabel = format(currentDate, 'MMMM yyyy');
@@ -135,7 +136,6 @@ export default function MonthlyDuties() {
 
     addPdfFooter(doc, `Duty Schedule — ${monthLabel}`);
     doc.save(`ScalpelDiary_Duties_${format(currentDate, 'yyyy_MM')}.pdf`);
-  };
   };
 
   const getCategoryName = (categoryId: number) => {
