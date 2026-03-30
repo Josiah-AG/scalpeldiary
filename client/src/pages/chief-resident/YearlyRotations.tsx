@@ -186,19 +186,31 @@ export default function YearlyRotations() {
       doc.setFont('helvetica', 'bold');
       doc.text(cat.name, x + cardW / 2, cy + 5.5, { align: 'center' });
 
-      // Residents
+      // Residents - bigger font, multi-column if many
       doc.setFont('helvetica', 'normal');
-      doc.setFontSize(8);
+      const fontSize = 9;
+      doc.setFontSize(fontSize);
+      const lineH = 5.5;
+      const bodyH = cardH - 10;
+      const maxPerCol = Math.floor(bodyH / lineH);
+      
       if (cat.residents.length === 0) {
         doc.setTextColor(180, 180, 180);
-        doc.text('No Resident', x + cardW / 2, cy + 14, { align: 'center' });
+        doc.setFontSize(9);
+        doc.text('No Resident', x + cardW / 2, cy + 16, { align: 'center' });
       } else {
         doc.setTextColor(50, 50, 50);
-        let ry = cy + 13;
-        cat.residents.forEach(name => {
-          if (ry < cy + cardH - 2) {
-            doc.text(name, x + cardW / 2, ry, { align: 'center', maxWidth: cardW - 6 });
-            ry += 5;
+        // Determine columns needed: 1, 2, or 3
+        const innerCols = cat.residents.length > maxPerCol * 2 ? 3 : cat.residents.length > maxPerCol ? 2 : 1;
+        const colW = (cardW - 4) / innerCols;
+        
+        cat.residents.forEach((name, idx) => {
+          const ic = Math.floor(idx / maxPerCol) % innerCols;
+          const ir = idx % maxPerCol;
+          const nx = x + 2 + ic * colW + colW / 2;
+          const ny = cy + 13 + ir * lineH;
+          if (ny < cy + cardH - 2) {
+            doc.text(name, nx, ny, { align: 'center', maxWidth: colW - 2 });
           }
         });
       }
