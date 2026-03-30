@@ -15,7 +15,7 @@ export function createPdfHeader(doc: jsPDF, title: string, subtitle: string) {
   doc.text('ScalpelDiary', 14, 14);
   doc.setFontSize(9);
   doc.setFont('helvetica', 'normal');
-  doc.text('Surgical Log Book', 14, 21);
+  doc.text('Comprehensive Surgical Training Management System', 14, 21);
 
   doc.setFontSize(13);
   doc.setFont('helvetica', 'bold');

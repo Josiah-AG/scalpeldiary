@@ -182,7 +182,7 @@ export default function Settings() {
       doc.text('ScalpelDiary', 14, 14);
       doc.setFontSize(9);
       doc.setFont('helvetica', 'normal');
-      doc.text('Surgical Log Book', 14, 21);
+      doc.text('Comprehensive Surgical Training Management System', 14, 21);
 
       doc.setFontSize(12);
       doc.setFont('helvetica', 'bold');
