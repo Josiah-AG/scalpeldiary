@@ -60,19 +60,7 @@ export default function AddLog() {
 
   const fetchSupervisors = async () => {
     try {
-      // Check if any procedure is Minor Surgery
-      const hasMinorSurgery = procedures.some(p => p.procedureCategory === 'Minor Surgery');
-      
-      const userResponse = await api.get('/users/me');
-      const currentUserId = userResponse.data.id;
-      
-      // Fetch supervisors based on whether we have minor surgery
-      const response = await api.get('/users/supervisors', {
-        params: {
-          procedureCategory: hasMinorSurgery ? 'MINOR_SURGERY' : 'OTHER',
-          residentId: currentUserId
-        }
-      });
+      const response = await api.get('/users/supervisors');
       setSupervisors(response.data);
     } catch (error) {
       console.error('Failed to fetch supervisors:', error);

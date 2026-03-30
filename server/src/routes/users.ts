@@ -233,14 +233,35 @@ router.get('/supervisors/stats', authenticate, async (req: AuthRequest, res) => 
   }
 });
 
-// Get only supervisors (for presentations)
+// Get only supervisors (for presentations) - includes senior residents
 router.get('/supervisors/only', authenticate, async (req: AuthRequest, res) => {
   try {
+    // Get the current user's year if they are a resident
+    const currentUserId = req.user!.id;
+    const currentUserRole = req.user!.role;
+    
+    let currentYear = 0;
+    if (currentUserRole === 'RESIDENT') {
+      const yearResult = await query(
+        'SELECT MAX(year) as max_year FROM resident_years WHERE resident_id = $1',
+        [currentUserId]
+      );
+      currentYear = yearResult.rows[0]?.max_year || 0;
+    }
+
+    // Return all supervisors + residents who are strictly senior to the current user
     const result = await query(
       `SELECT u.id, u.name, u.email, u.institution, u.specialty, COALESCE(u.is_senior, false) as is_senior 
        FROM users u
-       WHERE u.role = 'SUPERVISOR'
-       ORDER BY u.name`
+       WHERE (u.role = 'SUPERVISOR'
+         OR (u.role = 'RESIDENT' AND u.id != $1 AND EXISTS (
+           SELECT 1 FROM resident_years ry 
+           WHERE ry.resident_id = u.id 
+           AND ry.year > $2
+         )))
+       AND u.id != $1
+       ORDER BY u.role DESC, u.name`,
+      [currentUserId, currentYear]
     );
     res.json(result.rows);
   } catch (error) {
@@ -249,41 +270,34 @@ router.get('/supervisors/only', authenticate, async (req: AuthRequest, res) => {
   }
 });
 
-// Get supervisors (for dropdown) - with filtering based on procedure type and resident year
+// Get supervisors (for dropdown) - with seniority enforcement for residents
 router.get('/supervisors', authenticate, async (req: AuthRequest, res) => {
   try {
     const { procedureCategory, residentId } = req.query;
+    const currentUserId = residentId || req.user!.id;
     
-    // If no procedure category specified, return only supervisors (for presentations)
-    if (!procedureCategory) {
-      const result = await query(
-        `SELECT u.id, u.name, u.email, u.institution, u.specialty, COALESCE(u.is_senior, false) as is_senior 
-         FROM users u
-         WHERE u.role = 'SUPERVISOR'
-         ORDER BY u.name`
-      );
-      return res.json(result.rows);
-    }
-    
-    // Get current resident year if residentId provided
-    let minResidentYear = 2; // Default for MINOR procedures
-    
-    if (procedureCategory !== 'MINOR_SURGERY') {
-      minResidentYear = 3; // For non-minor procedures, need Year 3+
-    }
-    
+    // Get the requesting resident's current year
+    let currentYear = 0;
+    const yearResult = await query(
+      'SELECT MAX(year) as max_year FROM resident_years WHERE resident_id = $1',
+      [currentUserId]
+    );
+    currentYear = yearResult.rows[0]?.max_year || 0;
+
+    // Return all supervisors + residents who are strictly senior (higher year)
+    // Exclude self
     const result = await query(
       `SELECT u.id, u.name, u.email, u.institution, u.specialty, COALESCE(u.is_senior, false) as is_senior 
        FROM users u
        WHERE (u.role = 'SUPERVISOR' 
-       OR (u.role = 'RESIDENT' AND EXISTS (
-         SELECT 1 FROM resident_years ry 
-         WHERE ry.resident_id = u.id 
-         AND ry.year >= $1
-       )))
+         OR (u.role = 'RESIDENT' AND EXISTS (
+           SELECT 1 FROM resident_years ry 
+           WHERE ry.resident_id = u.id 
+           AND ry.year > $1
+         )))
        AND u.id != $2
        ORDER BY u.role DESC, u.name`,
-      [minResidentYear, residentId || '00000000-0000-0000-0000-000000000000']
+      [currentYear, currentUserId]
     );
     res.json(result.rows);
   } catch (error) {

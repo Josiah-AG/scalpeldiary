@@ -80,6 +80,20 @@ router.post('/', authenticate, async (req: AuthRequest, res) => {
       return res.status(400).json({ error: 'You cannot assign yourself as supervisor' });
     }
 
+    // If supervisor is a resident, enforce seniority (must be strictly senior)
+    const supervisorCheck = await query('SELECT role FROM users WHERE id = $1', [supervisorId]);
+    if (supervisorCheck.rows.length > 0 && supervisorCheck.rows[0].role === 'RESIDENT') {
+      const [myYearRes, supYearRes] = await Promise.all([
+        query('SELECT MAX(year) as y FROM resident_years WHERE resident_id = $1', [req.user!.id]),
+        query('SELECT MAX(year) as y FROM resident_years WHERE resident_id = $1', [supervisorId])
+      ]);
+      const myYear = myYearRes.rows[0]?.y || 0;
+      const supYear = supYearRes.rows[0]?.y || 0;
+      if (supYear <= myYear) {
+        return res.status(400).json({ error: 'You can only be supervised by a senior resident (higher year) or a supervisor' });
+      }
+    }
+
     const result = await query(
       `INSERT INTO surgical_logs (
         resident_id, year_id, date, mrn, age, sex, diagnosis, procedure,
@@ -146,6 +160,19 @@ router.post('/:logId/rate', authenticate, async (req: AuthRequest, res) => {
     );
     if (selfCheck.rows.length > 0 && selfCheck.rows[0].resident_id === req.user!.id) {
       return res.status(403).json({ error: 'You cannot rate your own procedure' });
+    }
+
+    // If rater is a resident, enforce seniority
+    if (req.user!.role === 'RESIDENT' && selfCheck.rows.length > 0) {
+      const [myYearRes, resYearRes] = await Promise.all([
+        query('SELECT MAX(year) as y FROM resident_years WHERE resident_id = $1', [req.user!.id]),
+        query('SELECT MAX(year) as y FROM resident_years WHERE resident_id = $1', [selfCheck.rows[0].resident_id])
+      ]);
+      const myYear = myYearRes.rows[0]?.y || 0;
+      const resYear = resYearRes.rows[0]?.y || 0;
+      if (myYear <= resYear) {
+        return res.status(403).json({ error: 'You can only rate junior residents (lower year than yours)' });
+      }
     }
 
     const status = rating ? 'RATED' : 'NOT_WITNESSED';
