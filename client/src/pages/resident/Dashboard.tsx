@@ -7,7 +7,7 @@ import { Activity, Award, Calendar, TrendingUp, Edit2, Trash2, X } from 'lucide-
 import YearProgressBar from '../../components/YearProgressBar';
 import ProgressDetailModal from '../../components/ProgressDetailModal';
 import { RotationModal, DutyModal, ActivityModal } from '../../components/TodayOverviewModals';
-import { getRatingLabel, getRatingTextColor, getResidentRatingBadge, canSeeExactScores } from '../../utils/ratingUtils';
+import { getRatingLabel, getRatingTextColor, getResidentRatingBadge, getSupervisorRatingBadge, canSeeExactScores } from '../../utils/ratingUtils';
 import { useAuthStore } from '../../store/authStore';
 
 export default function Dashboard() {
@@ -929,7 +929,7 @@ export default function Dashboard() {
                         (() => {
                           const showExact = canSeeExactScores(user?.role, isReadOnlyMode);
                           const badge = showExact 
-                            ? { text: surgery.rating, className: surgery.rating > 50 ? 'bg-green-600 text-white' : 'bg-red-600 text-white' }
+                            ? getSupervisorRatingBadge(surgery.rating, surgery.status)
                             : getResidentRatingBadge(surgery.rating, surgery.status);
                           return <span className={`px-2 py-0.5 md:px-3 md:py-1 rounded-full font-semibold text-xs ${badge.className}`}>{badge.text}</span>;
                         })()
@@ -1046,7 +1046,7 @@ export default function Dashboard() {
                         (() => {
                           const showExact = canSeeExactScores(user?.role, isReadOnlyMode);
                           const badge = showExact 
-                            ? { text: pres.rating, className: pres.rating > 50 ? 'bg-green-600 text-white' : 'bg-red-600 text-white' }
+                            ? getSupervisorRatingBadge(pres.rating, pres.status)
                             : getResidentRatingBadge(pres.rating, pres.status);
                           return <span className={`px-2 py-0.5 md:px-3 md:py-1 rounded-full font-semibold text-xs ${badge.className}`}>{badge.text}</span>;
                         })()
