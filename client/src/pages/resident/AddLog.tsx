@@ -66,7 +66,7 @@ export default function AddLog() {
   // Detect detachment and fetch appropriate supervisors
   useEffect(() => {
     const venue = patientData.placeOfPractice;
-    const hasOrtho = procedures.some(p => p.procedureCategory === 'Orthopedics');
+    const hasOrtho = procedures.some(p => p.procedureCategory === 'Orthopedic Surgery');
     
     if (venue !== 'Y12HMC' || hasOrtho) {
       setIsDetachment(true);
@@ -84,7 +84,7 @@ export default function AddLog() {
     try {
       const params: any = {};
       if (hasOrtho) {
-        params.category = 'Orthopedics';
+        params.category = 'Orthopedic Surgery';
       } else {
         params.venue = venue;
       }
@@ -167,7 +167,7 @@ export default function AddLog() {
       // Submit each procedure as a separate log with shared supervisor
       await Promise.all(
         procedures.map((proc) => {
-          const detachmentType = proc.procedureCategory === 'Orthopedics' ? 'ORTHOPEDICS'
+          const detachmentType = proc.procedureCategory === 'Orthopedic Surgery' ? 'ORTHOPEDICS'
             : patientData.placeOfPractice === 'ALERT' ? 'ALERT'
             : patientData.placeOfPractice === 'TASH' ? 'TASH'
             : patientData.placeOfPractice === 'ABEBECH_GOBENA' ? 'ABEBECH_GOBENA'

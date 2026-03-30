@@ -356,7 +356,7 @@ router.get('/detachment-supervisors', authenticate, async (req: AuthRequest, res
     }
 
     // For Orthopedics category: get senior residents on Orthopedics rotation
-    if (category === 'Orthopedics') {
+    if (category === 'Orthopedic Surgery') {
       const ayResult = await query('SELECT * FROM academic_years WHERE is_active = true LIMIT 1');
       if (ayResult.rows.length === 0) return res.json({ residents: [], externalLabel: 'Orthopedics Supervisor' });
 
