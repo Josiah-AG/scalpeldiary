@@ -471,23 +471,14 @@ router.put('/:userId/year', authenticate, authorize('MASTER'), async (req, res) 
       return res.status(400).json({ error: 'Only residents have years' });
     }
     
-    // Check if year already exists
-    const existingYear = await query(
-      'SELECT id FROM resident_years WHERE resident_id = $1 AND year = $2',
-      [userId, newYear]
-    );
-    
-    if (existingYear.rows.length > 0) {
-      return res.json({ message: 'Year already exists' });
-    }
-    
-    // Add new year (previous years are preserved)
+    // Remove all existing years and set the new one
+    await query('DELETE FROM resident_years WHERE resident_id = $1', [userId]);
     await query(
       'INSERT INTO resident_years (resident_id, year) VALUES ($1, $2)',
       [userId, newYear]
     );
     
-    res.json({ message: `Promoted to Year ${newYear} successfully` });
+    res.json({ message: `Year updated to Year ${newYear} successfully` });
   } catch (error) {
     console.error(error);
     res.status(500).json({ error: 'Failed to update year' });
