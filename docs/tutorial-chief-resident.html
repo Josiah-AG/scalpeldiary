@@ -1,0 +1,477 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ScalpelDiary — Chief Resident Tutorial</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Segoe UI',system-ui,-apple-system,sans-serif;background:#f0f4f8;color:#1e293b;line-height:1.7}
+.header{background:linear-gradient(135deg,#7e22ce,#a855f7);color:#fff;padding:48px 20px;text-align:center}
+.header h1{font-size:2.4em;margin-bottom:6px;letter-spacing:-0.5px}
+.header .sub{opacity:.8;font-size:1em;margin-bottom:14px}
+.header .badge{display:inline-block;background:rgba(255,255,255,.2);padding:8px 24px;border-radius:24px;font-size:.95em;font-weight:600;backdrop-filter:blur(4px)}
+.container{max-width:760px;margin:0 auto;padding:24px 16px}
+.toc{background:#fff;border-radius:16px;box-shadow:0 2px 12px rgba(0,0,0,.06);padding:24px;margin-bottom:28px}
+.toc h3{font-size:1.1em;color:#7e22ce;margin-bottom:12px}
+.toc a{display:block;padding:6px 0;color:#a855f7;text-decoration:none;font-size:.95em}
+.toc a:hover{text-decoration:underline}
+.section{background:#fff;border-radius:16px;box-shadow:0 2px 16px rgba(0,0,0,.06);margin:28px 0;overflow:hidden}
+.section-hdr{padding:20px 24px;border-bottom:3px solid #a855f7;display:flex;align-items:center;gap:14px}
+.section-hdr .n{background:#a855f7;color:#fff;width:40px;height:40px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:1.2em;flex-shrink:0}
+.section-hdr h2{font-size:1.35em;color:#7e22ce}
+.section-body{padding:24px}
+.step{display:flex;gap:14px;margin:14px 0;align-items:flex-start}
+.step .d{background:#f3e8ff;color:#9333ea;min-width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:.8em;flex-shrink:0;margin-top:2px}
+.step p{flex:1;font-size:.95em}
+.step strong,.step b{color:#7e22ce}
+.tip{background:#fef9c3;border-left:4px solid #eab308;padding:14px 18px;border-radius:0 10px 10px 0;margin:16px 0;font-size:.9em}
+.tip b{color:#854d0e}
+.warn{background:#fee2e2;border-left:4px solid #ef4444;padding:14px 18px;border-radius:0 10px 10px 0;margin:16px 0;font-size:.9em}
+.warn b{color:#991b1b}
+.phone{width:280px;margin:20px auto;background:#111827;border-radius:28px;padding:8px;box-shadow:0 8px 32px rgba(0,0,0,.2)}
+.phone-screen{background:#fff;border-radius:22px;overflow:hidden;min-height:400px}
+.phone-status{background:#7e22ce;color:#fff;font-size:10px;padding:6px 16px;display:flex;justify-content:space-between}
+.phone-nav{background:linear-gradient(135deg,#7e22ce,#a855f7);color:#fff;padding:12px 16px;display:flex;align-items:center;gap:10px}
+.phone-nav .hamburger{font-size:18px;cursor:pointer}
+.phone-nav .title{font-weight:700;font-size:14px;flex:1}
+.phone-nav .bell{font-size:16px}
+.phone-content{padding:12px}
+.mini-card{border-radius:10px;padding:10px 12px;margin:6px 0;color:#fff;font-size:11px}
+.mini-card .label{opacity:.8;font-size:9px}
+.mini-card .val{font-size:18px;font-weight:800;margin-top:2px}
+.mini-input{border:1px solid #d1d5db;border-radius:6px;padding:6px 10px;font-size:11px;width:100%;margin:4px 0;background:#f9fafb;color:#374151}
+.mini-select{border:1px solid #d1d5db;border-radius:6px;padding:6px 10px;font-size:11px;width:100%;margin:4px 0;background:#f9fafb;color:#374151;appearance:none}
+.mini-btn{border:none;border-radius:8px;padding:8px 16px;font-size:11px;font-weight:700;cursor:pointer;display:inline-block;margin:4px 2px}
+.mini-btn.blue{background:#2563eb;color:#fff}
+.mini-btn.purple{background:#9333ea;color:#fff}
+.mini-btn.green{background:#16a34a;color:#fff}
+.mini-btn.gray{background:#e5e7eb;color:#374151}
+.mini-btn.red{background:#ef4444;color:#fff}
+.mini-label{font-size:10px;color:#6b7280;font-weight:600;margin-top:6px;display:block}
+.mini-table{width:100%;border-collapse:collapse;font-size:10px;margin:6px 0}
+.mini-table th{background:#9333ea;color:#fff;padding:4px 6px;text-align:left;font-size:9px}
+.mini-table td{padding:4px 6px;border-bottom:1px solid #e5e7eb}
+.mini-badge{display:inline-block;padding:2px 8px;border-radius:10px;font-size:9px;font-weight:700}
+.mini-today{background:linear-gradient(135deg,#9333ea,#a855f7);color:#fff;border-radius:12px;padding:12px;margin:6px 0}
+.mini-today .t-title{font-size:12px;font-weight:700;margin-bottom:6px}
+.mini-today .t-cards{display:flex;gap:6px;flex-wrap:wrap}
+.mini-today .t-card{background:rgba(255,255,255,.15);border-radius:8px;padding:6px 8px;font-size:10px;flex:1;min-width:70px}
+.mini-today .t-card .t-label{font-size:8px;opacity:.8}
+.mini-today .t-card .t-val{font-weight:700;font-size:11px;margin-top:2px}
+.arrow-label{text-align:center;color:#ef4444;font-size:12px;font-weight:700;margin:4px 0;animation:pulse 1.5s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+.caption{text-align:center;color:#64748b;font-size:.85em;margin:8px 0 16px;font-style:italic}
+.footer{text-align:center;padding:40px 20px;color:#94a3b8;font-size:.85em}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+</style>
+</head>
+<body>
+<div class="header">
+<h1>📱 ScalpelDiary</h1>
+<div class="sub">Comprehensive Surgical Training Management System</div>
+<div class="badge">👑 Chief Resident Tutorial Guide</div>
+</div>
+<div class="container">
+
+<div class="toc">
+<h3>📋 Table of Contents</h3>
+<a href="#s1">1. Accessing Chief Resident Features</a>
+<a href="#s2">2. Yearly Rotation Scheduling</a>
+<a href="#s3">3. Monthly Duty Scheduling</a>
+<a href="#s4">4. Monthly Activity Scheduling</a>
+<a href="#s5">5. Assign Presentations</a>
+<a href="#s6">6. Exporting Schedules as PDF</a>
+<a href="#s7">7. Category Management</a>
+<a href="#s8">8. Tips & Best Practices</a>
+</div>
+
+<!-- SECTION 1: Accessing Chief Resident Features -->
+<div class="section" id="s1">
+<div class="section-hdr"><div class="n">1</div><h2>Accessing Chief Resident Features</h2></div>
+<div class="section-body">
+<p>Chief Resident features are accessed through a special toggle in the sidebar. You must be designated as a Chief Resident by the administrator.</p>
+
+<div class="step"><div class="d">1</div><p>Sign in with your <b>resident credentials</b> as usual</p></div>
+<div class="step"><div class="d">2</div><p>Tap the <b>☰ menu</b> icon to open the sidebar</p></div>
+<div class="step"><div class="d">3</div><p>Look for the <b>"Chief Resident"</b> toggle at the top of the sidebar</p></div>
+
+<div class="phone">
+<div class="phone-screen">
+<div class="phone-nav"><div class="hamburger">☰</div><div class="title">Dashboard</div><div class="bell">🔔</div></div>
+<div class="phone-content">
+<div style="background:#f3e8ff;border-radius:12px;padding:12px;margin-bottom:10px;border:2px solid #a855f7">
+<div style="display:flex;justify-content:space-between;align-items:center">
+<div>
+<div style="font-size:12px;font-weight:700;color:#7e22ce">👑 Chief Resident Mode</div>
+<div style="font-size:9px;color:#6b7280">Toggle to access scheduling features</div>
+</div>
+<div style="width:40px;height:22px;background:#a855f7;border-radius:11px;position:relative">
+<div style="width:18px;height:18px;background:#fff;border-radius:50%;position:absolute;right:2px;top:2px"></div>
+</div>
+</div>
+</div>
+<div style="font-size:10px;font-weight:700;color:#7e22ce;margin:10px 0 6px">📋 Chief Resident Menu</div>
+<div style="background:#faf5ff;border-radius:8px;padding:8px 10px;margin:4px 0;font-size:11px;border-left:3px solid #a855f7">📅 Yearly Rotations</div>
+<div style="background:#faf5ff;border-radius:8px;padding:8px 10px;margin:4px 0;font-size:11px;border-left:3px solid #a855f7">📆 Monthly Duties</div>
+<div style="background:#faf5ff;border-radius:8px;padding:8px 10px;margin:4px 0;font-size:11px;border-left:3px solid #a855f7">🗓️ Monthly Activities</div>
+<div style="background:#faf5ff;border-radius:8px;padding:8px 10px;margin:4px 0;font-size:11px;border-left:3px solid #a855f7">🎤 Assign Presentations</div>
+<div style="background:#faf5ff;border-radius:8px;padding:8px 10px;margin:4px 0;font-size:11px;border-left:3px solid #a855f7">⚙️ Category Management</div>
+</div>
+</div>
+</div>
+<div class="caption">Sidebar — Toggle Chief Resident mode to reveal scheduling menu</div>
+
+<div class="step"><div class="d">4</div><p>Tap the <b>toggle</b> to enable Chief Resident mode — new menu items appear</p></div>
+<div class="step"><div class="d">5</div><p>You can switch back to <b>regular resident mode</b> anytime by toggling off</p></div>
+
+<div class="tip"><b>💡 Tip:</b> When Chief Resident mode is on, you still have access to all regular resident features (Add Log, Presentations, Analytics, etc.).</div>
+<div class="warn"><b>⚠️ Note:</b> If you don't see the toggle, contact your administrator to enable Chief Resident access for your account.</div>
+</div>
+</div>
+
+<!-- SECTION 2: Yearly Rotation Scheduling -->
+<div class="section" id="s2">
+<div class="section-hdr"><div class="n">2</div><h2>Yearly Rotation Scheduling</h2></div>
+<div class="section-body">
+<div class="step"><div class="d">1</div><p>From the Chief Resident menu, tap <b>"Yearly Rotations"</b></p></div>
+<div class="step"><div class="d">2</div><p>Select the <b>Academic Year</b> and <b>Resident Year</b> to manage</p></div>
+
+<div class="phone">
+<div class="phone-screen">
+<div class="phone-nav"><div class="hamburger">☰</div><div class="title">Yearly Rotations</div></div>
+<div class="phone-content">
+<div class="grid2">
+<div><div class="mini-label">Academic Year</div><div class="mini-select">2025-2026 ▾</div></div>
+<div><div class="mini-label">Resident Year</div><div class="mini-select">Year 1 ▾</div></div>
+</div>
+<div style="font-size:10px;font-weight:700;color:#7e22ce;margin:10px 0 4px">Rotation Schedule</div>
+<div style="overflow-x:auto">
+<table class="mini-table">
+<tr><th>Resident</th><th>Oct</th><th>Nov</th><th>Dec</th><th>Jan</th><th>Feb</th></tr>
+<tr>
+<td style="font-weight:600;font-size:9px">Dr. Jemal</td>
+<td><span style="background:#dbeafe;padding:1px 4px;border-radius:4px;font-size:8px;cursor:pointer">GS</span></td>
+<td><span style="background:#fef3c7;padding:1px 4px;border-radius:4px;font-size:8px;cursor:pointer">Ortho</span></td>
+<td><span style="background:#d1fae5;padding:1px 4px;border-radius:4px;font-size:8px;cursor:pointer">Uro</span></td>
+<td><span style="background:#fce7f3;padding:1px 4px;border-radius:4px;font-size:8px;cursor:pointer">Ped</span></td>
+<td><span style="background:#e0e7ff;padding:1px 4px;border-radius:4px;font-size:8px;cursor:pointer">Neuro</span></td>
+</tr>
+<tr>
+<td style="font-weight:600;font-size:9px">Dr. Sara</td>
+<td><span style="background:#fef3c7;padding:1px 4px;border-radius:4px;font-size:8px">Ortho</span></td>
+<td><span style="background:#dbeafe;padding:1px 4px;border-radius:4px;font-size:8px">GS</span></td>
+<td><span style="background:#fce7f3;padding:1px 4px;border-radius:4px;font-size:8px">Ped</span></td>
+<td><span style="background:#d1fae5;padding:1px 4px;border-radius:4px;font-size:8px">Uro</span></td>
+<td><span style="background:#dbeafe;padding:1px 4px;border-radius:4px;font-size:8px">GS</span></td>
+</tr>
+<tr>
+<td style="font-weight:600;font-size:9px">Dr. Abebe</td>
+<td><span style="background:#d1fae5;padding:1px 4px;border-radius:4px;font-size:8px">Uro</span></td>
+<td><span style="background:#fce7f3;padding:1px 4px;border-radius:4px;font-size:8px">Ped</span></td>
+<td><span style="background:#fef3c7;padding:1px 4px;border-radius:4px;font-size:8px">Ortho</span></td>
+<td><span style="background:#dbeafe;padding:1px 4px;border-radius:4px;font-size:8px">GS</span></td>
+<td><span style="background:#fef3c7;padding:1px 4px;border-radius:4px;font-size:8px">Ortho</span></td>
+</tr>
+</table>
+</div>
+<div class="arrow-label">👆 Tap any cell to assign/change rotation</div>
+<div style="margin-top:8px;display:flex;gap:4px">
+<div class="mini-btn purple" style="flex:1;text-align:center;font-size:10px">📄 Export PDF</div>
+<div class="mini-btn gray" style="flex:1;text-align:center;font-size:10px">🔄 Reset Year</div>
+</div>
+</div>
+</div>
+</div>
+<div class="caption">Yearly Rotations — Tap cells to assign rotations per month</div>
+
+<div class="step"><div class="d">3</div><p>Tap any <b>cell</b> in the table to assign or change a rotation for that resident/month</p></div>
+<div class="step"><div class="d">4</div><p>A popup appears — select the <b>rotation category</b> and <b>institution</b></p></div>
+<div class="step"><div class="d">5</div><p>The table updates with <b>color-coded</b> rotation badges</p></div>
+
+<div class="tip"><b>💡 Color Coding:</b> Each rotation category has a unique color. This makes it easy to spot patterns and ensure balanced distribution across residents.</div>
+<div class="warn"><b>⚠️ Important:</b> Changes are saved immediately. There's no undo — but you can tap the cell again to change the assignment.</div>
+</div>
+</div>
+
+<!-- SECTION 3: Monthly Duty Scheduling -->
+<div class="section" id="s3">
+<div class="section-hdr"><div class="n">3</div><h2>Monthly Duty Scheduling</h2></div>
+<div class="section-body">
+<div class="step"><div class="d">1</div><p>From the Chief Resident menu, tap <b>"Monthly Duties"</b></p></div>
+<div class="step"><div class="d">2</div><p>Select the <b>month</b> and <b>year</b> to schedule</p></div>
+
+<div class="phone">
+<div class="phone-screen">
+<div class="phone-nav"><div class="hamburger">☰</div><div class="title">Monthly Duties</div></div>
+<div class="phone-content">
+<div class="grid2">
+<div><div class="mini-label">Month</div><div class="mini-select">March 2026 ▾</div></div>
+<div><div class="mini-label">Year Group</div><div class="mini-select">All Years ▾</div></div>
+</div>
+<div style="font-size:10px;font-weight:700;color:#7e22ce;margin:10px 0 4px">📅 March 2026 — Duty Calendar</div>
+<div style="display:grid;grid-template-columns:repeat(7,1fr);gap:2px;font-size:8px;text-align:center">
+<div style="font-weight:700;color:#7e22ce;padding:2px">Mon</div>
+<div style="font-weight:700;color:#7e22ce;padding:2px">Tue</div>
+<div style="font-weight:700;color:#7e22ce;padding:2px">Wed</div>
+<div style="font-weight:700;color:#7e22ce;padding:2px">Thu</div>
+<div style="font-weight:700;color:#7e22ce;padding:2px">Fri</div>
+<div style="font-weight:700;color:#ef4444;padding:2px">Sat</div>
+<div style="font-weight:700;color:#ef4444;padding:2px">Sun</div>
+<!-- Week 1 -->
+<div style="background:#f8fafc;padding:3px;border-radius:4px;min-height:32px"></div>
+<div style="background:#f8fafc;padding:3px;border-radius:4px;min-height:32px"></div>
+<div style="background:#f8fafc;padding:3px;border-radius:4px;min-height:32px"><div style="font-weight:700">1</div><div style="background:#a855f7;color:#fff;border-radius:3px;padding:1px;font-size:6px;margin-top:1px">EOPD: Jemal</div></div>
+<div style="background:#f8fafc;padding:3px;border-radius:4px;min-height:32px"><div style="font-weight:700">2</div><div style="background:#3b82f6;color:#fff;border-radius:3px;padding:1px;font-size:6px;margin-top:1px">Ward: Sara</div></div>
+<div style="background:#f8fafc;padding:3px;border-radius:4px;min-height:32px"><div style="font-weight:700">3</div><div style="background:#10b981;color:#fff;border-radius:3px;padding:1px;font-size:6px;margin-top:1px">OR: Abebe</div></div>
+<div style="background:#fef2f2;padding:3px;border-radius:4px;min-height:32px"><div style="font-weight:700;color:#ef4444">4</div><div style="background:#ef4444;color:#fff;border-radius:3px;padding:1px;font-size:6px;margin-top:1px">Call: Jemal</div></div>
+<div style="background:#fef2f2;padding:3px;border-radius:4px;min-height:32px"><div style="font-weight:700;color:#ef4444">5</div><div style="background:#ef4444;color:#fff;border-radius:3px;padding:1px;font-size:6px;margin-top:1px">Call: Sara</div></div>
+<!-- Week 2 -->
+<div style="background:#f8fafc;padding:3px;border-radius:4px;min-height:32px"><div style="font-weight:700">6</div><div style="background:#a855f7;color:#fff;border-radius:3px;padding:1px;font-size:6px;margin-top:1px">EOPD: Sara</div></div>
+<div style="background:#f8fafc;padding:3px;border-radius:4px;min-height:32px"><div style="font-weight:700">7</div><div style="background:#3b82f6;color:#fff;border-radius:3px;padding:1px;font-size:6px;margin-top:1px">Ward: Abebe</div></div>
+<div style="background:#f8fafc;padding:3px;border-radius:4px;min-height:32px"><div style="font-weight:700">8</div></div>
+<div style="background:#f8fafc;padding:3px;border-radius:4px;min-height:32px"><div style="font-weight:700">9</div></div>
+<div style="background:#f8fafc;padding:3px;border-radius:4px;min-height:32px"><div style="font-weight:700">10</div></div>
+<div style="background:#fef2f2;padding:3px;border-radius:4px;min-height:32px"><div style="font-weight:700;color:#ef4444">11</div></div>
+<div style="background:#fef2f2;padding:3px;border-radius:4px;min-height:32px"><div style="font-weight:700;color:#ef4444">12</div></div>
+</div>
+<div class="arrow-label" style="margin-top:6px">👆 Tap any day to assign duties</div>
+</div>
+</div>
+</div>
+<div class="caption">Monthly Duties — Calendar view with color-coded duty assignments</div>
+
+<div class="step"><div class="d">3</div><p>Tap any <b>day</b> on the calendar to open the assignment popup</p></div>
+<div class="step"><div class="d">4</div><p>Select the <b>duty type</b> (EOPD, Ward, OR, Call, etc.) and assign a <b>resident</b></p></div>
+<div class="step"><div class="d">5</div><p>Weekend days are <b>highlighted in red</b> — these typically need on-call assignments</p></div>
+
+<div class="tip"><b>💡 Tip:</b> Duties are color-coded by type. You can assign multiple duties per day to different residents.</div>
+<div class="tip"><b>📊 Balance Check:</b> Scroll down to see a summary of how many duties each resident has been assigned for the month — helps ensure fair distribution.</div>
+</div>
+</div>
+
+<!-- SECTION 4: Monthly Activity Scheduling -->
+<div class="section" id="s4">
+<div class="section-hdr"><div class="n">4</div><h2>Monthly Activity Scheduling</h2></div>
+<div class="section-body">
+<div class="step"><div class="d">1</div><p>From the Chief Resident menu, tap <b>"Monthly Activities"</b></p></div>
+<div class="step"><div class="d">2</div><p>Select the <b>month</b> and <b>year group</b></p></div>
+
+<div class="phone">
+<div class="phone-screen">
+<div class="phone-nav"><div class="hamburger">☰</div><div class="title">Monthly Activities</div></div>
+<div class="phone-content">
+<div class="grid2">
+<div><div class="mini-label">Month</div><div class="mini-select">March 2026 ▾</div></div>
+<div><div class="mini-label">Year Group</div><div class="mini-select">Year 1 ▾</div></div>
+</div>
+<div style="font-size:10px;font-weight:700;color:#7e22ce;margin:10px 0 4px">Activity Schedule</div>
+<table class="mini-table">
+<tr><th>Resident</th><th>Week 1</th><th>Week 2</th><th>Week 3</th><th>Week 4</th></tr>
+<tr>
+<td style="font-weight:600;font-size:9px">Dr. Jemal</td>
+<td><span style="background:#dbeafe;padding:1px 4px;border-radius:4px;font-size:7px">OR</span></td>
+<td><span style="background:#fef3c7;padding:1px 4px;border-radius:4px;font-size:7px">OPD</span></td>
+<td><span style="background:#d1fae5;padding:1px 4px;border-radius:4px;font-size:7px">Ward</span></td>
+<td><span style="background:#fce7f3;padding:1px 4px;border-radius:4px;font-size:7px">ER</span></td>
+</tr>
+<tr>
+<td style="font-weight:600;font-size:9px">Dr. Sara</td>
+<td><span style="background:#fef3c7;padding:1px 4px;border-radius:4px;font-size:7px">OPD</span></td>
+<td><span style="background:#d1fae5;padding:1px 4px;border-radius:4px;font-size:7px">Ward</span></td>
+<td><span style="background:#fce7f3;padding:1px 4px;border-radius:4px;font-size:7px">ER</span></td>
+<td><span style="background:#dbeafe;padding:1px 4px;border-radius:4px;font-size:7px">OR</span></td>
+</tr>
+<tr>
+<td style="font-weight:600;font-size:9px">Dr. Abebe</td>
+<td><span style="background:#d1fae5;padding:1px 4px;border-radius:4px;font-size:7px">Ward</span></td>
+<td><span style="background:#fce7f3;padding:1px 4px;border-radius:4px;font-size:7px">ER</span></td>
+<td><span style="background:#dbeafe;padding:1px 4px;border-radius:4px;font-size:7px">OR</span></td>
+<td><span style="background:#fef3c7;padding:1px 4px;border-radius:4px;font-size:7px">OPD</span></td>
+</tr>
+</table>
+<div class="arrow-label">👆 Tap any cell to assign/change activity</div>
+<div style="margin-top:8px">
+<div class="mini-btn purple" style="width:100%;text-align:center;font-size:10px">📄 Export PDF</div>
+</div>
+</div>
+</div>
+</div>
+<div class="caption">Monthly Activities — Assign weekly activities per resident</div>
+
+<div class="step"><div class="d">3</div><p>Tap any <b>cell</b> to assign or change the activity for that resident/week</p></div>
+<div class="step"><div class="d">4</div><p>Select the <b>activity category</b> (OR, OPD, Ward, ER, etc.)</p></div>
+<div class="step"><div class="d">5</div><p>Activities are <b>color-coded</b> for easy visual identification</p></div>
+
+<div class="tip"><b>💡 Tip:</b> Activities differ from duties — activities represent the primary assignment for the week (where the resident spends most of their time), while duties are specific daily tasks.</div>
+</div>
+</div>
+
+<!-- SECTION 5: Assign Presentations -->
+<div class="section" id="s5">
+<div class="section-hdr"><div class="n">5</div><h2>Assign Presentations</h2></div>
+<div class="section-body">
+<div class="step"><div class="d">1</div><p>From the Chief Resident menu, tap <b>"Assign Presentations"</b></p></div>
+
+<div class="phone">
+<div class="phone-screen">
+<div class="phone-nav"><div class="hamburger">☰</div><div class="title">Assign Presentations</div></div>
+<div class="phone-content">
+<div style="display:flex;gap:4px;margin-bottom:8px">
+<div style="flex:1;background:#9333ea;color:#fff;text-align:center;padding:6px;border-radius:8px;font-size:10px;font-weight:700">Assign New</div>
+<div style="flex:1;background:#f1f5f9;color:#64748b;text-align:center;padding:6px;border-radius:8px;font-size:10px;font-weight:600">History</div>
+</div>
+<div style="background:#faf5ff;border-radius:10px;padding:12px;border:1px solid #e9d5ff">
+<div class="mini-label">Select Resident</div>
+<div class="mini-select">Dr. Jemal (Year 1) ▾</div>
+<div class="mini-label">Presentation Title</div>
+<div class="mini-input">Wound Management Principles</div>
+<div class="grid2">
+<div><div class="mini-label">Date</div><div class="mini-input">2026-04-10</div></div>
+<div><div class="mini-label">Type</div><div class="mini-select">Morning Presentation ▾</div></div>
+</div>
+<div class="mini-label">Venue</div>
+<div class="mini-select">Y12HMC ▾</div>
+<div class="mini-label">Notes (optional)</div>
+<div class="mini-input" style="height:30px">Cover basic wound care and suturing</div>
+<div class="mini-btn purple" style="width:100%;text-align:center;padding:10px;margin-top:8px">Assign Presentation</div>
+</div>
+</div>
+</div>
+</div>
+<div class="caption">Assign Presentations — Set topic, date, and venue for residents</div>
+
+<div class="step"><div class="d">2</div><p>Select a <b>resident</b>, enter the <b>title</b>, <b>date</b>, <b>type</b>, and <b>venue</b></p></div>
+<div class="step"><div class="d">3</div><p>Tap <b>"Assign Presentation"</b> — the resident receives a notification</p></div>
+<div class="step"><div class="d">4</div><p>Switch to the <b>"History"</b> tab to see all previously assigned presentations and their status</p></div>
+
+<div class="tip"><b>💡 Tip:</b> Assigned presentations appear in the resident's "Assigned" tab under Presentations. They can mark it as "Presented" once completed.</div>
+</div>
+</div>
+
+<!-- SECTION 6: Exporting Schedules as PDF -->
+<div class="section" id="s6">
+<div class="section-hdr"><div class="n">6</div><h2>Exporting Schedules as PDF</h2></div>
+<div class="section-body">
+<p>You can export any schedule as a PDF for printing or sharing with the department.</p>
+
+<div class="step"><div class="d">1</div><p>Navigate to the schedule you want to export (Rotations, Duties, or Activities)</p></div>
+<div class="step"><div class="d">2</div><p>Tap the <b>"Export PDF"</b> button at the bottom of the schedule</p></div>
+
+<div class="phone">
+<div class="phone-screen" style="min-height:350px">
+<div style="background:linear-gradient(135deg,#7e22ce,#a855f7);color:#fff;padding:12px 16px;display:flex;justify-content:space-between;align-items:center">
+<div style="font-weight:700;font-size:13px">📄 Export Schedule</div>
+<div style="font-size:16px">✕</div>
+</div>
+<div style="padding:14px">
+<div style="font-size:11px;font-weight:700;color:#7e22ce;margin-bottom:8px">Export Options</div>
+<div class="mini-label">Schedule Type</div>
+<div class="mini-select">Yearly Rotations ▾</div>
+<div class="mini-label">Academic Year</div>
+<div class="mini-select">2025-2026 ▾</div>
+<div class="mini-label">Year Group</div>
+<div class="mini-select">All Years ▾</div>
+<div style="background:#faf5ff;border:1px solid #e9d5ff;border-radius:8px;padding:10px;margin:10px 0">
+<div style="font-size:10px;font-weight:600;color:#7e22ce;margin-bottom:4px">PDF will include:</div>
+<div style="font-size:9px;color:#6b7280">✓ Full rotation table with color coding</div>
+<div style="font-size:9px;color:#6b7280">✓ Resident names and year groups</div>
+<div style="font-size:9px;color:#6b7280">✓ Institution assignments</div>
+<div style="font-size:9px;color:#6b7280">✓ Generated date and academic year</div>
+</div>
+<div class="mini-btn purple" style="width:100%;text-align:center;padding:10px">⬇ Download PDF</div>
+</div>
+</div>
+</div>
+<div class="caption">Export popup — Choose schedule type and filters before downloading</div>
+
+<div class="step"><div class="d">3</div><p>Select the <b>schedule type</b>, <b>year</b>, and <b>year group</b></p></div>
+<div class="step"><div class="d">4</div><p>Tap <b>"Download PDF"</b> — the file downloads to your device</p></div>
+
+<div class="tip"><b>💡 Tip:</b> Export PDFs at the beginning of each month to share with the department. The PDF includes all color coding and is formatted for A4 printing.</div>
+</div>
+</div>
+
+<!-- SECTION 7: Category Management -->
+<div class="section" id="s7">
+<div class="section-hdr"><div class="n">7</div><h2>Category Management</h2></div>
+<div class="section-body">
+<p>Manage the categories used across the scheduling system — rotations, duties, and activities.</p>
+
+<div class="step"><div class="d">1</div><p>From the Chief Resident menu, tap <b>"Category Management"</b></p></div>
+
+<div class="phone">
+<div class="phone-screen">
+<div class="phone-nav"><div class="hamburger">☰</div><div class="title">Category Management</div></div>
+<div class="phone-content">
+<div style="display:flex;gap:4px;margin-bottom:8px">
+<div style="flex:1;background:#9333ea;color:#fff;text-align:center;padding:6px;border-radius:8px;font-size:10px;font-weight:700">Rotations</div>
+<div style="flex:1;background:#f1f5f9;color:#64748b;text-align:center;padding:6px;border-radius:8px;font-size:10px;font-weight:600">Duties</div>
+<div style="flex:1;background:#f1f5f9;color:#64748b;text-align:center;padding:6px;border-radius:8px;font-size:10px;font-weight:600">Activities</div>
+</div>
+<div style="font-size:10px;font-weight:700;color:#7e22ce;margin:6px 0 4px">Rotation Categories</div>
+<div style="background:#faf5ff;border:1px solid #e9d5ff;border-radius:8px;padding:8px;margin:4px 0;display:flex;justify-content:space-between;align-items:center">
+<div><span style="display:inline-block;width:10px;height:10px;background:#3b82f6;border-radius:50%;margin-right:6px"></span><span style="font-size:11px;font-weight:600">General Surgery (GS)</span></div>
+<div style="display:flex;gap:4px"><span style="font-size:10px;cursor:pointer">✏️</span><span style="font-size:10px;cursor:pointer">🗑️</span></div>
+</div>
+<div style="background:#faf5ff;border:1px solid #e9d5ff;border-radius:8px;padding:8px;margin:4px 0;display:flex;justify-content:space-between;align-items:center">
+<div><span style="display:inline-block;width:10px;height:10px;background:#f59e0b;border-radius:50%;margin-right:6px"></span><span style="font-size:11px;font-weight:600">Orthopedics (Ortho)</span></div>
+<div style="display:flex;gap:4px"><span style="font-size:10px;cursor:pointer">✏️</span><span style="font-size:10px;cursor:pointer">🗑️</span></div>
+</div>
+<div style="background:#faf5ff;border:1px solid #e9d5ff;border-radius:8px;padding:8px;margin:4px 0;display:flex;justify-content:space-between;align-items:center">
+<div><span style="display:inline-block;width:10px;height:10px;background:#10b981;border-radius:50%;margin-right:6px"></span><span style="font-size:11px;font-weight:600">Urology (Uro)</span></div>
+<div style="display:flex;gap:4px"><span style="font-size:10px;cursor:pointer">✏️</span><span style="font-size:10px;cursor:pointer">🗑️</span></div>
+</div>
+<div style="background:#faf5ff;border:1px solid #e9d5ff;border-radius:8px;padding:8px;margin:4px 0;display:flex;justify-content:space-between;align-items:center">
+<div><span style="display:inline-block;width:10px;height:10px;background:#ec4899;border-radius:50%;margin-right:6px"></span><span style="font-size:11px;font-weight:600">Pediatric Surgery (Ped)</span></div>
+<div style="display:flex;gap:4px"><span style="font-size:10px;cursor:pointer">✏️</span><span style="font-size:10px;cursor:pointer">🗑️</span></div>
+</div>
+<div class="mini-btn purple" style="width:100%;text-align:center;margin-top:8px;font-size:10px">+ Add New Rotation Category</div>
+</div>
+</div>
+</div>
+<div class="caption">Category Management — View, edit, and add categories with color coding</div>
+
+<div class="step"><div class="d">2</div><p>Switch between <b>Rotations</b>, <b>Duties</b>, and <b>Activities</b> tabs</p></div>
+<div class="step"><div class="d">3</div><p>Tap <b>✏️</b> to edit a category name or color</p></div>
+<div class="step"><div class="d">4</div><p>Tap <b>🗑️</b> to delete a category (only if not in use)</p></div>
+<div class="step"><div class="d">5</div><p>Tap <b>"+ Add New"</b> to create a new category with a custom name and color</p></div>
+
+<div class="warn"><b>⚠️ Warning:</b> Deleting a category that's currently assigned to residents will fail. Remove all assignments first, then delete the category.</div>
+<div class="tip"><b>💡 Tip:</b> Choose distinct colors for each category to make schedules easy to read at a glance.</div>
+</div>
+</div>
+
+<!-- SECTION 8: Tips & Best Practices -->
+<div class="section" id="s8">
+<div class="section-hdr"><div class="n">8</div><h2>Tips & Best Practices</h2></div>
+<div class="section-body">
+<div style="font-size:1.05em;font-weight:700;color:#7e22ce;margin:0 0 12px">🗓️ Scheduling Workflow</div>
+<div class="step"><div class="d">1</div><p><b>Start with Yearly Rotations</b> — Set up the full year rotation schedule first, as this is the foundation for all other scheduling</p></div>
+<div class="step"><div class="d">2</div><p><b>Then Monthly Duties</b> — Assign daily duties for each month, considering the rotation assignments</p></div>
+<div class="step"><div class="d">3</div><p><b>Then Monthly Activities</b> — Assign weekly activities that complement the rotation and duty schedule</p></div>
+<div class="step"><div class="d">4</div><p><b>Assign Presentations</b> — Distribute presentation assignments evenly across residents</p></div>
+<div class="step"><div class="d">5</div><p><b>Export & Share</b> — Export PDFs and share with the department at the start of each month</p></div>
+
+<div style="font-size:1.05em;font-weight:700;color:#7e22ce;margin:16px 0 12px">⚖️ Fair Distribution</div>
+<div class="step"><div class="d">📊</div><p>Check the <b>duty count summary</b> at the bottom of the Monthly Duties page to ensure fair distribution</p></div>
+<div class="step"><div class="d">🔄</div><p>Rotate <b>weekend and holiday duties</b> evenly — no resident should have significantly more weekend calls</p></div>
+<div class="step"><div class="d">📋</div><p>Use the <b>History tab</b> in Assign Presentations to track who has presented recently</p></div>
+
+<div style="font-size:1.05em;font-weight:700;color:#7e22ce;margin:16px 0 12px">⚠️ Common Pitfalls</div>
+<div class="warn"><b>⚠️ Double Booking:</b> The system will warn you if you try to assign a resident to two duties on the same day. Check for conflicts before saving.</div>
+<div class="warn"><b>⚠️ Category Setup:</b> Set up all rotation, duty, and activity categories BEFORE starting to create schedules. Adding categories later works but can be confusing.</div>
+
+<div class="tip"><b>💡 Remember:</b> You still have all regular resident features available. Toggle Chief Resident mode off when you want to add your own logs and presentations.</div>
+<div class="tip"><b>📱 Desktop View:</b> For complex scheduling tasks (especially yearly rotations), consider using a desktop browser for a wider view of the table.</div>
+</div>
+</div>
+
+</div>
+<div class="footer">
+<div style="font-size:1.2em;margin-bottom:8px">🔪 ScalpelDiary</div>
+Comprehensive Surgical Training Management System<br>
+© 2026 — All Rights Reserved
+</div>
+</body>
+</html>

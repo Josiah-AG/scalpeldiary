@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ScalpelDiary — Management Access Tutorial</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Segoe UI',system-ui,-apple-system,sans-serif;background:#f0f4f8;color:#1e293b;line-height:1.7}
+.header{background:linear-gradient(135deg,#7c3aed,#a855f7);color:#fff;padding:48px 20px;text-align:center}
+.header h1{font-size:2.4em;margin-bottom:6px;letter-spacing:-0.5px}
+.header .sub{opacity:.8;font-size:1em;margin-bottom:14px}
+.header .badge{display:inline-block;background:rgba(255,255,255,.2);padding:8px 24px;border-radius:24px;font-size:.95em;font-weight:600}
+.container{max-width:760px;margin:0 auto;padding:24px 16px}
+.toc{background:#fff;border-radius:16px;box-shadow:0 2px 12px rgba(0,0,0,.06);padding:24px;margin-bottom:28px}
+.toc h3{font-size:1.1em;color:#6d28d9;margin-bottom:12px}
+.toc a{display:block;padding:6px 0;color:#7c3aed;text-decoration:none;font-size:.95em}
+.toc a:hover{text-decoration:underline}
+.section{background:#fff;border-radius:16px;box-shadow:0 2px 16px rgba(0,0,0,.06);margin:28px 0;overflow:hidden}
+.section-hdr{padding:20px 24px;border-bottom:3px solid #7c3aed;display:flex;align-items:center;gap:14px}
+.section-hdr .n{background:#7c3aed;color:#fff;width:40px;height:40px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:1.2em;flex-shrink:0}
+.section-hdr h2{font-size:1.35em;color:#6d28d9}
+.section-body{padding:24px}
+.step{display:flex;gap:14px;margin:14px 0;align-items:flex-start}
+.step .d{background:#ede9fe;color:#7c3aed;min-width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:.8em;flex-shrink:0;margin-top:2px}
+.step p{flex:1;font-size:.95em}
+.step b{color:#6d28d9}
+.tip{background:#fef9c3;border-left:4px solid #eab308;padding:14px 18px;border-radius:0 10px 10px 0;margin:16px 0;font-size:.9em}
+.tip b{color:#854d0e}
+.phone{width:280px;margin:20px auto;background:#111827;border-radius:28px;padding:8px;box-shadow:0 8px 32px rgba(0,0,0,.2)}
+.phone-screen{background:#fff;border-radius:22px;overflow:hidden;min-height:380px}
+.phone-nav{background:linear-gradient(135deg,#6d28d9,#7c3aed);color:#fff;padding:12px 16px;display:flex;align-items:center;gap:10px}
+.phone-nav .title{font-weight:700;font-size:14px;flex:1}
+.phone-content{padding:12px}
+.mini-card{border-radius:10px;padding:10px 12px;margin:6px 0;color:#fff;font-size:11px}
+.mini-card .label{opacity:.8;font-size:9px}
+.mini-card .val{font-size:18px;font-weight:800;margin-top:2px}
+.mini-table{width:100%;border-collapse:collapse;font-size:10px;margin:6px 0}
+.mini-table th{background:#7c3aed;color:#fff;padding:4px 6px;text-align:left;font-size:9px}
+.mini-table td{padding:4px 6px;border-bottom:1px solid #e5e7eb}
+.mini-badge{display:inline-block;padding:2px 8px;border-radius:10px;font-size:9px;font-weight:700}
+.mini-btn{border:none;border-radius:8px;padding:8px 16px;font-size:11px;font-weight:700;cursor:pointer;display:inline-block;margin:4px 2px}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+.caption{text-align:center;color:#64748b;font-size:.85em;margin:8px 0 16px;font-style:italic}
+.footer{text-align:center;padding:40px 20px;color:#94a3b8;font-size:.85em}
+.note{background:#f0fdf4;border-left:4px solid #22c55e;padding:14px 18px;border-radius:0 10px 10px 0;margin:16px 0;font-size:.9em}
+.note b{color:#166534}
+</style>
+</head>
+<body>
+<div class="header">
+<h1>📱 ScalpelDiary</h1>
+<div class="sub">Comprehensive Surgical Training Management System</div>
+<div class="badge">🔑 Management Access Tutorial</div>
+</div>
+<div class="container">
+
+<div class="note"><b>ℹ️ Who is this for?</b> This tutorial is for <b>Supervisors with Management Access</b>. Management access is granted by the Master account and gives you additional capabilities to browse all residents, view supervisor statistics, and verify detachment logs.</div>
+
+<div class="toc">
+<h3>📋 Table of Contents</h3>
+<a href="#s1">1. Accessing Management Features</a>
+<a href="#s2">2. Browsing Residents</a>
+<a href="#s3">3. Viewing a Resident's Full Profile</a>
+<a href="#s4">4. Browsing Supervisors</a>
+<a href="#s5">5. Detachment Logs — Verifying External Rotations</a>
+</div>
+
+<!-- SECTION 1 -->
+<div class="section" id="s1">
+<div class="section-hdr"><div class="n">1</div><h2>Accessing Management Features</h2></div>
+<div class="section-body">
+<p>When you have management access, your sidebar menu includes additional items.</p>
+
+<div class="phone">
+<div class="phone-screen" style="min-height:320px">
+<div class="phone-nav"><div style="font-size:18px">☰</div><div class="title">Menu</div></div>
+<div class="phone-content">
+<div style="font-size:11px;font-weight:700;color:#6d28d9;margin-bottom:8px;padding-bottom:6px;border-bottom:2px solid #ede9fe">Supervisor Menu</div>
+<div style="padding:8px 0;font-size:12px;border-bottom:1px solid #f1f5f9">📊 Dashboard</div>
+<div style="padding:8px 0;font-size:12px;border-bottom:1px solid #f1f5f9">📋 Unresponded Logs</div>
+<div style="padding:8px 0;font-size:12px;border-bottom:1px solid #f1f5f9">⭐ Ratings Done</div>
+<div style="padding:8px 0;font-size:12px;border-bottom:1px solid #f1f5f9">📄 Assign Presentation</div>
+<div style="padding:8px 0;font-size:12px;border-bottom:1px solid #f1f5f9">💬 General Comments</div>
+<div style="padding:8px 0;font-size:12px;border-bottom:1px solid #f1f5f9;color:#7c3aed;font-weight:700">📁 Detachment Logs</div>
+<div style="padding:8px 0;font-size:12px;border-bottom:1px solid #f1f5f9">⚙️ Settings</div>
+<div style="font-size:9px;color:#7c3aed;margin-top:8px;padding:6px;background:#ede9fe;border-radius:6px;text-align:center">Management access features shown in purple</div>
+</div>
+</div>
+</div>
+<div class="caption">Sidebar menu with management features highlighted</div>
+
+<div class="step"><div class="d">•</div><p>Your regular supervisor features (Dashboard, Unresponded Logs, Ratings Done, etc.) work the same</p></div>
+<div class="step"><div class="d">•</div><p>Additional management features: <b>Detachment Logs</b> appears in your sidebar</p></div>
+<div class="step"><div class="d">•</div><p>From the Dashboard, you can <b>browse residents by year</b> and click into their full profiles</p></div>
+</div>
+</div>
+
+<!-- SECTION 2 -->
+<div class="section" id="s2">
+<div class="section-hdr"><div class="n">2</div><h2>Browsing Residents</h2></div>
+<div class="section-body">
+<div class="step"><div class="d">1</div><p>From the <b>Dashboard</b>, scroll to the <b>"Browse Residents by Year"</b> section</p></div>
+<div class="step"><div class="d">2</div><p>Tap a <b>Year button</b> (Year 1, 2, 3, or 4) to see all residents in that year</p></div>
+
+<div class="phone">
+<div class="phone-screen">
+<div class="phone-nav"><div style="font-size:18px">☰</div><div class="title">Dashboard</div></div>
+<div class="phone-content">
+<div style="background:linear-gradient(135deg,#6366f1,#4f46e5);color:#fff;padding:10px;border-radius:10px;margin-bottom:8px">
+<div style="font-size:13px;font-weight:700">Browse Residents by Year</div>
+<div style="font-size:10px;opacity:.8">Select a year to view residents</div>
+</div>
+<div class="grid2">
+<div style="background:#3b82f6;color:#fff;padding:12px;border-radius:10px;text-align:center"><div style="font-size:20px">👥</div><div style="font-weight:800;font-size:14px">Year 1</div></div>
+<div style="background:#22c55e;color:#fff;padding:12px;border-radius:10px;text-align:center"><div style="font-size:20px">👥</div><div style="font-weight:800;font-size:14px">Year 2</div></div>
+<div style="background:#8b5cf6;color:#fff;padding:12px;border-radius:10px;text-align:center"><div style="font-size:20px">👥</div><div style="font-weight:800;font-size:14px">Year 3</div></div>
+<div style="background:#f97316;color:#fff;padding:12px;border-radius:10px;text-align:center"><div style="font-size:20px">👥</div><div style="font-weight:800;font-size:14px">Year 4</div></div>
+</div>
+</div>
+</div>
+</div>
+<div class="caption">Year selection buttons — Tap to see residents</div>
+
+<div class="step"><div class="d">3</div><p>Each resident card shows: <b>Name, Verified Procedures, Verified Presentations, Avg Rating, Year Progress</b></p></div>
+<div class="step"><div class="d">4</div><p>Tap a resident card to <b>view their full profile</b> in read-only mode</p></div>
+</div>
+</div>
+
+<!-- SECTION 3 -->
+<div class="section" id="s3">
+<div class="section-hdr"><div class="n">3</div><h2>Viewing a Resident's Full Profile</h2></div>
+<div class="section-body">
+<p>When you tap a resident, you enter their profile in <b>read-only mode</b>. You can see everything they see, plus anonymous comments.</p>
+
+<div class="step"><div class="d">📊</div><p><b>Dashboard</b> — Their procedures, presentations, calendar, today's overview</p></div>
+<div class="step"><div class="d">📋</div><p><b>All Procedures</b> — Full list with filters, ratings shown as exact scores</p></div>
+<div class="step"><div class="d">📄</div><p><b>Presentations</b> — All presentations with ratings</p></div>
+<div class="step"><div class="d">📈</div><p><b>Analytics</b> — Full analytics with all comments including <b>anonymous comments</b> (yellow tag)</p></div>
+<div class="step"><div class="d">⭐</div><p><b>Rated Logs</b> — All rated procedures</p></div>
+
+<div class="phone">
+<div class="phone-screen" style="min-height:300px">
+<div class="phone-nav"><div style="font-size:18px">←</div><div class="title">Dr. Jemal — Analytics</div></div>
+<div class="phone-content">
+<div style="font-size:10px;font-weight:700;color:#6d28d9;margin-bottom:6px">💬 Supervisor Comments</div>
+<div style="border-left:3px solid #3b82f6;background:#eff6ff;padding:8px;border-radius:0 8px 8px 0;font-size:10px;margin:4px 0">
+<div style="display:flex;justify-content:space-between"><span style="font-weight:700">Dr. Getachew</span><span class="mini-badge" style="background:#3b82f6;color:#fff">Procedure</span></div>
+<div style="margin-top:4px">Good surgical technique</div>
+</div>
+<div style="border-left:3px solid #eab308;background:#fefce8;padding:8px;border-radius:0 8px 8px 0;font-size:10px;margin:4px 0">
+<div style="display:flex;justify-content:space-between"><span style="font-weight:700">Dr. Getachew</span><span class="mini-badge" style="background:#eab308;color:#92400e">Anonymous</span></div>
+<div style="margin-top:4px">Needs to improve time management</div>
+</div>
+<div style="border-left:3px solid #6366f1;background:#eef2ff;padding:8px;border-radius:0 8px 8px 0;font-size:10px;margin:4px 0">
+<div style="display:flex;justify-content:space-between"><span style="font-weight:700">Dr. Getachew</span><span class="mini-badge" style="background:#6366f1;color:#fff">General</span></div>
+<div style="margin-top:4px">Shows great initiative in the OR</div>
+</div>
+</div>
+</div>
+</div>
+<div class="caption">Resident's analytics — All comments visible including anonymous (yellow) and general (indigo)</div>
+
+<div class="tip"><b>👁️ What you see that residents don't:</b> Anonymous comments (yellow tag), exact numeric scores, and anonymous general comments. Residents only see non-anonymous comments and rating labels (Excellent/Good/etc.).</div>
+</div>
+</div>
+
+<!-- SECTION 4 -->
+<div class="section" id="s4">
+<div class="section-hdr"><div class="n">4</div><h2>Browsing Supervisors</h2></div>
+<div class="section-body">
+<p>You can also view statistics for all supervisors in the program.</p>
+<div class="step"><div class="d">1</div><p>This is accessible from the management dashboard if you have the management role</p></div>
+<div class="step"><div class="d">2</div><p>Each supervisor card shows: <b>Unique Procedures Supervised, Presentations Supervised, Avg Rating Given</b></p></div>
+<div class="step"><div class="d">3</div><p>Tap a supervisor to see their <b>rated procedures and presentations</b></p></div>
+<div class="tip"><b>📊 Unique Procedures:</b> The count shows unique procedures (distinct MRN + date), not total log entries. One surgery with 3 residents counts as 1 procedure.</div>
+</div>
+</div>
+
+<!-- SECTION 5 -->
+<div class="section" id="s5">
+<div class="section-hdr"><div class="n">5</div><h2>Detachment Logs — Verifying External Rotations</h2></div>
+<div class="section-body">
+<p>When residents log procedures at external sites (ALERT, TASH, etc.) with external supervisors, those logs need verification by management.</p>
+
+<div class="step"><div class="d">1</div><p>Tap <b>☰ menu</b> → <b>"Detachment Logs"</b></p></div>
+
+<div class="phone">
+<div class="phone-screen">
+<div class="phone-nav"><div style="font-size:18px">☰</div><div class="title">Detachment Logs</div></div>
+<div class="phone-content">
+<div style="background:linear-gradient(135deg,#d97706,#f59e0b);color:#fff;padding:10px;border-radius:10px;margin-bottom:8px">
+<div style="font-size:13px;font-weight:700">📍 Detachment Logs Summary</div>
+</div>
+<table class="mini-table">
+<tr><th>Resident</th><th>Year</th><th>Detach.</th><th>Month</th><th>Procs</th><th>Status</th></tr>
+<tr><td>Dr. Jemal</td><td>3</td><td><span class="mini-badge" style="background:#fef3c7;color:#92400e">ALERT</span></td><td>Mar 2026</td><td style="font-weight:700;color:#2563eb">5</td><td><span class="mini-badge" style="background:#fef3c7;color:#92400e">Pending</span></td></tr>
+<tr><td>Dr. Kedamwi</td><td>2</td><td><span class="mini-badge" style="background:#fef3c7;color:#92400e">TASH</span></td><td>Feb 2026</td><td style="font-weight:700;color:#2563eb">3</td><td><span class="mini-badge" style="background:#dcfce7;color:#166534">Verified</span></td></tr>
+</table>
+</div>
+</div>
+</div>
+<div class="caption">Detachment summary — Shows all residents with external rotation logs</div>
+
+<div class="step"><div class="d">2</div><p>Tap a row to see the <b>detailed list</b> of procedures and presentations for that detachment</p></div>
+<div class="step"><div class="d">3</div><p>Tap <b>"Verify All Logs"</b> to verify the batch</p></div>
+
+<div class="phone">
+<div class="phone-screen" style="min-height:300px">
+<div style="background:linear-gradient(135deg,#16a34a,#15803d);color:#fff;padding:12px 16px;display:flex;justify-content:space-between;align-items:center">
+<div style="font-weight:700;font-size:13px">Verify Detachment Logs</div>
+<div style="font-size:16px">✕</div>
+</div>
+<div style="padding:14px">
+<div style="font-size:11px;color:#6b7280;margin-bottom:10px">Verifying all ALERT logs for Dr. Jemal. Enter the rating and comment from the paper form.</div>
+<div style="font-size:9px;background:#f8fafc;padding:6px;border-radius:6px;color:#6b7280;margin-bottom:8px">90-100: Excellent · 71-89: Good · 50-70: Satisfactory · Below 50: Poor</div>
+<div style="font-size:10px;font-weight:600;color:#374151;margin-bottom:4px">Rating (0-100)</div>
+<div style="border:1px solid #d1d5db;border-radius:6px;padding:6px 10px;font-size:11px;background:#f9fafb;margin-bottom:8px">82</div>
+<div style="font-size:10px;font-weight:600;color:#374151;margin-bottom:4px">Comment</div>
+<div style="border:1px solid #d1d5db;border-radius:6px;padding:6px 10px;font-size:11px;background:#f9fafb;height:50px;margin-bottom:10px">Good performance during ALERT rotation...</div>
+<div style="display:flex;gap:6px">
+<div style="flex:1;background:#16a34a;color:#fff;text-align:center;padding:10px;border-radius:8px;font-weight:700;font-size:12px">Verify All</div>
+<div style="flex:1;background:#e5e7eb;color:#374151;text-align:center;padding:10px;border-radius:8px;font-weight:600;font-size:12px">Cancel</div>
+</div>
+</div>
+</div>
+</div>
+<div class="caption">Verification modal — Enter rating and comment from the paper form</div>
+
+<div class="step"><div class="d">4</div><p>Enter the <b>Rating (0-100)</b> and <b>Comment</b> from the resident's paper form</p></div>
+<div class="step"><div class="d">5</div><p>Tap <b>"Verify All"</b> — all unverified logs in that batch are marked as verified</p></div>
+
+<div class="tip"><b>📝 Re-verification:</b> If a resident adds new logs after you've verified, the status changes to "X New" and you can verify just the new ones. You can optionally update the rating for all items.</div>
+<div class="tip"><b>📊 Detachment ratings</b> don't count toward the resident's average rating, but the procedures count as verified in their progress.</div>
+</div>
+</div>
+
+</div>
+<div class="footer">
+<div style="font-size:1.2em;margin-bottom:8px">🔪 ScalpelDiary</div>
+Comprehensive Surgical Training Management System<br>
+© 2026 — All Rights Reserved
+</div>
+</body>
+</html>
