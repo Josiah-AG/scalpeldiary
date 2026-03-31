@@ -43,6 +43,18 @@ b,.step b{color:#7e22ce}
 .footer{text-align:center;padding:40px 20px;color:#94a3b8;font-size:.85em}
 .two-img{display:flex;gap:12px;justify-content:center;flex-wrap:wrap;margin:16px 0}
 .two-img img{width:200px;border-radius:12px;border:2px solid #e2e8f0;box-shadow:0 4px 16px rgba(0,0,0,.1)}
+@media print{
+body{background:#fff;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+.header{-webkit-print-color-adjust:exact;print-color-adjust:exact;break-after:avoid}
+.section{box-shadow:none;border:1px solid #e2e8f0;break-inside:avoid;page-break-inside:avoid}
+.sh{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+.row,.two-img{break-inside:avoid;page-break-inside:avoid}
+.row .img img,.two-img img{box-shadow:none;border:1px solid #cbd5e1;max-width:180px}
+.tip,.warn,.info{-webkit-print-color-adjust:exact;print-color-adjust:exact;break-inside:avoid}
+.toc{break-after:always;page-break-after:always}
+.footer{margin-top:20px}
+.container{max-width:100%;padding:12px}
+}
 </style>
 </head>
 <body>
