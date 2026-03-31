@@ -542,8 +542,10 @@ export default function Analytics() {
         </div>
         <div className="space-y-4 overflow-y-auto">
           {(() => {
-            // Build unified comment list from procedure comments + post-op follow-ups + presentation comments
+            // Build unified comment list
             const allComments: any[] = [];
+            const showAnonymous = isReadOnlyMode; // Only supervisor/master can see anonymous
+
             (filteredComments || []).forEach((c: any) => {
               if (c.comment && c.comment.trim() !== '') {
                 allComments.push({ ...c, type: 'procedure', sortDate: c.date });
@@ -551,14 +553,29 @@ export default function Analytics() {
               if (c.postop_followup_comment && c.postop_followup_comment.trim() !== '') {
                 allComments.push({ ...c, type: 'postop', sortDate: c.postop_followup_at });
               }
+              // Anonymous procedure comments (only for supervisor/master)
+              if (showAnonymous && c.anonymous_comment && c.anonymous_comment.trim() !== '') {
+                allComments.push({ ...c, type: 'anonymous', sortDate: c.date, comment: c.anonymous_comment });
+              }
             });
-            // Add presentation comments
+            // Presentation comments
             (analytics?.presentationComments || []).forEach((c: any) => {
               if (commentFilter === 'all' ||
                   (commentFilter === 'excellent' && c.rating >= 90) ||
                   (commentFilter === 'good' && c.rating >= 71 && c.rating < 90) ||
                   (commentFilter === 'bad' && c.rating < 50)) {
                 allComments.push({ ...c, type: 'presentation', sortDate: c.date, procedure: c.title });
+              }
+            });
+            // General comments (non-anonymous for resident, all for supervisor/master)
+            (analytics?.generalComments || []).forEach((c: any) => {
+              if (!c.is_anonymous || showAnonymous) {
+                if (commentFilter === 'all') {
+                  allComments.push({
+                    ...c, type: c.is_anonymous ? 'anonymous-general' : 'general',
+                    sortDate: c.created_at, comment: c.comment
+                  });
+                }
               }
             });
             allComments.sort((a, b) => new Date(b.sortDate).getTime() - new Date(a.sortDate).getTime());
@@ -581,7 +598,12 @@ export default function Analytics() {
                 {displayComments.map((item: any, index: number) => (
                   <div 
                     key={`${item.id}-${item.type}-${index}`} 
-                    className={`border-l-4 ${item.type === 'postop' ? 'border-purple-500 bg-purple-50' : item.type === 'presentation' ? 'border-green-500 bg-green-50' : 'border-blue-500 bg-blue-50'} p-4 rounded-r-lg hover:opacity-90 transition-colors`}
+                    className={`border-l-4 ${
+                      item.type === 'anonymous' || item.type === 'anonymous-general' ? 'border-yellow-400 bg-yellow-50' :
+                      item.type === 'general' ? 'border-indigo-500 bg-indigo-50' :
+                      item.type === 'postop' ? 'border-purple-500 bg-purple-50' : 
+                      item.type === 'presentation' ? 'border-green-500 bg-green-50' : 'border-blue-500 bg-blue-50'
+                    } p-4 rounded-r-lg hover:opacity-90 transition-colors`}
                   >
                     <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-2 mb-2">
                       <div>
@@ -591,15 +613,23 @@ export default function Analytics() {
                           {new Date(item.sortDate).toLocaleDateString()}
                         </p>
                       </div>
-                      <div className="flex items-center space-x-2">
+                      <div className="flex items-center space-x-2 flex-wrap">
                         <span className={`inline-block px-2 py-0.5 rounded-full text-xs font-bold ${
-                          item.type === 'postop' 
+                          item.type === 'anonymous' || item.type === 'anonymous-general'
+                            ? 'bg-yellow-400 text-yellow-900'
+                            : item.type === 'general'
+                            ? 'bg-indigo-500 text-white'
+                            : item.type === 'postop' 
                             ? 'bg-purple-500 text-white' 
                             : item.type === 'presentation'
                             ? 'bg-green-500 text-white'
                             : 'bg-blue-500 text-white'
                         }`}>
-                          {item.type === 'postop' ? 'Post-Op Follow-Up' : item.type === 'presentation' ? 'Presentation Comment' : 'Procedure Comment'}
+                          {item.type === 'anonymous' ? 'Anonymous Comment' : 
+                           item.type === 'anonymous-general' ? 'Anonymous General' :
+                           item.type === 'general' ? 'General Comment' :
+                           item.type === 'postop' ? 'Post-Op Follow-Up' : 
+                           item.type === 'presentation' ? 'Presentation Comment' : 'Procedure Comment'}
                         </span>
                         {item.rating && (
                           <span className={`inline-block px-2 py-0.5 rounded-full text-xs font-bold ${

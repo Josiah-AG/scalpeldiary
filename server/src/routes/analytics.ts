@@ -168,13 +168,15 @@ router.get('/resident', authenticate, async (req: AuthRequest, res) => {
     const commentsResult = await query(
       `SELECT sl.id, sl.comment, sl.rating, sl.rated_at as date, sl.procedure, sl.date as procedure_date,
               u.name as supervisor_name,
-              sl.postop_followup_comment, sl.postop_followup_at
+              sl.postop_followup_comment, sl.postop_followup_at,
+              sl.anonymous_comment
        FROM surgical_logs sl
        JOIN users u ON sl.supervisor_id = u.id
        WHERE sl.resident_id = $1 AND sl.year_id = $2 
        AND (
          (sl.comment IS NOT NULL AND sl.comment != '')
          OR (sl.postop_followup_comment IS NOT NULL AND sl.postop_followup_comment != '')
+         OR (sl.anonymous_comment IS NOT NULL AND sl.anonymous_comment != '')
        )
        ORDER BY sl.rated_at DESC`,
       [targetResidentId, yearId]
@@ -236,6 +238,16 @@ router.get('/resident', authenticate, async (req: AuthRequest, res) => {
       [targetResidentId, yearId]
     );
 
+    // General comments for this resident
+    const generalCommentsResult = await query(
+      `SELECT gc.id, gc.comment, gc.is_anonymous, gc.created_at, u.name as supervisor_name
+       FROM general_comments gc
+       JOIN users u ON gc.supervisor_id = u.id
+       WHERE gc.resident_id = $1
+       ORDER BY gc.created_at DESC`,
+      [targetResidentId]
+    );
+
     // Detachment ratings (per detachment type)
     const detachmentRatingsResult = await query(
       `SELECT detachment_type, 
@@ -273,6 +285,7 @@ router.get('/resident', authenticate, async (req: AuthRequest, res) => {
       supervisorDistribution: supervisorDistributionResult.rows,
       comments: commentsResult.rows,
       presentationComments: presentationCommentsResult.rows,
+      generalComments: generalCommentsResult.rows,
       detachmentRatings: detachmentRatingsResult.rows
     });
   } catch (error) {

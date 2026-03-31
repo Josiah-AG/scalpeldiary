@@ -82,14 +82,21 @@ export default function NotificationPopup() {
   const handleRateNow = async (notification: Notification, autoMarkRead: boolean = false) => {
     // For rated notifications, fetch and show modal
     if (notification.notification_type === 'rated' && notification.log_id) {
-      // Mark as read first
       if (autoMarkRead) {
         await markAsRead(notification.id);
       }
-      // Close popup
       setShowPopup(false);
-      // Fetch the full item data and open modal
       await fetchAndShowRatedItem(notification.log_id);
+      return;
+    }
+
+    // For rated notifications without log_id (general comments) — go to analytics
+    if (notification.notification_type === 'rated' && !notification.log_id) {
+      if (autoMarkRead) {
+        await markAsRead(notification.id);
+      }
+      setShowPopup(false);
+      navigate('/analytics');
       return;
     }
     

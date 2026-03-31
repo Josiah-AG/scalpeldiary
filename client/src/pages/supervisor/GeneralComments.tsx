@@ -5,7 +5,7 @@ import { MessageSquare, ChevronDown, ChevronRight, User, Send } from 'lucide-rea
 
 export default function GeneralComments() {
   const [residents, setResidents] = useState<any[]>([]);
-  const [expandedYears, setExpandedYears] = useState<Set<number>>(new Set([1, 2, 3, 4]));
+  const [expandedYears, setExpandedYears] = useState<Set<number>>(new Set());
   const [selectedResident, setSelectedResident] = useState<any>(null);
   const [comment, setComment] = useState('');
   const [isAnonymous, setIsAnonymous] = useState(false);
