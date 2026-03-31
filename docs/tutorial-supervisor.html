@@ -7,510 +7,329 @@
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
 body{font-family:'Segoe UI',system-ui,-apple-system,sans-serif;background:#f0f4f8;color:#1e293b;line-height:1.7}
-.header{background:linear-gradient(135deg,#065f46,#10b981);color:#fff;padding:48px 20px;text-align:center}
-.header h1{font-size:2.4em;margin-bottom:6px;letter-spacing:-0.5px}
-.header .sub{opacity:.8;font-size:1em;margin-bottom:14px}
-.header .badge{display:inline-block;background:rgba(255,255,255,.2);padding:8px 24px;border-radius:24px;font-size:.95em;font-weight:600;backdrop-filter:blur(4px)}
-.container{max-width:760px;margin:0 auto;padding:24px 16px}
+.header{background:linear-gradient(135deg,#065f46,#10b981);color:#fff;padding:44px 20px 36px;text-align:center}
+.header .logo{display:flex;align-items:center;justify-content:center;gap:12px;margin-bottom:10px}
+.header .logo-text{text-align:left}
+.header .logo-text h1{font-size:1.8em;line-height:1.1;letter-spacing:-0.5px}
+.header .logo-text .tagline{font-size:.75em;opacity:.7}
+.header .sub{opacity:.85;font-size:.95em;margin-top:8px}
+.header .badge{display:inline-block;background:rgba(255,255,255,.2);padding:8px 24px;border-radius:24px;font-size:.9em;font-weight:600;margin-top:10px}
+.container{max-width:800px;margin:0 auto;padding:24px 16px}
 .toc{background:#fff;border-radius:16px;box-shadow:0 2px 12px rgba(0,0,0,.06);padding:24px;margin-bottom:28px}
 .toc h3{font-size:1.1em;color:#065f46;margin-bottom:12px}
-.toc a{display:block;padding:6px 0;color:#10b981;text-decoration:none;font-size:.95em}
+.toc a{display:block;padding:5px 0;color:#10b981;text-decoration:none;font-size:.92em}
 .toc a:hover{text-decoration:underline}
 .section{background:#fff;border-radius:16px;box-shadow:0 2px 16px rgba(0,0,0,.06);margin:28px 0;overflow:hidden}
-.section-hdr{padding:20px 24px;border-bottom:3px solid #10b981;display:flex;align-items:center;gap:14px}
-.section-hdr .n{background:#10b981;color:#fff;width:40px;height:40px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:1.2em;flex-shrink:0}
-.section-hdr h2{font-size:1.35em;color:#065f46}
-.section-body{padding:24px}
-.step{display:flex;gap:14px;margin:14px 0;align-items:flex-start}
-.step .d{background:#d1fae5;color:#059669;min-width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:.8em;flex-shrink:0;margin-top:2px}
-.step p{flex:1;font-size:.95em}
-.step strong,.step b{color:#065f46}
-.tip{background:#fef9c3;border-left:4px solid #eab308;padding:14px 18px;border-radius:0 10px 10px 0;margin:16px 0;font-size:.9em}
+.sh{padding:18px 24px;border-bottom:3px solid #10b981;display:flex;align-items:center;gap:14px}
+.sh .n{background:#10b981;color:#fff;width:38px;height:38px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:1.15em;flex-shrink:0}
+.sh h2{font-size:1.25em;color:#065f46}
+.sb{padding:24px}
+.row{display:flex;gap:20px;align-items:center;margin:16px 0;flex-wrap:wrap}
+.row.reverse{flex-direction:row-reverse}
+.row .text{flex:1;min-width:240px}
+.row .img{flex-shrink:0}
+.row .img img{width:220px;border-radius:12px;border:2px solid #e2e8f0;box-shadow:0 4px 16px rgba(0,0,0,.1)}
+.step{display:flex;gap:12px;margin:10px 0;align-items:flex-start}
+.step .d{background:#d1fae5;color:#059669;min-width:26px;height:26px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:.78em;flex-shrink:0;margin-top:3px}
+.step p{flex:1;font-size:.93em}
+b,.step b{color:#065f46}
+.tip{background:#fef9c3;border-left:4px solid #eab308;padding:12px 16px;border-radius:0 10px 10px 0;margin:14px 0;font-size:.88em}
 .tip b{color:#854d0e}
-.warn{background:#fee2e2;border-left:4px solid #ef4444;padding:14px 18px;border-radius:0 10px 10px 0;margin:16px 0;font-size:.9em}
+.warn{background:#fee2e2;border-left:4px solid #ef4444;padding:12px 16px;border-radius:0 10px 10px 0;margin:14px 0;font-size:.88em}
 .warn b{color:#991b1b}
-.phone{width:280px;margin:20px auto;background:#111827;border-radius:28px;padding:8px;box-shadow:0 8px 32px rgba(0,0,0,.2)}
-.phone-screen{background:#fff;border-radius:22px;overflow:hidden;min-height:400px}
-.phone-status{background:#065f46;color:#fff;font-size:10px;padding:6px 16px;display:flex;justify-content:space-between}
-.phone-nav{background:linear-gradient(135deg,#065f46,#10b981);color:#fff;padding:12px 16px;display:flex;align-items:center;gap:10px}
-.phone-nav .hamburger{font-size:18px;cursor:pointer}
-.phone-nav .title{font-weight:700;font-size:14px;flex:1}
-.phone-nav .bell{font-size:16px}
-.phone-content{padding:12px}
-.mini-card{border-radius:10px;padding:10px 12px;margin:6px 0;color:#fff;font-size:11px}
-.mini-card .label{opacity:.8;font-size:9px}
-.mini-card .val{font-size:18px;font-weight:800;margin-top:2px}
-.mini-input{border:1px solid #d1d5db;border-radius:6px;padding:6px 10px;font-size:11px;width:100%;margin:4px 0;background:#f9fafb;color:#374151}
-.mini-select{border:1px solid #d1d5db;border-radius:6px;padding:6px 10px;font-size:11px;width:100%;margin:4px 0;background:#f9fafb;color:#374151;appearance:none}
-.mini-btn{border:none;border-radius:8px;padding:8px 16px;font-size:11px;font-weight:700;cursor:pointer;display:inline-block;margin:4px 2px}
-.mini-btn.blue{background:#2563eb;color:#fff}
-.mini-btn.green{background:#16a34a;color:#fff}
-.mini-btn.emerald{background:#10b981;color:#fff}
-.mini-btn.gray{background:#e5e7eb;color:#374151}
-.mini-label{font-size:10px;color:#6b7280;font-weight:600;margin-top:6px;display:block}
-.mini-table{width:100%;border-collapse:collapse;font-size:10px;margin:6px 0}
-.mini-table th{background:#059669;color:#fff;padding:4px 6px;text-align:left;font-size:9px}
-.mini-table td{padding:4px 6px;border-bottom:1px solid #e5e7eb}
-.mini-badge{display:inline-block;padding:2px 8px;border-radius:10px;font-size:9px;font-weight:700}
-.mini-today{background:linear-gradient(135deg,#059669,#10b981);color:#fff;border-radius:12px;padding:12px;margin:6px 0}
-.mini-today .t-title{font-size:12px;font-weight:700;margin-bottom:6px}
-.mini-today .t-cards{display:flex;gap:6px;flex-wrap:wrap}
-.mini-today .t-card{background:rgba(255,255,255,.15);border-radius:8px;padding:6px 8px;font-size:10px;flex:1;min-width:70px}
-.mini-today .t-card .t-label{font-size:8px;opacity:.8}
-.mini-today .t-card .t-val{font-weight:700;font-size:11px;margin-top:2px}
-.arrow-label{text-align:center;color:#ef4444;font-size:12px;font-weight:700;margin:4px 0;animation:pulse 1.5s infinite}
-@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
-.caption{text-align:center;color:#64748b;font-size:.85em;margin:8px 0 16px;font-style:italic}
+.info{background:#eff6ff;border-left:4px solid #3b82f6;padding:12px 16px;border-radius:0 10px 10px 0;margin:14px 0;font-size:.88em}
+.info b{color:#1e40af}
+.img-center{text-align:center;margin:16px 0}
+.img-center img{width:260px;border-radius:14px;border:2px solid #e2e8f0;box-shadow:0 6px 24px rgba(0,0,0,.12)}
+.img-caption{text-align:center;color:#64748b;font-size:.82em;margin-top:6px;font-style:italic}
+.rating-table{width:100%;border-collapse:collapse;margin:12px 0;font-size:.9em}
+.rating-table td{padding:6px 12px;border:1px solid #e2e8f0}
+.rating-table .c-green{color:#16a34a;font-weight:700}
+.rating-table .c-blue{color:#2563eb;font-weight:700}
+.rating-table .c-yellow{color:#ca8a04;font-weight:700}
+.rating-table .c-red{color:#dc2626;font-weight:700}
 .footer{text-align:center;padding:40px 20px;color:#94a3b8;font-size:.85em}
-.grid2{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+.two-img{display:flex;gap:12px;justify-content:center;flex-wrap:wrap;margin:16px 0}
+.two-img img{width:200px;border-radius:12px;border:2px solid #e2e8f0;box-shadow:0 4px 16px rgba(0,0,0,.1)}
 </style>
 </head>
 <body>
+
+<!-- HEADER -->
 <div class="header">
-<div style="display:flex;align-items:center;justify-content:center;gap:12px;margin-bottom:10px">
+<div class="logo">
 <img src="../client/public/favicon.svg" alt="ScalpelDiary" style="width:48px;height:48px;border-radius:12px">
-<div style="text-align:left"><h1 style="font-size:2.4em;margin-bottom:0;letter-spacing:-0.5px">ScalpelDiary</h1></div>
+<div class="logo-text">
+<h1>ScalpelDiary</h1>
+<div class="tagline">Shaping Tomorrow's Surgeons</div>
+</div>
 </div>
 <div class="sub">Comprehensive Surgical Training Management System</div>
 <div class="badge">👨‍🏫 Supervisor Tutorial Guide</div>
 </div>
+
 <div class="container">
 
+<!-- TABLE OF CONTENTS -->
 <div class="toc">
 <h3>📋 Table of Contents</h3>
-<a href="#s1">1. Getting Started — Sign In</a>
-<a href="#s2">2. Supervisor Dashboard</a>
-<a href="#s3">3. Rating Procedures (Unresponded Logs)</a>
-<a href="#s4">4. Rating Presentations</a>
-<a href="#s5">5. General Comments</a>
-<a href="#s6">6. Viewing Resident Profiles</a>
-<a href="#s7">7. Assign Presentations & Schedules</a>
-<a href="#s8">8. Settings & Account</a>
+<a href="#s1">1. Install the App & Sign In</a>
+<a href="#s2">2. Set Up Your Profile</a>
+<a href="#s3">3. Dashboard Overview</a>
+<a href="#s4">4. Browse Residents by Year</a>
+<a href="#s5">5. Rating Procedures (Unresponded Logs)</a>
+<a href="#s6">6. Rating Presentations</a>
+<a href="#s7">7. Ratings Done & Post-Op Follow-Up</a>
+<a href="#s8">8. Assign Presentations</a>
+<a href="#s9">9. General Comments</a>
+<a href="#s10">10. Notifications</a>
 </div>
 
-<!-- SECTION 1: Getting Started -->
+<!-- S1: Install & Sign In -->
 <div class="section" id="s1">
-<div class="section-hdr"><div class="n">1</div><h2>Getting Started — Sign In</h2></div>
-<div class="section-body">
-<div class="step"><div class="d">a</div><p>Open your mobile browser and go to <b>scalpeldiary.com</b></p></div>
-
-<div class="phone">
-<div class="phone-screen">
-<div style="background:linear-gradient(135deg,#065f46,#10b981);padding:40px 20px;text-align:center;color:#fff;min-height:400px;display:flex;flex-direction:column;justify-content:center;align-items:center">
-<div style="font-size:32px;margin-bottom:8px">🔪</div>
-<div style="font-size:22px;font-weight:800;margin-bottom:4px">ScalpelDiary</div>
-<div style="font-size:10px;opacity:.7;margin-bottom:20px">Shaping Tomorrow's Surgeons</div>
-<div style="background:#fff;color:#065f46;padding:10px 28px;border-radius:10px;font-weight:700;font-size:13px;margin:4px">Sign In</div>
-<div style="border:2px solid rgba(255,255,255,.4);color:#fff;padding:10px 28px;border-radius:10px;font-weight:600;font-size:13px;margin:4px">Learn More</div>
+<div class="sh"><div class="n">1</div><h2>Install the App & Sign In</h2></div>
+<div class="sb">
+<div class="step"><div class="d">a</div><p>Open your mobile browser and go to <b>scalpeldiary.com</b>. You will see the landing page with an <b>"Install App"</b> prompt at the bottom.</p></div>
+<div class="step"><div class="d">b</div><p>Tap <b>"Install"</b> to add ScalpelDiary to your home screen. This makes it work like a native app — you can open it directly from your phone.</p></div>
+<div class="step"><div class="d">c</div><p>Go to your <b>home screen</b>, find the ScalpelDiary icon, and tap to open it.</p></div>
+<div class="step"><div class="d">d</div><p>Tap <b>"Get Started"</b> or <b>"Sign In"</b> and enter the <b>email and password</b> provided by your administrator.</p></div>
+<div class="step"><div class="d">e</div><p>When prompted, tap <b>"Allow"</b> to enable notifications — this ensures you receive real-time alerts when residents submit procedures or presentations for your review.</p></div>
+<div class="two-img">
+<div>
+<img src="screenshots/Residents/initial landing page with Instal app promt.jpg" alt="Landing page with install prompt">
+<div class="img-caption">Landing page with Install App prompt</div>
+</div>
+<div>
+<img src="screenshots/Residents/dash bord with enable notification promt.jpg" alt="Enable notifications prompt">
+<div class="img-caption">Allow notifications to stay updated</div>
 </div>
 </div>
-</div>
-<div class="caption">Landing page — Tap "Sign In"</div>
-
-<div class="step"><div class="d">b</div><p>Enter your <b>supervisor email and password</b> provided by the administrator</p></div>
-
-<div class="phone">
-<div class="phone-screen">
-<div style="background:linear-gradient(135deg,#065f46,#10b981);padding:30px 20px;text-align:center;color:#fff">
-<div style="font-size:24px;margin-bottom:4px">🔪</div>
-<div style="font-size:18px;font-weight:800">ScalpelDiary</div>
-<div style="font-size:9px;opacity:.7">Sign in to your account</div>
-</div>
-<div style="padding:20px">
-<div class="mini-label">Email</div>
-<div class="mini-input">supervisor@scd.com</div>
-<div class="mini-label">Password</div>
-<div class="mini-input" style="letter-spacing:3px">••••••••</div>
-<div class="mini-btn emerald" style="width:100%;text-align:center;margin-top:12px;padding:10px">Sign In</div>
-<div class="arrow-label">👆 Tap here after entering credentials</div>
-</div>
-</div>
-</div>
-<div class="caption">Login screen — Enter your supervisor credentials</div>
-
-<div class="step"><div class="d">c</div><p>When prompted, tap <b>"Install App"</b> to add ScalpelDiary to your home screen</p></div>
-<div class="step"><div class="d">d</div><p>Tap <b>"Allow"</b> when asked to enable push notifications — you'll be notified when residents submit logs</p></div>
-
-<div class="tip"><b>💡 Tip:</b> If you miss the install prompt, open your browser menu (⋮) → "Add to Home Screen". This makes ScalpelDiary work like a native app.</div>
+<div class="tip"><b>💡 Tip:</b> If you miss the install prompt, open your browser menu (⋮) → "Add to Home Screen".</div>
 </div>
 </div>
 
-<!-- SECTION 2: Dashboard -->
+<!-- S2: Profile Setup -->
 <div class="section" id="s2">
-<div class="section-hdr"><div class="n">2</div><h2>Supervisor Dashboard</h2></div>
-<div class="section-body">
-<p>After signing in, you'll see your supervisor dashboard with metrics, today's duty residents, and quick access to all features.</p>
-
-<div class="phone">
-<div class="phone-screen">
-<div class="phone-nav">
-<div class="hamburger">☰</div>
-<div class="title">Supervisor Dashboard</div>
-<div class="bell">🔔</div>
+<div class="sh"><div class="n">2</div><h2>Set Up Your Profile</h2></div>
+<div class="sb">
+<div class="row reverse">
+<div class="text">
+<p>After logging in, go to <b>Settings</b> to personalize your account:</p>
+<div class="step"><div class="d">1</div><p>Tap the <b>☰ menu</b> icon (top-left) → Select <b>"Settings"</b></p></div>
+<div class="step"><div class="d">2</div><p><b>Upload your profile picture</b> — tap the camera icon on your avatar</p></div>
+<div class="step"><div class="d">3</div><p><b>Change your password</b> to something easily memorable — enter your current password, then your new one</p></div>
 </div>
-<div class="phone-content">
-<!-- Metrics Cards -->
-<div class="grid2">
-<div class="mini-card" style="background:linear-gradient(135deg,#059669,#10b981)"><div class="label">Pending Ratings</div><div class="val">8</div><div style="font-size:8px;opacity:.7">Procedures awaiting review</div></div>
-<div class="mini-card" style="background:linear-gradient(135deg,#0891b2,#06b6d4)"><div class="label">Total Rated</div><div class="val">47</div><div style="font-size:8px;opacity:.7">This academic year</div></div>
-</div>
-<div class="grid2">
-<div class="mini-card" style="background:linear-gradient(135deg,#7c3aed,#8b5cf6)"><div class="label">Presentations</div><div class="val">12</div><div style="font-size:8px;opacity:.7">Moderated</div></div>
-<div class="mini-card" style="background:linear-gradient(135deg,#ea580c,#f97316)"><div class="label">Residents</div><div class="val">15</div><div style="font-size:8px;opacity:.7">Under supervision</div></div>
-</div>
-<!-- Today's Duty Residents -->
-<div class="mini-today">
-<div class="t-title">📅 Today's Duty Residents</div>
-<div class="t-cards">
-<div class="t-card"><div class="t-label">EOPD</div><div class="t-val">Dr. Jemal</div></div>
-<div class="t-card"><div class="t-label">Ward</div><div class="t-val">Dr. Sara</div></div>
-<div class="t-card"><div class="t-label">OR</div><div class="t-val">Dr. Abebe</div></div>
+<div class="img">
+<img src="screenshots/Supervisors/Supervisor setting.jpg" alt="Supervisor Settings">
+<div class="img-caption">Settings — Profile & Password</div>
 </div>
 </div>
-<!-- Browse by Year -->
-<div style="font-size:10px;font-weight:700;color:#065f46;margin:8px 0 4px">Browse Residents by Year</div>
-<div style="display:flex;gap:4px;flex-wrap:wrap">
-<div style="background:#d1fae5;color:#059669;padding:6px 12px;border-radius:8px;font-size:10px;font-weight:700">Year 1 (5)</div>
-<div style="background:#d1fae5;color:#059669;padding:6px 12px;border-radius:8px;font-size:10px;font-weight:700">Year 2 (4)</div>
-<div style="background:#d1fae5;color:#059669;padding:6px 12px;border-radius:8px;font-size:10px;font-weight:700">Year 3 (3)</div>
-<div style="background:#d1fae5;color:#059669;padding:6px 12px;border-radius:8px;font-size:10px;font-weight:700">Year 4 (3)</div>
-</div>
-</div>
-</div>
-</div>
-<div class="caption">Supervisor Dashboard — Metrics, today's duty residents, and year browsing</div>
-
-<div class="step"><div class="d">📊</div><p><b>Metrics Cards</b> — Tap "Pending Ratings" to jump directly to unrated logs</p></div>
-<div class="step"><div class="d">📅</div><p><b>Today's Duty Residents</b> — Tap any card to see the full monthly duty schedule</p></div>
-<div class="step"><div class="d">👥</div><p><b>Browse by Year</b> — Tap a year badge to see all residents in that year with their stats</p></div>
-
-<div class="tip"><b>💡 Tip:</b> The dashboard auto-refreshes. Pending ratings count updates in real-time as residents submit new logs.</div>
 </div>
 </div>
 
-<!-- SECTION 3: Rating Procedures -->
+<!-- S3: Dashboard Overview -->
 <div class="section" id="s3">
-<div class="section-hdr"><div class="n">3</div><h2>Rating Procedures (Unresponded Logs)</h2></div>
-<div class="section-body">
-<div class="step"><div class="d">1</div><p>Tap <b>☰ menu</b> → <b>"Unresponded Logs"</b> (or tap the Pending Ratings card on dashboard)</p></div>
-<div class="step"><div class="d">2</div><p>You'll see a list of all procedures submitted by residents who selected you as supervisor</p></div>
+<div class="sh"><div class="n">3</div><h2>Dashboard Overview</h2></div>
+<div class="sb">
+<p>Your dashboard is your command center — it shows your metrics, today's duty residents, and quick access to all features.</p>
 
-<div class="phone">
-<div class="phone-screen">
-<div class="phone-nav"><div class="hamburger">☰</div><div class="title">Unresponded Logs</div></div>
-<div class="phone-content">
-<div style="display:flex;gap:4px;margin-bottom:8px">
-<div style="flex:1;background:#059669;color:#fff;text-align:center;padding:6px;border-radius:8px;font-size:10px;font-weight:700">Procedures (5)</div>
-<div style="flex:1;background:#f1f5f9;color:#64748b;text-align:center;padding:6px;border-radius:8px;font-size:10px;font-weight:600">Presentations (3)</div>
+<div class="row">
+<div class="text">
+<h3 style="color:#065f46;font-size:1.05em;margin:10px 0 6px">📊 Metrics & Schedules</h3>
+<p style="font-size:.92em">At the top you'll see your <b>pending ratings count</b>, <b>total procedures and presentations supervised</b>, and the <b>today's duty schedule</b> showing which residents are on EOPD, Ward, OR, and Call. Tap any card to view the full monthly schedule.</p>
 </div>
-<div style="background:#f0fdf4;border:1px solid #bbf7d0;border-radius:10px;padding:10px;margin:6px 0">
-<div style="display:flex;justify-content:space-between;align-items:center">
-<div>
-<div style="font-size:11px;font-weight:700;color:#065f46">Open Appendectomy</div>
-<div style="font-size:9px;color:#6b7280">Dr. Jemal · Year 1 · Mar 28</div>
-</div>
-<div class="mini-badge" style="background:#fbbf24;color:#92400e">Pending</div>
+<div class="img">
+<img src="screenshots/Supervisors/Supervisor dashbord Metrics and schedules.jpg" alt="Dashboard metrics and schedules">
+<div class="img-caption">Dashboard — Metrics & today's schedule</div>
 </div>
 </div>
-<div style="background:#f0fdf4;border:1px solid #bbf7d0;border-radius:10px;padding:10px;margin:6px 0">
-<div style="display:flex;justify-content:space-between;align-items:center">
-<div>
-<div style="font-size:11px;font-weight:700;color:#065f46">Hernia Repair</div>
-<div style="font-size:9px;color:#6b7280">Dr. Sara · Year 2 · Mar 27</div>
-</div>
-<div class="mini-badge" style="background:#fbbf24;color:#92400e">Pending</div>
-</div>
-</div>
-<div style="background:#f0fdf4;border:1px solid #bbf7d0;border-radius:10px;padding:10px;margin:6px 0">
-<div style="display:flex;justify-content:space-between;align-items:center">
-<div>
-<div style="font-size:11px;font-weight:700;color:#065f46">Cholecystectomy</div>
-<div style="font-size:9px;color:#6b7280">Dr. Abebe · Year 3 · Mar 26</div>
-</div>
-<div class="mini-badge" style="background:#fbbf24;color:#92400e">Pending</div>
-</div>
-</div>
-</div>
-</div>
-</div>
-<div class="caption">Unresponded Logs — All pending procedures awaiting your rating</div>
 
-<div class="step"><div class="d">3</div><p>Tap a procedure to open the <b>rating form</b></p></div>
+<div class="row reverse">
+<div class="text">
+<h3 style="color:#065f46;font-size:1.05em;margin:10px 0 6px">👥 Browse Residents by Year</h3>
+<p style="font-size:.92em">Below the metrics, you'll find <b>year buttons</b> (Year 1, 2, 3, 4). Tap any year to see all residents in that group with their procedure counts, presentation counts, and progress.</p>
+</div>
+<div class="img">
+<img src="screenshots/Supervisors/Supervisors dashbord browes residents by year.jpg" alt="Browse residents by year">
+<div class="img-caption">Dashboard — Browse residents by year</div>
+</div>
+</div>
+</div>
+</div>
 
-<div class="phone">
-<div class="phone-screen">
-<div class="phone-nav"><div class="hamburger">☰</div><div class="title">Rate Procedure</div></div>
-<div class="phone-content">
-<div style="background:#f0fdf4;border-radius:10px;padding:10px;margin-bottom:8px">
-<div style="font-size:11px"><b>Procedure:</b> Open Appendectomy</div>
-<div style="font-size:11px"><b>Resident:</b> Dr. Jemal (Year 1)</div>
-<div style="font-size:11px"><b>Date:</b> March 28, 2026</div>
-<div style="font-size:11px"><b>Institution:</b> Y12HMC</div>
-<div style="font-size:11px"><b>Role:</b> Primary Surgeon</div>
+<!-- S4: Browse Residents -->
+<div class="section" id="s4">
+<div class="sh"><div class="n">4</div><h2>Browse Residents by Year</h2></div>
+<div class="sb">
+<div class="row reverse">
+<div class="text">
+<div class="step"><div class="d">1</div><p>From the dashboard, tap a <b>year badge</b> (e.g., "Year 1") to see all residents in that year</p></div>
+<div class="step"><div class="d">2</div><p>Each resident card shows: <b>Name, Verified Procedures, Verified Presentations, Average Rating, and Year Progress</b></p></div>
+<div class="step"><div class="d">3</div><p>Tap a resident card to <b>view their full profile</b> in read-only mode — you can see their dashboard, all procedures, presentations, analytics, and comments</p></div>
+<div class="step"><div class="d">4</div><p>As a supervisor, you can see <b>exact numeric scores</b> and <b>anonymous comments</b> (yellow tag) that residents cannot see</p></div>
 </div>
-<div class="mini-label">Rating (0-100)</div>
-<div class="mini-input">82</div>
-<div style="font-size:9px;color:#059669;margin:4px 0">90-100: Excellent · 71-89: Good · 50-70: Satisfactory · Below 50: Poor</div>
-<div class="mini-label">Comment (visible to resident)</div>
-<div class="mini-input" style="height:40px">Good technique, needs improvement on closure</div>
-<div class="mini-label">Anonymous Comment (hidden from resident)</div>
-<div class="mini-input" style="height:40px;border-color:#eab308">Needs more supervision on complex cases</div>
-<div style="font-size:8px;color:#eab308;margin:2px 0">⚠️ Only visible to supervisors and management</div>
-<div class="mini-btn emerald" style="width:100%;text-align:center;padding:10px;margin-top:8px">Submit Rating</div>
+<div class="img">
+<img src="screenshots/Supervisors/Supervisors dashbord browes residents by year.jpg" alt="Browse residents">
+<div class="img-caption">Resident cards with stats</div>
 </div>
 </div>
+<div class="info"><b>👁️ What you see that residents don't:</b> Exact numeric scores (residents only see Excellent/Good/Satisfactory/Poor labels) and anonymous comments (yellow tag).</div>
 </div>
-<div class="caption">Rating form — Score, visible comment, and anonymous comment</div>
+</div>
 
-<div class="step"><div class="d">4</div><p>Enter a <b>Rating (0-100)</b> — the resident sees a label (Excellent/Good/etc.), not the exact score</p></div>
-<div class="step"><div class="d">5</div><p>Add a <b>Comment</b> (visible to the resident) and optionally an <b>Anonymous Comment</b> (hidden from resident)</p></div>
+<!-- S5: Rating Procedures -->
+<div class="section" id="s5">
+<div class="sh"><div class="n">5</div><h2>Rating Procedures (Unresponded Logs)</h2></div>
+<div class="sb">
+<p>When a resident submits a procedure and selects you as their supervisor, you will receive a <b>notification</b>. The procedure appears in your <b>Unresponded Logs</b>.</p>
+
+<div class="row">
+<div class="text">
+<div class="step"><div class="d">1</div><p>Tap <b>☰ menu</b> → <b>"Unresponded Logs"</b>, or tap the <b>Pending Ratings</b> card on your dashboard</p></div>
+<div class="step"><div class="d">2</div><p>You'll see all procedures awaiting your review. Tap a procedure to open the <b>rating form</b></p></div>
+<div class="step"><div class="d">3</div><p>Enter a <b>Rating (0–100)</b>. When rating, consider:</p></div>
+<ul style="margin-left:42px;font-size:.92em;color:#475569">
+<li>Pre-operative preparation of the patient</li>
+<li>Scientific knowledge and reading about the procedure</li>
+<li>Surgical skill, technique, and communication</li>
+</ul>
+<div class="step"><div class="d">4</div><p>Add a <b>comment</b> if you wish — this will be visible to the resident and they will be notified</p></div>
+<div class="step"><div class="d">5</div><p>If you want to leave feedback that the resident <b>should not see</b>, use the <b>"Make Anonymous Comment"</b> option at the bottom of the rating modal. Only other supervisors and management can see anonymous comments.</p></div>
 <div class="step"><div class="d">6</div><p>Tap <b>"Submit Rating"</b></p></div>
+</div>
+<div class="img">
+<img src="screenshots/Supervisors/Supervisors dashbord Rated logs.jpg" alt="Unresponded logs">
+<div class="img-caption">Unresponded Logs — Procedures to rate</div>
+</div>
+</div>
 
-<div class="tip"><b>💡 Anonymous Comments:</b> These are only visible to other supervisors and management accounts. Use them for sensitive feedback that shouldn't be shown to the resident.</div>
+<table class="rating-table">
+<tr><td class="c-green">Excellent</td><td>90 and above</td><td style="background:#dcfce7">🟢</td></tr>
+<tr><td class="c-blue">Good</td><td>71 – 89</td><td style="background:#dbeafe">🔵</td></tr>
+<tr><td class="c-yellow">Satisfactory</td><td>50 – 70</td><td style="background:#fef9c3">🟡</td></tr>
+<tr><td class="c-red">Poor</td><td>Below 50</td><td style="background:#fee2e2">🔴</td></tr>
+</table>
+
+<div class="info"><b>📊 How residents see ratings:</b> Residents will <b>not</b> see the exact score you give. They will only see the category label (Excellent, Good, Satisfactory, or Poor). Once they accumulate <b>10+ verified procedures</b>, their average rating number will appear on their dashboard.</div>
 <div class="warn"><b>⚠️ Important:</b> Once submitted, ratings cannot be edited. Double-check your score and comments before submitting.</div>
 </div>
 </div>
 
-<!-- SECTION 4: Rating Presentations -->
-<div class="section" id="s4">
-<div class="section-hdr"><div class="n">4</div><h2>Rating Presentations</h2></div>
-<div class="section-body">
-<div class="step"><div class="d">1</div><p>From <b>"Unresponded Logs"</b>, tap the <b>"Presentations"</b> tab</p></div>
-<div class="step"><div class="d">2</div><p>You'll see presentations where you were selected as <b>moderator</b></p></div>
-
-<div class="phone">
-<div class="phone-screen">
-<div class="phone-nav"><div class="hamburger">☰</div><div class="title">Unresponded Logs</div></div>
-<div class="phone-content">
-<div style="display:flex;gap:4px;margin-bottom:8px">
-<div style="flex:1;background:#f1f5f9;color:#64748b;text-align:center;padding:6px;border-radius:8px;font-size:10px;font-weight:600">Procedures (5)</div>
-<div style="flex:1;background:#059669;color:#fff;text-align:center;padding:6px;border-radius:8px;font-size:10px;font-weight:700">Presentations (3)</div>
-</div>
-<div style="background:#f0fdf4;border:1px solid #bbf7d0;border-radius:10px;padding:10px;margin:6px 0">
-<div style="font-size:11px;font-weight:700;color:#065f46">Management of Acute Appendicitis</div>
-<div style="font-size:9px;color:#6b7280">Dr. Jemal · Morning Presentation · Mar 28</div>
-<div style="font-size:9px;color:#6b7280">Venue: Y12HMC</div>
-</div>
-<div style="background:#f0fdf4;border:1px solid #bbf7d0;border-radius:10px;padding:10px;margin:6px 0">
-<div style="font-size:11px;font-weight:700;color:#065f46">Laparoscopic Cholecystectomy Review</div>
-<div style="font-size:9px;color:#6b7280">Dr. Sara · Grand Round · Mar 25</div>
-<div style="font-size:9px;color:#6b7280">Venue: Y12HMC</div>
-</div>
-</div>
-</div>
-</div>
-<div class="caption">Presentations tab — Pending presentation ratings</div>
-
-<div class="step"><div class="d">3</div><p>Tap a presentation to open the <b>rating form</b></p></div>
-<div class="step"><div class="d">4</div><p>Enter a <b>Rating (0-100)</b>, add a comment, and optionally an anonymous comment</p></div>
-<div class="step"><div class="d">5</div><p>Tap <b>"Submit Rating"</b></p></div>
-
-<div class="tip"><b>💡 Tip:</b> You'll receive a push notification when a resident selects you as moderator for a presentation. Tap the notification to go directly to the rating form.</div>
-</div>
-</div>
-
-<!-- SECTION 5: General Comments -->
-<div class="section" id="s5">
-<div class="section-hdr"><div class="n">5</div><h2>General Comments</h2></div>
-<div class="section-body">
-<p>General Comments let you leave feedback on a resident's profile that isn't tied to a specific procedure or presentation.</p>
-
-<div class="step"><div class="d">1</div><p>Tap <b>☰ menu</b> → <b>"General Comments"</b></p></div>
-<div class="step"><div class="d">2</div><p>Select a <b>resident</b> from the dropdown</p></div>
-
-<div class="phone">
-<div class="phone-screen">
-<div class="phone-nav"><div class="hamburger">☰</div><div class="title">General Comments</div></div>
-<div class="phone-content">
-<div class="mini-label">Select Resident</div>
-<div class="mini-select">Dr. Jemal (Year 1) ▾</div>
-<div style="margin-top:10px">
-<div class="mini-label">Your Comment</div>
-<div class="mini-input" style="height:60px">Shows great initiative in the OR. Consistently arrives early and prepared for cases.</div>
-<div style="display:flex;gap:4px;margin-top:8px">
-<div class="mini-btn emerald" style="flex:1;text-align:center;padding:10px">Submit Comment</div>
-</div>
-</div>
-<div style="font-size:10px;font-weight:700;color:#065f46;margin:14px 0 6px">Previous Comments</div>
-<div style="border-left:3px solid #10b981;background:#f0fdf4;padding:8px;border-radius:0 8px 8px 0;font-size:10px;margin:4px 0">
-<div style="display:flex;justify-content:space-between"><span style="font-weight:700">You</span><span style="color:#6b7280;font-size:8px">Mar 20, 2026</span></div>
-<div style="margin-top:4px">Excellent performance during ward rounds this week.</div>
-</div>
-<div style="border-left:3px solid #10b981;background:#f0fdf4;padding:8px;border-radius:0 8px 8px 0;font-size:10px;margin:4px 0">
-<div style="display:flex;justify-content:space-between"><span style="font-weight:700">You</span><span style="color:#6b7280;font-size:8px">Mar 10, 2026</span></div>
-<div style="margin-top:4px">Needs to improve documentation habits.</div>
-</div>
-</div>
-</div>
-</div>
-<div class="caption">General Comments — Leave profile-level feedback for any resident</div>
-
-<div class="step"><div class="d">3</div><p>Type your comment and tap <b>"Submit Comment"</b></p></div>
-<div class="step"><div class="d">4</div><p>The resident will receive a <b>notification</b> about the new comment</p></div>
-
-<div class="tip"><b>💡 Tip:</b> General comments appear on the resident's profile and in their "All Comments" page. Use them for overall performance feedback, not procedure-specific notes.</div>
-<div class="warn"><b>⚠️ Note:</b> General comments are visible to the resident. For private feedback, use the anonymous comment field when rating a specific procedure.</div>
-</div>
-</div>
-
-<!-- SECTION 6: Viewing Resident Profiles -->
+<!-- S6: Rating Presentations -->
 <div class="section" id="s6">
-<div class="section-hdr"><div class="n">6</div><h2>Viewing Resident Profiles</h2></div>
-<div class="section-body">
-<p>You can view any resident's profile in <b>read-only mode</b> to review their progress, procedures, and ratings.</p>
-
-<div class="step"><div class="d">1</div><p>From the dashboard, tap a <b>year badge</b> (e.g., "Year 1") or tap <b>☰ menu</b> → <b>"Browse Residents"</b></p></div>
-<div class="step"><div class="d">2</div><p>Tap a <b>resident's name</b> to open their profile</p></div>
-
-<div class="phone">
-<div class="phone-screen">
-<div class="phone-nav"><div class="hamburger">☰</div><div class="title">Dr. Jemal — Profile</div></div>
-<div class="phone-content">
-<div style="text-align:center;padding:10px 0">
-<div style="width:50px;height:50px;background:#d1fae5;border-radius:50%;margin:0 auto;display:flex;align-items:center;justify-content:center;font-size:20px">👨‍⚕️</div>
-<div style="font-size:13px;font-weight:700;margin-top:6px">Dr. Jemal Mohammed</div>
-<div style="font-size:10px;color:#6b7280">Year 1 · Joined Oct 2025</div>
+<div class="sh"><div class="n">6</div><h2>Rating Presentations</h2></div>
+<div class="sb">
+<div class="row reverse">
+<div class="text">
+<p>When a resident submits a presentation and selects you as <b>moderator</b>, you will be notified. Presentations also appear in <b>Unresponded Logs</b> under the "Presentations" tab.</p>
+<div class="step"><div class="d">1</div><p>From <b>"Unresponded Logs"</b>, tap the <b>"Presentations"</b> tab</p></div>
+<div class="step"><div class="d">2</div><p>Tap a presentation to open the rating form</p></div>
+<div class="step"><div class="d">3</div><p>Enter a <b>Rating (0–100)</b>. When rating presentations, consider:</p></div>
+<ul style="margin-left:42px;font-size:.92em;color:#475569">
+<li>Preparation and pre-presentation communication with you</li>
+<li>Organization and presentation skill</li>
+<li>Ability to respond to follow-up questions</li>
+</ul>
+<div class="step"><div class="d">4</div><p>Add a <b>comment</b> (visible to resident) and optionally an <b>anonymous comment</b> (hidden from resident)</p></div>
+<div class="step"><div class="d">5</div><p>Tap <b>"Submit Rating"</b>. The resident will be notified of the rating.</p></div>
 </div>
-<div class="grid2">
-<div class="mini-card" style="background:linear-gradient(135deg,#059669,#10b981);padding:8px"><div class="label">Procedures</div><div class="val" style="font-size:16px">24</div></div>
-<div class="mini-card" style="background:linear-gradient(135deg,#7c3aed,#8b5cf6);padding:8px"><div class="label">Presentations</div><div class="val" style="font-size:16px">6</div></div>
-</div>
-<div style="font-size:10px;font-weight:700;color:#065f46;margin:8px 0 4px">📊 Progress</div>
-<div style="background:#e5e7eb;border-radius:6px;height:8px;margin:4px 0"><div style="background:linear-gradient(90deg,#059669,#10b981);width:42%;height:100%;border-radius:6px"></div></div>
-<div style="font-size:9px;color:#6b7280;text-align:right">42% of Year 1 requirements</div>
-<div style="font-size:10px;font-weight:700;color:#065f46;margin:8px 0 4px">Recent Procedures</div>
-<table class="mini-table">
-<tr><th>Date</th><th>Procedure</th><th>Rating</th></tr>
-<tr><td>Mar 28</td><td>Appendectomy</td><td><span class="mini-badge" style="background:#22c55e;color:#fff">Good</span></td></tr>
-<tr><td>Mar 25</td><td>Hernia Repair</td><td><span class="mini-badge" style="background:#eab308;color:#fff">Pending</span></td></tr>
-</table>
-<div style="background:#eff6ff;border-left:3px solid #3b82f6;padding:6px 8px;border-radius:0 6px 6px 0;font-size:9px;color:#1e40af;margin-top:8px">
-🔒 <b>Read-only mode</b> — You are viewing this resident's data
+<div class="img">
+<img src="screenshots/Supervisors/Supervisors dashbord Rated logs.jpg" alt="Presentations to rate">
+<div class="img-caption">Presentations tab in Unresponded Logs</div>
 </div>
 </div>
-</div>
-</div>
-<div class="caption">Resident Profile — Read-only view of procedures, stats, and progress</div>
-
-<div class="step"><div class="d">3</div><p>View their <b>procedures</b>, <b>presentations</b>, <b>analytics</b>, and <b>comments</b></p></div>
-<div class="step"><div class="d">4</div><p>Tap <b>"All Procedures"</b> or <b>"All Presentations"</b> to see the complete list with ratings</p></div>
-
-<div class="tip"><b>💡 Tip:</b> In read-only mode, you can see all data but cannot edit or delete anything. You can see anonymous comments left by other supervisors.</div>
+<div class="info"><b>📊 Presentation averages:</b> Once a resident has <b>5+ verified presentations</b>, their average presentation rating will appear on their dashboard.</div>
 </div>
 </div>
 
-<!-- SECTION 7: Assign Presentations & Schedules -->
+<!-- S7: Ratings Done & Post-Op Follow-Up -->
 <div class="section" id="s7">
-<div class="section-hdr"><div class="n">7</div><h2>Assign Presentations & Schedules</h2></div>
-<div class="section-body">
-<div class="step"><div class="d">1</div><p>Tap <b>☰ menu</b> → <b>"Assign Presentations"</b></p></div>
-
-<div class="phone">
-<div class="phone-screen">
-<div class="phone-nav"><div class="hamburger">☰</div><div class="title">Assign Presentations</div></div>
-<div class="phone-content">
-<div style="background:#f0fdf4;border-radius:10px;padding:12px;border:1px solid #bbf7d0">
-<div class="mini-label">Select Resident</div>
-<div class="mini-select">Dr. Jemal (Year 1) ▾</div>
-<div class="mini-label">Presentation Title</div>
-<div class="mini-input">Trauma Assessment Protocol</div>
-<div class="grid2">
-<div><div class="mini-label">Date</div><div class="mini-input">2026-04-15</div></div>
-<div><div class="mini-label">Type</div><div class="mini-select">Grand Round ▾</div></div>
+<div class="sh"><div class="n">7</div><h2>Ratings Done & Post-Op Follow-Up</h2></div>
+<div class="sb">
+<div class="row">
+<div class="text">
+<div class="step"><div class="d">1</div><p>Tap <b>☰ menu</b> → <b>"Ratings Done"</b></p></div>
+<div class="step"><div class="d">2</div><p>Here you can see all the <b>procedures and presentations you have previously rated</b></p></div>
+<div class="step"><div class="d">3</div><p>If you want to add a <b>post-operative follow-up note</b> — for example, to comment on the resident's post-op patient care — tap the procedure you rated before</p></div>
+<div class="step"><div class="d">4</div><p>Inside the procedure detail, you will find a <b>Post-Op Follow-Up Comment</b> section where you can leave your note</p></div>
 </div>
-<div class="mini-label">Venue</div>
-<div class="mini-select">Y12HMC ▾</div>
-<div class="mini-label">Notes (optional)</div>
-<div class="mini-input" style="height:35px">Focus on ATLS guidelines</div>
-<div class="mini-btn emerald" style="width:100%;text-align:center;padding:10px;margin-top:8px">Assign Presentation</div>
+<div class="img">
+<img src="screenshots/Supervisors/ratings done.jpg" alt="Ratings Done">
+<div class="img-caption">Ratings Done — Review past ratings</div>
 </div>
 </div>
-</div>
-</div>
-<div class="caption">Assign Presentation — Select resident, set details, and assign</div>
-
-<div class="step"><div class="d">2</div><p>Select a <b>resident</b>, enter the presentation <b>title, date, type, and venue</b></p></div>
-<div class="step"><div class="d">3</div><p>Tap <b>"Assign Presentation"</b> — the resident receives a notification</p></div>
-
-<div style="font-size:1.05em;font-weight:700;color:#065f46;margin:20px 0 10px">📅 Viewing Schedules</div>
-<div class="step"><div class="d">4</div><p>Tap <b>☰ menu</b> → <b>"Yearly Rotations"</b> to see the rotation schedule for all residents</p></div>
-<div class="step"><div class="d">5</div><p>Tap <b>"Monthly Activities"</b> to see the monthly activity assignments</p></div>
-
-<div class="phone">
-<div class="phone-screen">
-<div class="phone-nav"><div class="hamburger">☰</div><div class="title">Yearly Rotations</div></div>
-<div class="phone-content">
-<div class="mini-label">Academic Year</div>
-<div class="mini-select">2025-2026 ▾</div>
-<div style="font-size:10px;font-weight:700;color:#065f46;margin:8px 0 4px">Year 1 Residents</div>
-<table class="mini-table">
-<tr><th>Resident</th><th>Oct</th><th>Nov</th><th>Dec</th><th>Jan</th></tr>
-<tr><td style="font-weight:600">Dr. Jemal</td><td><span style="background:#dbeafe;padding:1px 4px;border-radius:4px;font-size:8px">GS</span></td><td><span style="background:#fef3c7;padding:1px 4px;border-radius:4px;font-size:8px">Ortho</span></td><td><span style="background:#d1fae5;padding:1px 4px;border-radius:4px;font-size:8px">Uro</span></td><td><span style="background:#fce7f3;padding:1px 4px;border-radius:4px;font-size:8px">Ped</span></td></tr>
-<tr><td style="font-weight:600">Dr. Sara</td><td><span style="background:#fef3c7;padding:1px 4px;border-radius:4px;font-size:8px">Ortho</span></td><td><span style="background:#dbeafe;padding:1px 4px;border-radius:4px;font-size:8px">GS</span></td><td><span style="background:#fce7f3;padding:1px 4px;border-radius:4px;font-size:8px">Ped</span></td><td><span style="background:#d1fae5;padding:1px 4px;border-radius:4px;font-size:8px">Uro</span></td></tr>
-</table>
-</div>
-</div>
-</div>
-<div class="caption">Yearly Rotations — View-only schedule for all residents</div>
-
-<div class="tip"><b>💡 Tip:</b> Supervisors can view schedules but cannot edit them. Only Chief Residents can modify rotation, duty, and activity schedules.</div>
+<div class="tip"><b>💡 Tip:</b> Use post-op follow-up comments to document how the resident managed the patient after surgery. This provides valuable longitudinal feedback.</div>
 </div>
 </div>
 
-<!-- SECTION 8: Settings -->
+<!-- S8: Assign Presentations -->
 <div class="section" id="s8">
-<div class="section-hdr"><div class="n">8</div><h2>Settings & Account</h2></div>
-<div class="section-body">
-<div class="step"><div class="d">1</div><p>Tap <b>☰ menu</b> → <b>"Settings"</b></p></div>
-
-<div class="phone">
-<div class="phone-screen">
-<div class="phone-nav"><div class="hamburger">☰</div><div class="title">Settings</div></div>
-<div class="phone-content">
-<div style="text-align:center;padding:10px 0">
-<div style="width:50px;height:50px;background:#d1fae5;border-radius:50%;margin:0 auto;display:flex;align-items:center;justify-content:center;font-size:20px">👨‍🏫</div>
-<div style="font-size:13px;font-weight:700;margin-top:6px">Dr. Getachew</div>
-<div style="font-size:10px;color:#6b7280">Supervisor · Y12HMC</div>
+<div class="sh"><div class="n">8</div><h2>Assign Presentations</h2></div>
+<div class="sb">
+<div class="row reverse">
+<div class="text">
+<div class="step"><div class="d">1</div><p>Tap <b>☰ menu</b> → <b>"Assign Presentations"</b></p></div>
+<div class="step"><div class="d">2</div><p>Select a <b>resident</b> from the dropdown, then fill in the presentation <b>title, date, type</b> (Morning Presentation, Seminar, Grand Round, etc.), and <b>venue</b></p></div>
+<div class="step"><div class="d">3</div><p>Tap <b>"Assign Presentation"</b> — the resident will receive a notification about the assignment</p></div>
+<div class="step"><div class="d">4</div><p>You can track the <b>status</b> of assigned presentations on this page. Once the resident has presented, you will be able to <b>rate the presentation</b> from your Unresponded Logs</p></div>
 </div>
-<div style="background:#f8fafc;border-radius:10px;padding:12px;border:1px solid #e2e8f0;margin:8px 0">
-<div style="font-size:11px;font-weight:700;color:#065f46;margin-bottom:8px">Account</div>
-<div class="mini-label">Email</div>
-<div class="mini-input" style="background:#e5e7eb">supervisor@scd.com</div>
-<div class="mini-label">New Password</div>
-<div class="mini-input" style="letter-spacing:3px">••••••••</div>
-<div class="mini-btn emerald" style="width:100%;text-align:center;margin-top:8px">Update Password</div>
-</div>
-<div style="background:#f8fafc;border-radius:10px;padding:12px;border:1px solid #e2e8f0;margin:8px 0">
-<div style="font-size:11px;font-weight:700;color:#065f46;margin-bottom:8px">Profile Picture</div>
-<div style="display:flex;gap:8px;align-items:center">
-<div style="width:40px;height:40px;background:#d1fae5;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:16px">👨‍🏫</div>
-<div class="mini-btn gray" style="font-size:10px">Upload Photo</div>
+<div class="img">
+<img src="screenshots/Supervisors/Supervisor Assign presentation.jpg" alt="Assign Presentation">
+<div class="img-caption">Assign Presentations to residents</div>
 </div>
 </div>
-<div style="background:#f8fafc;border-radius:10px;padding:12px;border:1px solid #e2e8f0;margin:8px 0">
-<div style="font-size:11px;font-weight:700;color:#065f46;margin-bottom:8px">Rated Procedures</div>
-<div class="mini-btn emerald" style="width:100%;text-align:center">View All Rated Procedures</div>
-<div class="mini-btn emerald" style="width:100%;text-align:center;margin-top:4px">View All Rated Presentations</div>
-</div>
-</div>
-</div>
-</div>
-<div class="caption">Settings — Account management, profile, and rated items</div>
-
-<div class="step"><div class="d">2</div><p>Change your <b>password</b> and upload a <b>profile picture</b></p></div>
-<div class="step"><div class="d">3</div><p>Tap <b>"View All Rated Procedures"</b> to see your complete rating history</p></div>
-<div class="step"><div class="d">4</div><p>Tap <b>"View All Rated Presentations"</b> to review all presentations you've moderated</p></div>
-
-<div class="tip"><b>💡 Tip:</b> Your rated procedures and presentations pages show the full history of all ratings you've given, including scores and comments.</div>
+<div class="tip"><b>💡 Tip:</b> Assigned presentations appear in the resident's "Assigned" tab under Presentations. They can mark it as "Presented" once completed, and it will then appear in your Unresponded Logs for rating.</div>
 </div>
 </div>
 
+<!-- S9: General Comments -->
+<div class="section" id="s9">
+<div class="sh"><div class="n">9</div><h2>General Comments</h2></div>
+<div class="sb">
+<div class="row">
+<div class="text">
+<p>General Comments allow you to leave feedback on a resident that is <b>not tied to a specific procedure or presentation</b>. Use this for comments on attitude, interaction, professionalism, or any other behavioral observation.</p>
+<div class="step"><div class="d">1</div><p>Tap <b>☰ menu</b> → <b>"General Comments"</b></p></div>
+<div class="step"><div class="d">2</div><p>Residents are listed by year (collapsible). Tap a year to expand, then select a <b>resident</b></p></div>
+<div class="step"><div class="d">3</div><p>Type your comment and tap <b>"Submit Comment"</b></p></div>
+<div class="step"><div class="d">4</div><p>By default, the comment is <b>visible to the resident</b> and they will be notified</p></div>
+<div class="step"><div class="d">5</div><p>If you want the comment to remain <b>private</b>, check the <b>"Make Anonymous"</b> checkbox before submitting. Anonymous comments are only visible to other supervisors and management — the resident will not see or be notified about them.</p></div>
 </div>
+<div class="img">
+<img src="screenshots/Supervisors/Supervisor General comment.jpg" alt="General Comments">
+<div class="img-caption">General Comments — Profile-level feedback</div>
+</div>
+</div>
+<div class="warn"><b>⚠️ Note:</b> Anonymous general comments are tagged with a yellow "Anonymous" badge in the supervisor/management view. Residents never see anonymous content.</div>
+</div>
+</div>
+
+<!-- S10: Notifications -->
+<div class="section" id="s10">
+<div class="sh"><div class="n">10</div><h2>Notifications</h2></div>
+<div class="sb">
+<div class="row reverse">
+<div class="text">
+<p>The <b>🔔 bell icon</b> in the top-right corner shows your unread notifications.</p>
+<div class="step"><div class="d">📩</div><p><b>New procedure submitted</b> — when a resident selects you as supervisor for a procedure</p></div>
+<div class="step"><div class="d">📌</div><p><b>New presentation submitted</b> — when a resident selects you as moderator</p></div>
+<div class="step"><div class="d">🎤</div><p><b>Presentation marked as presented</b> — when an assigned presentation is completed</p></div>
+<p style="font-size:.9em;color:#64748b;margin-top:8px">Tap any notification to navigate directly to the relevant page. Notifications auto-expire after 48 hours.</p>
+</div>
+<div class="img">
+<img src="screenshots/Supervisors/Supervisor Bellnotification.jpg" alt="Notifications">
+<div class="img-caption">Bell icon with notifications</div>
+</div>
+</div>
+</div>
+</div>
+
+</div>
+
 <div class="footer">
-<div style="font-size:1.2em;margin-bottom:8px"><img src="../client/public/favicon.svg" alt="ScalpelDiary" style="width:24px;height:24px;vertical-align:middle;border-radius:6px"> ScalpelDiary</div>
-Comprehensive Surgical Training Management System<br>
+<div style="font-size:1.3em;margin-bottom:8px"><img src="../client/public/favicon.svg" alt="ScalpelDiary" style="width:28px;height:28px;vertical-align:middle;border-radius:6px"> ScalpelDiary</div>
+<div style="margin-bottom:4px">Comprehensive Surgical Training Management System</div>
 © 2026 — All Rights Reserved
 </div>
-
 </body>
 </html>
