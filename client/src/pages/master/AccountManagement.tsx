@@ -23,6 +23,8 @@ export default function AccountManagement() {
   const [showEditModal, setShowEditModal] = useState(false);
   const [editingUser, setEditingUser] = useState<User | null>(null);
   const [filterRole, setFilterRole] = useState('ALL');
+  const [filterYear, setFilterYear] = useState('ALL');
+  const [sortAlpha, setSortAlpha] = useState(false);
   
   const [formData, setFormData] = useState({
     email: '',
@@ -241,9 +243,16 @@ export default function AccountManagement() {
     }
   };
 
-  const filteredUsers = filterRole === 'ALL' 
-    ? users 
-    : users.filter(u => u.role === filterRole);
+  const filteredUsers = users
+    .filter(u => filterRole === 'ALL' || u.role === filterRole)
+    .filter(u => {
+      if (filterYear === 'ALL') return true;
+      if (u.role !== 'RESIDENT') return false;
+      const years = residentYears[u.id] || [];
+      const currentYear = years.length > 0 ? years[years.length - 1].year : 0;
+      return currentYear === parseInt(filterYear);
+    })
+    .sort((a, b) => sortAlpha ? a.name.localeCompare(b.name) : 0);
 
   return (
     <Layout title="Account Management">
@@ -283,6 +292,29 @@ export default function AccountManagement() {
           <option value="MANAGEMENT">Management Only</option>
           <option value="MASTER">Masters Only</option>
         </select>
+      </div>
+
+      {/* Year Filter & Sort */}
+      <div className="mb-4 flex items-center space-x-3 flex-wrap gap-y-2">
+        <select
+          value={filterYear}
+          onChange={(e) => setFilterYear(e.target.value)}
+          className="px-4 py-2 border rounded-lg text-sm"
+        >
+          <option value="ALL">All Years</option>
+          <option value="1">Year 1</option>
+          <option value="2">Year 2</option>
+          <option value="3">Year 3</option>
+          <option value="4">Year 4</option>
+          <option value="5">Year 5</option>
+        </select>
+        <button
+          onClick={() => setSortAlpha(!sortAlpha)}
+          className={`px-4 py-2 rounded-lg text-sm font-medium ${sortAlpha ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-700 border'}`}
+        >
+          A→Z {sortAlpha ? '✓' : ''}
+        </button>
+        <span className="text-sm text-gray-500">{filteredUsers.length} user{filteredUsers.length !== 1 ? 's' : ''}</span>
       </div>
 
       {/* Users Table */}
