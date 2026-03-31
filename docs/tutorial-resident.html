@@ -7,405 +7,379 @@
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
 body{font-family:'Segoe UI',system-ui,-apple-system,sans-serif;background:#f0f4f8;color:#1e293b;line-height:1.7}
-.header{background:linear-gradient(135deg,#1e3a8a,#3b82f6);color:#fff;padding:48px 20px;text-align:center}
-.header h1{font-size:2.4em;margin-bottom:6px;letter-spacing:-0.5px}
-.header .sub{opacity:.8;font-size:1em;margin-bottom:14px}
-.header .badge{display:inline-block;background:rgba(255,255,255,.2);padding:8px 24px;border-radius:24px;font-size:.95em;font-weight:600;backdrop-filter:blur(4px)}
-.container{max-width:760px;margin:0 auto;padding:24px 16px}
+.header{background:linear-gradient(135deg,#1e3a8a,#3b82f6);color:#fff;padding:44px 20px 36px;text-align:center}
+.header .logo{display:flex;align-items:center;justify-content:center;gap:12px;margin-bottom:10px}
+.header .logo-icon{width:48px;height:48px;background:rgba(255,255,255,.15);border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:28px}
+.header .logo-text{text-align:left}
+.header .logo-text h1{font-size:1.8em;line-height:1.1;letter-spacing:-0.5px}
+.header .logo-text .tagline{font-size:.75em;opacity:.7}
+.header .sub{opacity:.85;font-size:.95em;margin-top:8px}
+.header .badge{display:inline-block;background:rgba(255,255,255,.2);padding:8px 24px;border-radius:24px;font-size:.9em;font-weight:600;margin-top:10px}
+.container{max-width:800px;margin:0 auto;padding:24px 16px}
 .toc{background:#fff;border-radius:16px;box-shadow:0 2px 12px rgba(0,0,0,.06);padding:24px;margin-bottom:28px}
 .toc h3{font-size:1.1em;color:#1e3a8a;margin-bottom:12px}
-.toc a{display:block;padding:6px 0;color:#3b82f6;text-decoration:none;font-size:.95em}
+.toc a{display:block;padding:5px 0;color:#3b82f6;text-decoration:none;font-size:.92em}
 .toc a:hover{text-decoration:underline}
 .section{background:#fff;border-radius:16px;box-shadow:0 2px 16px rgba(0,0,0,.06);margin:28px 0;overflow:hidden}
-.section-hdr{padding:20px 24px;border-bottom:3px solid #3b82f6;display:flex;align-items:center;gap:14px}
-.section-hdr .n{background:#3b82f6;color:#fff;width:40px;height:40px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:1.2em;flex-shrink:0}
-.section-hdr h2{font-size:1.35em;color:#1e3a8a}
-.section-body{padding:24px}
-.step{display:flex;gap:14px;margin:14px 0;align-items:flex-start}
-.step .d{background:#dbeafe;color:#2563eb;min-width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:.8em;flex-shrink:0;margin-top:2px}
-.step p{flex:1;font-size:.95em}
-.step strong,.step b{color:#1e3a8a}
-.tip{background:#fef9c3;border-left:4px solid #eab308;padding:14px 18px;border-radius:0 10px 10px 0;margin:16px 0;font-size:.9em}
+.sh{padding:18px 24px;border-bottom:3px solid #3b82f6;display:flex;align-items:center;gap:14px}
+.sh .n{background:#3b82f6;color:#fff;width:38px;height:38px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:1.15em;flex-shrink:0}
+.sh h2{font-size:1.25em;color:#1e3a8a}
+.sb{padding:24px}
+.row{display:flex;gap:20px;align-items:flex-start;margin:16px 0;flex-wrap:wrap}
+.row .text{flex:1;min-width:240px}
+.row .img{flex-shrink:0}
+.row .img img{width:220px;border-radius:12px;border:2px solid #e2e8f0;box-shadow:0 4px 16px rgba(0,0,0,.1)}
+.step{display:flex;gap:12px;margin:10px 0;align-items:flex-start}
+.step .d{background:#dbeafe;color:#2563eb;min-width:26px;height:26px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:.78em;flex-shrink:0;margin-top:3px}
+.step p{flex:1;font-size:.93em}
+b,.step b{color:#1e3a8a}
+.tip{background:#fef9c3;border-left:4px solid #eab308;padding:12px 16px;border-radius:0 10px 10px 0;margin:14px 0;font-size:.88em}
 .tip b{color:#854d0e}
-.warn{background:#fee2e2;border-left:4px solid #ef4444;padding:14px 18px;border-radius:0 10px 10px 0;margin:16px 0;font-size:.9em}
+.warn{background:#fee2e2;border-left:4px solid #ef4444;padding:12px 16px;border-radius:0 10px 10px 0;margin:14px 0;font-size:.88em}
 .warn b{color:#991b1b}
-/* Phone mockup */
-.phone{width:280px;margin:20px auto;background:#111827;border-radius:28px;padding:8px;box-shadow:0 8px 32px rgba(0,0,0,.2)}
-.phone-screen{background:#fff;border-radius:22px;overflow:hidden;min-height:400px}
-.phone-status{background:#1e3a8a;color:#fff;font-size:10px;padding:6px 16px;display:flex;justify-content:space-between}
-.phone-nav{background:linear-gradient(135deg,#1e40af,#3b82f6);color:#fff;padding:12px 16px;display:flex;align-items:center;gap:10px}
-.phone-nav .hamburger{font-size:18px;cursor:pointer}
-.phone-nav .title{font-weight:700;font-size:14px;flex:1}
-.phone-nav .bell{font-size:16px}
-.phone-content{padding:12px}
-/* Mini UI components */
-.mini-card{border-radius:10px;padding:10px 12px;margin:6px 0;color:#fff;font-size:11px}
-.mini-card .label{opacity:.8;font-size:9px}
-.mini-card .val{font-size:18px;font-weight:800;margin-top:2px}
-.mini-input{border:1px solid #d1d5db;border-radius:6px;padding:6px 10px;font-size:11px;width:100%;margin:4px 0;background:#f9fafb;color:#374151}
-.mini-select{border:1px solid #d1d5db;border-radius:6px;padding:6px 10px;font-size:11px;width:100%;margin:4px 0;background:#f9fafb;color:#374151;appearance:none}
-.mini-btn{border:none;border-radius:8px;padding:8px 16px;font-size:11px;font-weight:700;cursor:pointer;display:inline-block;margin:4px 2px}
-.mini-btn.blue{background:#2563eb;color:#fff}
-.mini-btn.green{background:#16a34a;color:#fff}
-.mini-btn.gray{background:#e5e7eb;color:#374151}
-.mini-label{font-size:10px;color:#6b7280;font-weight:600;margin-top:6px;display:block}
-.mini-table{width:100%;border-collapse:collapse;font-size:10px;margin:6px 0}
-.mini-table th{background:#2563eb;color:#fff;padding:4px 6px;text-align:left;font-size:9px}
-.mini-table td{padding:4px 6px;border-bottom:1px solid #e5e7eb}
-.mini-badge{display:inline-block;padding:2px 8px;border-radius:10px;font-size:9px;font-weight:700}
-.mini-today{background:linear-gradient(135deg,#2563eb,#3b82f6);color:#fff;border-radius:12px;padding:12px;margin:6px 0}
-.mini-today .t-title{font-size:12px;font-weight:700;margin-bottom:6px}
-.mini-today .t-cards{display:flex;gap:6px;flex-wrap:wrap}
-.mini-today .t-card{background:rgba(255,255,255,.15);border-radius:8px;padding:6px 8px;font-size:10px;flex:1;min-width:70px}
-.mini-today .t-card .t-label{font-size:8px;opacity:.8}
-.mini-today .t-card .t-val{font-weight:700;font-size:11px;margin-top:2px}
-.arrow-label{text-align:center;color:#ef4444;font-size:12px;font-weight:700;margin:4px 0;animation:pulse 1.5s infinite}
-@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
-.caption{text-align:center;color:#64748b;font-size:.85em;margin:8px 0 16px;font-style:italic}
+.info{background:#eff6ff;border-left:4px solid #3b82f6;padding:12px 16px;border-radius:0 10px 10px 0;margin:14px 0;font-size:.88em}
+.info b{color:#1e40af}
+.img-center{text-align:center;margin:16px 0}
+.img-center img{width:260px;border-radius:14px;border:2px solid #e2e8f0;box-shadow:0 6px 24px rgba(0,0,0,.12)}
+.img-caption{text-align:center;color:#64748b;font-size:.82em;margin-top:6px;font-style:italic}
+.rating-table{width:100%;border-collapse:collapse;margin:12px 0;font-size:.9em}
+.rating-table td{padding:6px 12px;border:1px solid #e2e8f0}
+.rating-table .c-green{color:#16a34a;font-weight:700}
+.rating-table .c-blue{color:#2563eb;font-weight:700}
+.rating-table .c-yellow{color:#ca8a04;font-weight:700}
+.rating-table .c-red{color:#dc2626;font-weight:700}
 .footer{text-align:center;padding:40px 20px;color:#94a3b8;font-size:.85em}
-.grid2{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+.two-img{display:flex;gap:12px;justify-content:center;flex-wrap:wrap;margin:16px 0}
+.two-img img{width:200px;border-radius:12px;border:2px solid #e2e8f0;box-shadow:0 4px 16px rgba(0,0,0,.1)}
 </style>
 </head>
 <body>
+
+<!-- HEADER -->
 <div class="header">
-<h1>📱 ScalpelDiary</h1>
+<div class="logo">
+<div class="logo-icon">🔪</div>
+<div class="logo-text">
+<h1>ScalpelDiary</h1>
+<div class="tagline">Shaping Tomorrow's Surgeons</div>
+</div>
+</div>
 <div class="sub">Comprehensive Surgical Training Management System</div>
 <div class="badge">👨‍⚕️ Resident Tutorial Guide</div>
 </div>
+
 <div class="container">
 
+<!-- TABLE OF CONTENTS -->
 <div class="toc">
 <h3>📋 Table of Contents</h3>
-<a href="#s1">1. Getting Started — Install & Sign In</a>
-<a href="#s2">2. Dashboard Overview</a>
-<a href="#s3">3. Adding a Surgical Log</a>
-<a href="#s4">4. Adding a Presentation</a>
-<a href="#s5">5. Rating Other Residents (Year 2+)</a>
-<a href="#s6">6. Viewing Analytics & Comments</a>
-<a href="#s7">7. Exporting Your Data as PDF</a>
-<a href="#s8">8. Notifications & Settings</a>
+<a href="#s1">1. Install the App & Sign In</a>
+<a href="#s2">2. Set Up Your Profile</a>
+<a href="#s3">3. Dashboard Overview</a>
+<a href="#s4">4. Adding a Surgical Procedure</a>
+<a href="#s5">5. Adding a Presentation</a>
+<a href="#s6">6. Rating Other Residents (Year 2+)</a>
+<a href="#s7">7. Understanding Your Ratings</a>
+<a href="#s8">8. Logging Detachment Procedures & Presentations</a>
+<a href="#s9">9. Analytics & Supervisor Comments</a>
+<a href="#s10">10. Exporting Your Data as PDF</a>
+<a href="#s11">11. Notifications</a>
 </div>
 
-<!-- SECTION 1: Getting Started -->
+<!-- S1: Install & Sign In -->
 <div class="section" id="s1">
-<div class="section-hdr"><div class="n">1</div><h2>Getting Started — Install & Sign In</h2></div>
-<div class="section-body">
-<div class="step"><div class="d">a</div><p>Open your mobile browser and go to <b>scalpeldiary.com</b></p></div>
-
-<div class="phone">
-<div class="phone-screen">
-<div style="background:linear-gradient(135deg,#1e3a8a,#3b82f6);padding:40px 20px;text-align:center;color:#fff;min-height:400px;display:flex;flex-direction:column;justify-content:center;align-items:center">
-<div style="font-size:32px;margin-bottom:8px">🔪</div>
-<div style="font-size:22px;font-weight:800;margin-bottom:4px">ScalpelDiary</div>
-<div style="font-size:10px;opacity:.7;margin-bottom:20px">Shaping Tomorrow's Surgeons</div>
-<div style="background:#fff;color:#1e3a8a;padding:10px 28px;border-radius:10px;font-weight:700;font-size:13px;margin:4px">Sign In</div>
-<div style="border:2px solid rgba(255,255,255,.4);color:#fff;padding:10px 28px;border-radius:10px;font-weight:600;font-size:13px;margin:4px">Learn More</div>
+<div class="sh"><div class="n">1</div><h2>Install the App & Sign In</h2></div>
+<div class="sb">
+<div class="row">
+<div class="text">
+<div class="step"><div class="d">a</div><p>Open your mobile browser and go to <b>scalpeldiary.com</b>. You will see the landing page with an <b>"Install App"</b> prompt at the bottom.</p></div>
+<div class="step"><div class="d">b</div><p>Tap <b>"Install"</b> to add ScalpelDiary to your home screen. This makes it work like a native app — you can open it directly from your phone.</p></div>
+<div class="step"><div class="d">c</div><p>Go to your <b>home screen</b>, find the ScalpelDiary icon, and tap to open it.</p></div>
+<div class="step"><div class="d">d</div><p>Tap <b>"Get Started"</b> or <b>"Sign In"</b> and enter the <b>email and password</b> provided by your administrator.</p></div>
+<div class="step"><div class="d">e</div><p>When prompted, tap <b>"Allow"</b> to enable notifications — this ensures you receive real-time alerts when your procedures are rated.</p></div>
+</div>
+<div class="img">
+<img src="screenshots/residents/initial landing page with Instal app promt.jpg" alt="Landing page with install prompt">
+<div class="img-caption">Landing page with Install App prompt</div>
 </div>
 </div>
+<div class="img-center">
+<img src="screenshots/residents/dash bord with enable notification promt.jpg" alt="Enable notifications prompt">
+<div class="img-caption">Allow notifications to stay updated on ratings</div>
 </div>
-<div class="caption">Landing page — Tap "Sign In"</div>
-
-<div class="step"><div class="d">b</div><p>Enter your <b>email and password</b> provided by the administrator</p></div>
-
-<div class="phone">
-<div class="phone-screen">
-<div style="background:linear-gradient(135deg,#1e3a8a,#3b82f6);padding:30px 20px;text-align:center;color:#fff">
-<div style="font-size:24px;margin-bottom:4px">🔪</div>
-<div style="font-size:18px;font-weight:800">ScalpelDiary</div>
-<div style="font-size:9px;opacity:.7">Sign in to your account</div>
-</div>
-<div style="padding:20px">
-<div class="mini-label">Email</div>
-<div class="mini-input">resident@scd.com</div>
-<div class="mini-label">Password</div>
-<div class="mini-input" style="letter-spacing:3px">••••••••</div>
-<div class="mini-btn blue" style="width:100%;text-align:center;margin-top:12px;padding:10px">Sign In</div>
-<div class="arrow-label">👆 Tap here after entering credentials</div>
-</div>
-</div>
-</div>
-<div class="caption">Login screen — Enter email & password</div>
-
-<div class="step"><div class="d">c</div><p>When prompted, tap <b>"Install App"</b> to add ScalpelDiary to your home screen</p></div>
-<div class="step"><div class="d">d</div><p>Tap <b>"Allow"</b> when asked to enable notifications</p></div>
-
-<div class="tip"><b>💡 Tip:</b> If you miss the install prompt, open your browser menu (⋮) → "Add to Home Screen". This makes ScalpelDiary work like a native app.</div>
+<div class="tip"><b>💡 Tip:</b> If you miss the install prompt, open your browser menu (⋮) → "Add to Home Screen".</div>
 </div>
 </div>
 
-<!-- SECTION 2: Dashboard -->
+<!-- S2: Profile Setup -->
 <div class="section" id="s2">
-<div class="section-hdr"><div class="n">2</div><h2>Dashboard Overview</h2></div>
-<div class="section-body">
-<p>After signing in, you'll see your dashboard with all key information at a glance.</p>
-
-<div class="phone">
-<div class="phone-screen">
-<div class="phone-nav">
-<div class="hamburger">☰</div>
-<div class="title">Dashboard</div>
-<div class="bell">🔔</div>
+<div class="sh"><div class="n">2</div><h2>Set Up Your Profile</h2></div>
+<div class="sb">
+<div class="row">
+<div class="text">
+<p>After logging in, go to <b>Settings</b> to personalize your account:</p>
+<div class="step"><div class="d">1</div><p>Tap the <b>☰ menu</b> icon (top-left) → Select <b>"Settings"</b></p></div>
+<div class="step"><div class="d">2</div><p><b>Upload your profile picture</b> — tap the camera icon on your avatar</p></div>
+<div class="step"><div class="d">3</div><p><b>Change your password</b> to something easily memorable — enter your current password, then your new one</p></div>
 </div>
-<div class="phone-content">
-<!-- Today's Overview -->
-<div class="mini-today">
-<div class="t-title">📅 Today's Overview</div>
-<div class="t-cards">
-<div class="t-card"><div class="t-label">Rotation</div><div class="t-val" style="color:#60a5fa">GS @ Y12HMC</div></div>
-<div class="t-card"><div class="t-label">Duty</div><div class="t-val" style="color:#fbbf24">EOPD</div></div>
-<div class="t-card"><div class="t-label">Activity</div><div class="t-val" style="color:#a78bfa">OR</div></div>
+<div class="img">
+<img src="screenshots/residents/menue settings.jpg" alt="Settings menu">
+<div class="img-caption">Menu → Settings</div>
 </div>
 </div>
-<!-- Stats -->
-<div class="grid2">
-<div class="mini-card" style="background:linear-gradient(135deg,#3b82f6,#2563eb)"><div class="label">Procedures</div><div class="val">24</div><div style="font-size:8px;opacity:.7">(18 Verified)</div></div>
-<div class="mini-card" style="background:linear-gradient(135deg,#8b5cf6,#7c3aed)"><div class="label">Presentations</div><div class="val">6</div><div style="font-size:8px;opacity:.7">(4 Verified)</div></div>
-</div>
-<!-- Progress bar -->
-<div style="margin:8px 0">
-<div style="display:flex;justify-content:space-between;font-size:9px;color:#6b7280"><span>Year 3 Progress</span><span style="color:#7c3aed;font-weight:700">42%</span></div>
-<div style="background:#e5e7eb;border-radius:6px;height:8px;margin-top:3px"><div style="background:linear-gradient(90deg,#7c3aed,#a78bfa);width:42%;height:100%;border-radius:6px"></div></div>
-</div>
-<!-- Recent table -->
-<div style="font-size:10px;font-weight:700;color:#1e3a8a;margin:8px 0 4px">Recent Procedures</div>
-<table class="mini-table">
-<tr><th>Date</th><th>Procedure</th><th>Rating</th></tr>
-<tr><td>Mar 28</td><td>Appendectomy</td><td><span class="mini-badge" style="background:#22c55e;color:#fff">Good</span></td></tr>
-<tr><td>Mar 25</td><td>Hernia Repair</td><td><span class="mini-badge" style="background:#eab308;color:#fff">Pending</span></td></tr>
-</table>
-</div>
-</div>
-</div>
-<div class="caption">Resident Dashboard — Your daily overview, stats, and recent activity</div>
-
-<div class="step"><div class="d">📅</div><p><b>Today's Overview</b> — Tap each card (Rotation, Duty, Activity) to see the full monthly schedule</p></div>
-<div class="step"><div class="d">📊</div><p><b>Progress Bar</b> — Shows procedures completed vs. required for your year. Tap for details.</p></div>
-<div class="step"><div class="d">📋</div><p><b>Recent Procedures</b> — Tap any row to see full details</p></div>
 </div>
 </div>
 
-<!-- SECTION 3: Adding a Log -->
+<!-- S3: Dashboard -->
 <div class="section" id="s3">
-<div class="section-hdr"><div class="n">3</div><h2>Adding a Surgical Log</h2></div>
-<div class="section-body">
-<div class="step"><div class="d">1</div><p>Tap the <b>☰ menu</b> icon (top-left) → Select <b>"Add Log"</b></p></div>
+<div class="sh"><div class="n">3</div><h2>Dashboard Overview</h2></div>
+<div class="sb">
+<p>Your dashboard is your home base — it shows everything at a glance.</p>
 
-<div class="phone">
-<div class="phone-screen">
-<div class="phone-nav"><div class="hamburger">☰</div><div class="title">Add Surgical Log</div></div>
-<div class="phone-content">
-<div style="background:#dbeafe;border-left:3px solid #2563eb;padding:8px 10px;border-radius:0 8px 8px 0;font-size:10px;color:#1e40af;margin-bottom:10px"><b>Logging for: Year 3 (Current Year)</b></div>
-<div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;padding:10px;margin-bottom:10px">
-<div style="font-size:12px;font-weight:700;color:#1e293b;margin-bottom:8px">Patient Information</div>
-<div class="grid2">
-<div><div class="mini-label">Date</div><div class="mini-input">2026-03-28</div></div>
-<div><div class="mini-label">MRN</div><div class="mini-input">12345</div></div>
-<div><div class="mini-label">Age</div><div class="mini-input">45</div></div>
-<div><div class="mini-label">Sex</div><div class="mini-select">Male ▾</div></div>
+<div class="row">
+<div class="text">
+<h3 style="color:#1e3a8a;font-size:1.05em;margin:10px 0 6px">📅 Today's Overview</h3>
+<p style="font-size:.92em">See your <b>current rotation</b>, <b>today's duty</b>, and <b>today's activity</b>. Tap each card to view the full monthly schedule.</p>
 </div>
-<div class="mini-label">Diagnosis</div>
-<div class="mini-input">Acute Appendicitis</div>
-<div class="grid2">
-<div><div class="mini-label">Type</div><div class="mini-select">Emergency ▾</div></div>
-<div><div class="mini-label">Institution</div><div class="mini-select">Y12HMC ▾</div></div>
-</div>
-</div>
-<div style="font-size:12px;font-weight:700;color:#1e293b;margin-bottom:6px">Procedure</div>
-<div class="mini-label">Procedure Name</div>
-<div class="mini-input">Open Appendectomy</div>
-<div class="grid2">
-<div><div class="mini-label">Category</div><div class="mini-select">GI Surgery ▾</div></div>
-<div><div class="mini-label">Role</div><div class="mini-select">Primary Surgeon ▾</div></div>
-</div>
-<div style="background:#dbeafe;border:1px solid #93c5fd;border-radius:10px;padding:10px;margin-top:10px">
-<div style="font-size:12px;font-weight:700;color:#1e293b;margin-bottom:6px">Supervisor</div>
-<div class="mini-select">Dr. Getachew (Y12HMC) ▾</div>
-</div>
-<div class="mini-btn blue" style="width:100%;text-align:center;margin-top:12px;padding:10px">Create 1 Log</div>
-</div>
-</div>
-</div>
-<div class="caption">Add Log form — Fill patient info, procedure details, and select supervisor</div>
-
-<div class="step"><div class="d">2</div><p>Fill in all <b>patient information</b>: Date, MRN, Age, Sex, Diagnosis</p></div>
-<div class="step"><div class="d">3</div><p>Select <b>Procedure Type</b> (Elective / Semi-Elective / Emergency) and <b>Institution</b></p></div>
-<div class="step"><div class="d">4</div><p>Enter <b>Procedure name</b>, select <b>Category</b> and your <b>Role</b></p></div>
-<div class="step"><div class="d">5</div><p>Select <b>Supervisor</b> — only senior residents and actual supervisors appear</p></div>
-<div class="step"><div class="d">6</div><p>Tap <b>"Create Log"</b> to submit</p></div>
-
-<div class="tip"><b>💡 Multiple Procedures:</b> Tap "Add Another Procedure" to log multiple procedures for the same patient in one go.</div>
-<div class="tip"><b>🏥 Detachment:</b> When you select ALERT as institution, you'll see senior residents currently on ALERT rotation + an "ALERT Supervisor" option for external supervisors.</div>
+<div class="img">
+<img src="screenshots/residents/Dashbord with todays overview cards.jpg" alt="Today's overview">
+<div class="img-caption">Today's Overview cards</div>
 </div>
 </div>
 
-<!-- SECTION 4: Presentations -->
+<div class="row">
+<div class="text">
+<h3 style="color:#1e3a8a;font-size:1.05em;margin:10px 0 6px">📊 Stats & Progress</h3>
+<p style="font-size:.92em">View the <b>number of procedures and presentations</b> you've completed, your <b>ratings</b> (shown after reaching thresholds), and your <b>year progress bar</b> showing how many procedures you've done vs. required.</p>
+</div>
+<div class="img">
+<img src="screenshots/residents/dashbord with number metrics.jpg" alt="Dashboard metrics">
+<div class="img-caption">Procedure & presentation counts with progress bar</div>
+</div>
+</div>
+
+<div class="row">
+<div class="text">
+<h3 style="color:#1e3a8a;font-size:1.05em;margin:10px 0 6px">📋 Recent Procedures & Presentations</h3>
+<p style="font-size:.92em">See your <b>latest 10 procedures and presentations</b> with their rating status. Tap any row to see full details.</p>
+</div>
+<div class="img">
+<img src="screenshots/residents/dash bord recent procedures and presentations.jpg" alt="Recent procedures">
+<div class="img-caption">Recent procedures & presentations list</div>
+</div>
+</div>
+
+<div class="row">
+<div class="text">
+<h3 style="color:#1e3a8a;font-size:1.05em;margin:10px 0 6px">📆 Calendar View</h3>
+<p style="font-size:.92em">The calendar shows <b>when you performed procedures and gave presentations</b> in the current month. Blue dots = procedures, green dots = presentations.</p>
+</div>
+<div class="img">
+<img src="screenshots/residents/dashbord calander view.jpg" alt="Calendar view">
+<div class="img-caption">Monthly calendar with activity dots</div>
+</div>
+</div>
+</div>
+</div>
+
+<!-- S4: Adding Procedure -->
 <div class="section" id="s4">
-<div class="section-hdr"><div class="n">4</div><h2>Adding a Presentation</h2></div>
-<div class="section-body">
+<div class="sh"><div class="n">4</div><h2>Adding a Surgical Procedure</h2></div>
+<div class="sb">
+<div class="row">
+<div class="text">
+<div class="step"><div class="d">1</div><p>Tap the <b>☰ menu</b> icon → Select <b>"Add Log"</b></p></div>
+<div class="step"><div class="d">2</div><p>Fill in <b>Patient Information</b>: Date, MRN, Age, Sex, Diagnosis</p></div>
+<div class="step"><div class="d">3</div><p>Select <b>Procedure Type</b> (Elective / Semi-Elective / Emergency) and <b>Institution</b></p></div>
+<div class="step"><div class="d">4</div><p>Enter the <b>Procedure name</b>, select <b>Category</b> and your <b>Role</b> (Primary Surgeon, 1st Assistant, etc.)</p></div>
+<div class="step"><div class="d">5</div><p>Select your <b>Supervisor</b> — only senior residents and actual supervisors appear in the list</p></div>
+<div class="step"><div class="d">6</div><p>Tap <b>"Create Log"</b> to submit</p></div>
+</div>
+<div class="img">
+<img src="screenshots/residents/menue add procedures.jpg" alt="Add procedure">
+<div class="img-caption">Menu → Add Log</div>
+</div>
+</div>
+<div class="tip"><b>💡 Multiple Procedures:</b> You can add multiple procedures for the same patient by tapping "Add Another Procedure" — they share the same patient info and supervisor.</div>
+</div>
+</div>
+
+<!-- S5: Adding Presentation -->
+<div class="section" id="s5">
+<div class="sh"><div class="n">5</div><h2>Adding a Presentation</h2></div>
+<div class="sb">
+<div class="row">
+<div class="text">
 <div class="step"><div class="d">1</div><p>Tap <b>☰ menu</b> → <b>"Presentations"</b></p></div>
 <div class="step"><div class="d">2</div><p>Tap the <b>"Add Presentation"</b> button</p></div>
-
-<div class="phone">
-<div class="phone-screen">
-<div class="phone-nav"><div class="hamburger">☰</div><div class="title">Presentations</div></div>
-<div class="phone-content">
-<div style="display:flex;gap:4px;margin-bottom:10px">
-<div style="flex:1;background:#2563eb;color:#fff;text-align:center;padding:8px;border-radius:8px;font-size:11px;font-weight:700">My Presentations</div>
-<div style="flex:1;background:#f1f5f9;color:#64748b;text-align:center;padding:8px;border-radius:8px;font-size:11px;font-weight:600">Assigned</div>
+<div class="step"><div class="d">3</div><p>Fill in: <b>Date, Title, Venue, Type</b> (Morning Presentation, Seminar, etc.), and select a <b>Moderator</b></p></div>
+<div class="step"><div class="d">4</div><p>Tap <b>"Create"</b> to submit</p></div>
 </div>
-<div style="background:#f8fafc;border-radius:10px;padding:12px;border:1px solid #e2e8f0">
-<div class="mini-label">Date</div><div class="mini-input">2026-03-28</div>
-<div class="mini-label">Title</div><div class="mini-input">Management of Acute Appendicitis</div>
-<div class="grid2">
-<div><div class="mini-label">Venue</div><div class="mini-select">Y12HMC ▾</div></div>
-<div><div class="mini-label">Type</div><div class="mini-select">Morning Presentation ▾</div></div>
-</div>
-<div class="mini-label">Moderator</div><div class="mini-select">Dr. Getachew ▾</div>
-<div class="mini-btn blue" style="width:100%;text-align:center;margin-top:10px;padding:10px">Create</div>
+<div class="img">
+<img src="screenshots/residents/presentations page.jpg" alt="Presentations page">
+<div class="img-caption">Presentations page</div>
 </div>
 </div>
-</div>
-</div>
-<div class="caption">Add Presentation — Select venue, type, and moderator</div>
-
-<div class="step"><div class="d">3</div><p>Fill in: Date, Title, Venue, Type, and select a <b>Moderator</b> (supervisors only)</p></div>
-<div class="step"><div class="d">4</div><p>Tap <b>"Create"</b></p></div>
-<div class="tip"><b>📌 Assigned Tab:</b> Check the "Assigned" tab to see presentations assigned to you. Tap "Mark as Presented" when you've completed it.</div>
+<div class="info"><b>📌 Assigned Presentations:</b> Check the <b>"Assigned"</b> tab to see presentations assigned to you by supervisors or the chief resident. Tap <b>"Mark as Presented"</b> when you've completed it.</div>
 </div>
 </div>
 
-<!-- SECTION 5: Rating -->
-<div class="section" id="s5">
-<div class="section-hdr"><div class="n">5</div><h2>Rating Other Residents (Year 2+)</h2></div>
-<div class="section-body">
-<p>If you're Year 2 or above, junior residents may select you as their supervisor.</p>
-<div class="step"><div class="d">1</div><p>You'll receive a <b>notification</b> when a junior assigns you. Tap it to go to <b>"Logs to Rate"</b></p></div>
-<div class="step"><div class="d">2</div><p>Tap a procedure to open the rating form</p></div>
-
-<div class="phone">
-<div class="phone-screen">
-<div class="phone-nav"><div class="hamburger">☰</div><div class="title">Rate Procedure</div></div>
-<div class="phone-content">
-<div style="font-size:11px;margin-bottom:8px"><b>Procedure:</b> Open Appendectomy</div>
-<div style="font-size:11px;margin-bottom:8px"><b>Resident:</b> Dr. Jemal (Year 1)</div>
-<div class="mini-label">Rating (0-100)</div>
-<div class="mini-input">85</div>
-<div style="font-size:9px;color:#2563eb;margin:4px 0">90-100: Excellent · 71-89: Good · 50-70: Satisfactory · Below 50: Poor</div>
-<div class="mini-label">Comment (optional)</div>
-<div class="mini-input" style="height:50px">Good technique, needs improvement on closure</div>
-<label style="display:flex;align-items:center;gap:6px;font-size:10px;color:#6b7280;margin:8px 0;cursor:pointer">
-<span style="width:14px;height:14px;border:2px solid #eab308;border-radius:3px;display:inline-block"></span>
-Add anonymous comment <span style="color:#eab308;font-size:9px">(hidden from resident)</span>
-</label>
-<div class="mini-btn blue" style="width:100%;text-align:center;padding:10px">Submit</div>
-</div>
-</div>
-</div>
-<div class="caption">Rating form — Enter score, comment, and optional anonymous comment</div>
-
-<div class="step"><div class="d">3</div><p>Enter a <b>Rating (0-100)</b> and optional comment</p></div>
-<div class="step"><div class="d">4</div><p>Tap <b>"Submit"</b></p></div>
-<div class="warn"><b>⚠️ Rules:</b> You can only rate residents in a lower year than yours. You cannot rate yourself or same-year residents.</div>
-</div>
-</div>
-
-<!-- SECTION 6: Analytics -->
+<!-- S6: Rating Others -->
 <div class="section" id="s6">
-<div class="section-hdr"><div class="n">6</div><h2>Viewing Analytics & Comments</h2></div>
-<div class="section-body">
-<div class="step"><div class="d">1</div><p>Tap <b>☰ menu</b> → <b>"Analytics"</b></p></div>
-
-<div class="phone">
-<div class="phone-screen">
-<div class="phone-nav"><div class="hamburger">☰</div><div class="title">Analytics</div></div>
-<div class="phone-content">
-<div class="grid2" style="grid-template-columns:1fr 1fr 1fr;gap:4px;margin-bottom:8px">
-<div class="mini-card" style="background:#3b82f6;padding:8px"><div class="label">Procedures</div><div class="val" style="font-size:16px">24</div></div>
-<div class="mini-card" style="background:#8b5cf6;padding:8px"><div class="label">Presentations</div><div class="val" style="font-size:16px">6</div></div>
-<div class="mini-card" style="background:#f97316;padding:8px"><div class="label">Avg Rating</div><div class="val" style="font-size:16px">-</div><div style="font-size:7px;opacity:.8">Need 10+ verified</div></div>
+<div class="sh"><div class="n">6</div><h2>Rating Other Residents (Year 2+)</h2></div>
+<div class="sb">
+<div class="row">
+<div class="text">
+<p>If you're <b>Year 2 or above</b>, junior residents may select you as their supervisor. You'll receive a notification when this happens.</p>
+<div class="step"><div class="d">1</div><p>Tap the notification or go to <b>☰ menu</b> → <b>"Logs to Rate"</b></p></div>
+<div class="step"><div class="d">2</div><p>Tap a procedure to open the rating form</p></div>
+<div class="step"><div class="d">3</div><p>Enter a <b>Rating (0-100)</b> based on:</p></div>
+<ul style="margin-left:42px;font-size:.92em;color:#475569">
+<li>Preparation of the patient</li>
+<li>Scientific knowledge demonstrated</li>
+<li>Surgical skill and technique</li>
+</ul>
+<div class="step"><div class="d">4</div><p>Add a <b>comment</b> if you have feedback, then tap <b>"Submit"</b></p></div>
 </div>
-<div style="font-size:10px;font-weight:700;color:#1e3a8a;margin:8px 0 4px">📊 Role Distribution</div>
-<div style="background:#f8fafc;border-radius:8px;padding:8px;font-size:10px">
-<div style="display:flex;justify-content:space-between;padding:2px 0"><span>Primary Surgeon</span><span style="color:#2563eb;font-weight:700">12</span></div>
-<div style="display:flex;justify-content:space-between;padding:2px 0"><span>1st Assistant</span><span style="color:#2563eb;font-weight:700">8</span></div>
-<div style="display:flex;justify-content:space-between;padding:2px 0"><span>Observer</span><span style="color:#2563eb;font-weight:700">4</span></div>
-</div>
-<div style="font-size:10px;font-weight:700;color:#1e3a8a;margin:8px 0 4px">💬 Supervisor Comments</div>
-<div style="border-left:3px solid #3b82f6;background:#eff6ff;padding:8px;border-radius:0 8px 8px 0;font-size:10px;margin:4px 0">
-<div style="font-weight:700">Dr. Getachew</div>
-<div style="font-size:9px;color:#6b7280">Appendectomy · Mar 28</div>
-<div style="margin-top:4px">Good technique overall</div>
+<div class="img">
+<img src="screenshots/residents/menue logs to rate.jpg" alt="Logs to rate">
+<div class="img-caption">Menu → Logs to Rate</div>
 </div>
 </div>
-</div>
-</div>
-<div class="caption">Analytics — Stats, charts, and supervisor comments</div>
-
-<div class="step"><div class="d">2</div><p>View your <b>stats</b>: total procedures, presentations, ratings (shown after thresholds met)</p></div>
-<div class="step"><div class="d">3</div><p>Scroll down to see <b>Supervisor Comments</b> — tap "View All" for the complete list on a separate page</p></div>
-<div class="tip"><b>📈 Rating Thresholds:</b> Average ratings only appear after 10+ verified procedures or 5+ verified presentations. You see labels (Excellent/Good/etc.) not exact scores.</div>
+<div class="warn"><b>⚠️ Rules:</b> You can only rate residents in a <b>lower year</b> than yours. You cannot rate yourself or same-year residents.</div>
 </div>
 </div>
 
-<!-- SECTION 7: Export -->
+<!-- S7: Understanding Ratings -->
 <div class="section" id="s7">
-<div class="section-hdr"><div class="n">7</div><h2>Exporting Your Data as PDF</h2></div>
-<div class="section-body">
-<div class="step"><div class="d">1</div><p>Tap <b>☰ menu</b> → <b>"Settings"</b></p></div>
-<div class="step"><div class="d">2</div><p>Scroll to <b>"Export Report"</b> section → Tap <b>"Export to PDF"</b></p></div>
-<div class="step"><div class="d">3</div><p>A filter popup appears — choose:</p></div>
+<div class="sh"><div class="n">7</div><h2>Understanding Your Ratings</h2></div>
+<div class="sb">
+<p>Once you submit a procedure or presentation, its status will be <b>"Pending"</b>. The supervisor/moderator will be notified to rate and comment on it.</p>
+<div class="step"><div class="d">✏️</div><p>You can <b>edit or delete</b> procedures/presentations while they are in <b>Pending</b> status.</p></div>
+<div class="step"><div class="d">🔒</div><p>After they are <b>rated</b>, you can no longer edit or delete them.</p></div>
+<div class="step"><div class="d">👁️</div><p>You will <b>not see your exact score</b>. Instead, you'll see a rating label:</p></div>
 
-<div class="phone">
-<div class="phone-screen" style="min-height:350px">
-<div style="background:linear-gradient(135deg,#16a34a,#15803d);color:#fff;padding:12px 16px;display:flex;justify-content:space-between;align-items:center">
-<div style="font-weight:700;font-size:13px">📄 Export PDF Report</div>
-<div style="font-size:16px">✕</div>
-</div>
-<div style="padding:14px">
-<div class="mini-label">Year</div><div class="mini-select">Year 3 (Current) ▾</div>
-<div class="mini-label">Date Range</div>
-<div style="display:flex;gap:4px;margin:4px 0">
-<div class="mini-btn green" style="flex:1;text-align:center;font-size:10px">Full Year</div>
-<div class="mini-btn gray" style="flex:1;text-align:center;font-size:10px">Month</div>
-<div class="mini-btn gray" style="flex:1;text-align:center;font-size:10px">Custom</div>
-</div>
-<div class="mini-label">Category (optional)</div><div class="mini-select">All Categories ▾</div>
-<div class="mini-label">Institution (optional)</div><div class="mini-select">All Institutions ▾</div>
-<label style="display:flex;align-items:center;gap:6px;font-size:10px;background:#eff6ff;padding:8px;border-radius:8px;margin:8px 0;border:1px solid #bfdbfe">
-<span style="width:14px;height:14px;background:#2563eb;border-radius:3px;display:inline-block;color:#fff;text-align:center;font-size:9px;line-height:14px">✓</span>
-Include analytics summary
-</label>
-<div class="mini-btn green" style="width:100%;text-align:center;padding:10px">⬇ Download PDF</div>
-</div>
-</div>
-</div>
-<div class="caption">Export filter popup — Choose year, date range, and filters</div>
+<table class="rating-table">
+<tr><td class="c-green">Excellent</td><td>90 and above</td><td style="background:#dcfce7">🟢</td></tr>
+<tr><td class="c-blue">Good</td><td>71 – 89</td><td style="background:#dbeafe">🔵</td></tr>
+<tr><td class="c-yellow">Satisfactory</td><td>50 – 70</td><td style="background:#fef9c3">🟡</td></tr>
+<tr><td class="c-red">Poor</td><td>Below 50</td><td style="background:#fee2e2">🔴</td></tr>
+</table>
 
-<div class="step"><div class="d">4</div><p>Select <b>Year</b>, optionally filter by <b>month or date range</b>, category, institution</p></div>
-<div class="step"><div class="d">5</div><p>Check <b>"Include analytics"</b> for stats in the report</p></div>
-<div class="step"><div class="d">6</div><p>Tap <b>"Download PDF"</b> — the report downloads to your device</p></div>
+<div class="info"><b>📊 Average Rating:</b> Your average rating will only appear after you have <b>10+ verified procedures</b> or <b>5+ verified presentations</b>.</div>
 </div>
 </div>
 
-<!-- SECTION 8: Notifications -->
+<!-- S8: Detachment -->
 <div class="section" id="s8">
-<div class="section-hdr"><div class="n">8</div><h2>Notifications & Settings</h2></div>
-<div class="section-body">
-<div class="step"><div class="d">🔔</div><p>The <b>bell icon</b> (top-right) shows your unread notifications</p></div>
-<div class="step"><div class="d">•</div><p><b>Rating notifications</b> — when your procedure/presentation is rated (shows label: Excellent, Good, etc.)</p></div>
-<div class="step"><div class="d">•</div><p><b>Assignment notifications</b> — when a presentation is assigned to you</p></div>
-<div class="step"><div class="d">•</div><p><b>General comments</b> — when a supervisor leaves a comment on your profile</p></div>
-<div class="step"><div class="d">•</div><p><b>Detachment verification</b> — when your detachment logs are verified</p></div>
+<div class="sh"><div class="n">8</div><h2>Logging Detachment Procedures & Presentations</h2></div>
+<div class="sb">
+<p>When you are on <b>detachment</b> (rotation at an external site), the logging process is slightly different:</p>
 
-<div class="tip"><b>⚙️ Settings:</b> From the menu → Settings, you can change your password, upload a profile picture, and export your data.</div>
-<div class="tip"><b>⏰ Auto-expire:</b> Notifications automatically expire after 48 hours.</div>
+<h3 style="color:#1e3a8a;font-size:1em;margin:14px 0 8px">🏥 General Surgery at ALERT</h3>
+<div class="step"><div class="d">•</div><p>If you work alone with your <b>senior resident</b>, they can evaluate you directly — select them as supervisor.</p></div>
+<div class="step"><div class="d">•</div><p>If you work with a <b>detachment senior</b> (external supervisor), choose the <b>"ALERT Supervisor"</b> option and type their name.</p></div>
+
+<h3 style="color:#1e3a8a;font-size:1em;margin:14px 0 8px">📋 After the Detachment Month</h3>
+<div class="step"><div class="d">1</div><p>The status of detachment procedures/presentations will remain <b>"Pending"</b> (shown as N/A).</p></div>
+<div class="step"><div class="d">2</div><p><b>Export</b> your detachment procedures and presentations as PDF (from Settings → Export).</p></div>
+<div class="step"><div class="d">3</div><p>Get the exported paper <b>signed by the detachment department head</b>.</p></div>
+<div class="step"><div class="d">4</div><p>Bring the signed paper along with your <b>detachment evaluation form</b> to the <b>Postgraduate Coordinator's office</b> within <b>30 days</b> of detachment completion.</p></div>
+<div class="step"><div class="d">5</div><p>The Postgraduate Coordinator will <b>verify your logs</b> and the procedures/presentations will be marked as verified.</p></div>
+
+<h3 style="color:#1e3a8a;font-size:1em;margin:14px 0 8px">🔄 This applies to all detachments:</h3>
+<ul style="margin-left:20px;font-size:.92em;color:#475569;columns:2;column-gap:20px">
+<li>Orthopedics</li>
+<li>Plastic Surgery</li>
+<li>OBGYN at Abebech Gobena</li>
+<li>CTS at TASH</li>
+<li>ER (presentations)</li>
+<li>Anesthesiology (presentations)</li>
+<li>ICU (presentations)</li>
+<li>Oncology (presentations)</li>
+</ul>
+</div>
+</div>
+
+<!-- S9: Analytics -->
+<div class="section" id="s9">
+<div class="sh"><div class="n">9</div><h2>Analytics & Supervisor Comments</h2></div>
+<div class="sb">
+<div class="row">
+<div class="text">
+<div class="step"><div class="d">1</div><p>Tap <b>☰ menu</b> → <b>"Analytics"</b></p></div>
+<p style="font-size:.92em">Here you can see:</p>
+<ul style="margin-left:20px;font-size:.9em;color:#475569">
+<li>Total procedures & presentations (with verified counts)</li>
+<li>Average ratings (after thresholds met)</li>
+<li>Role distribution chart</li>
+<li>Procedure type distribution</li>
+<li>Top procedures performed</li>
+<li>Institution distribution</li>
+<li>Supervisor distribution</li>
+</ul>
+<div class="step"><div class="d">2</div><p>Scroll down to see <b>Supervisor Comments</b> — the latest 10 are shown. Tap <b>"View All Comments"</b> for the full list on a separate page.</p></div>
+</div>
+<div class="img">
+<img src="screenshots/residents/menue analytics.jpg" alt="Analytics menu">
+<div class="img-caption">Menu → Analytics</div>
+</div>
+</div>
+</div>
+</div>
+
+<!-- S10: Export -->
+<div class="section" id="s10">
+<div class="sh"><div class="n">10</div><h2>Exporting Your Data as PDF</h2></div>
+<div class="sb">
+<div class="row">
+<div class="text">
+<div class="step"><div class="d">1</div><p>Go to <b>☰ menu</b> → <b>"Settings"</b></p></div>
+<div class="step"><div class="d">2</div><p>Scroll to <b>"Export Report"</b> → Tap <b>"Export to PDF"</b></p></div>
+<div class="step"><div class="d">3</div><p>A filter popup appears — choose:</p></div>
+<ul style="margin-left:42px;font-size:.9em;color:#475569">
+<li><b>Year</b> — select which year to export</li>
+<li><b>Date range</b> — Full Year, specific Month, or Custom date range</li>
+<li><b>Category</b> — filter by procedure category (optional)</li>
+<li><b>Institution</b> — filter by institution (optional)</li>
+<li><b>Include analytics</b> — adds stats summary to the report</li>
+</ul>
+<div class="step"><div class="d">4</div><p>Tap <b>"Download PDF"</b> — the professional report downloads to your device</p></div>
+</div>
+<div class="img">
+<img src="screenshots/residents/Settings Export popup.jpg" alt="Export popup">
+<div class="img-caption">Export filter popup</div>
+</div>
+</div>
+</div>
+</div>
+
+<!-- S11: Notifications -->
+<div class="section" id="s11">
+<div class="sh"><div class="n">11</div><h2>Notifications</h2></div>
+<div class="sb">
+<div class="row">
+<div class="text">
+<p>The <b>🔔 bell icon</b> in the top-right corner shows your unread notifications.</p>
+<div class="step"><div class="d">📩</div><p><b>Rating notifications</b> — when your procedure/presentation is rated</p></div>
+<div class="step"><div class="d">📌</div><p><b>Assignment notifications</b> — when a presentation is assigned to you</p></div>
+<div class="step"><div class="d">💬</div><p><b>General comments</b> — when a supervisor leaves a comment on your profile</p></div>
+<div class="step"><div class="d">✅</div><p><b>Detachment verification</b> — when your detachment logs are verified</p></div>
+<p style="font-size:.9em;color:#64748b;margin-top:8px">Tap any notification to view details or take action. Notifications auto-expire after 48 hours.</p>
+</div>
+<div class="img">
+<img src="screenshots/residents/bell notification showing.jpg" alt="Notifications">
+<div class="img-caption">Bell icon with notifications</div>
+</div>
+</div>
 </div>
 </div>
 
 </div>
+
 <div class="footer">
-<div style="font-size:1.2em;margin-bottom:8px">🔪 ScalpelDiary</div>
-Comprehensive Surgical Training Management System<br>
+<div style="font-size:1.3em;margin-bottom:8px">🔪 ScalpelDiary</div>
+<div style="margin-bottom:4px">Comprehensive Surgical Training Management System</div>
 © 2026 — All Rights Reserved
 </div>
 </body>
