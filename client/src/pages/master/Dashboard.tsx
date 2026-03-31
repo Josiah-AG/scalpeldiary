@@ -156,97 +156,22 @@ export default function MasterDashboard() {
           Database Migrations
         </h3>
         <p className="text-sm text-orange-800 mb-4">
-          Run this migration to fix rated notifications for presentations. This changes the log_id column to support both procedure UUIDs and presentation IDs.
+          Run comprehensive migration to ensure all database tables and columns are up to date.
         </p>
         <button
           onClick={async () => {
-            if (confirm('Run notification log_id migration? This will allow rated notifications to work for presentations.')) {
+            if (confirm('Run comprehensive database migration? This will update all tables and columns.')) {
               try {
-                const response = await api.post('/migrations/fix-notification-log-id');
+                const response = await api.post('/migrations/run-comprehensive');
                 alert(response.data.message);
               } catch (error: any) {
                 alert('Migration failed: ' + (error.response?.data?.details || error.message));
               }
             }
           }}
-          className="bg-orange-600 hover:bg-orange-700 text-white px-4 py-2 rounded-lg font-semibold transition-colors mr-3"
+          className="bg-orange-600 hover:bg-orange-700 text-white px-4 py-2 rounded-lg font-semibold transition-colors"
         >
-          Fix Notification Log ID Column
-        </button>
-        <button
-          onClick={async () => {
-            if (confirm('Add Post-Op Follow-Up columns to surgical_logs? This enables supervisors to add follow-up comments after rating.')) {
-              try {
-                const response = await api.post('/migrations/add-postop-followup');
-                alert(response.data.message);
-              } catch (error: any) {
-                alert('Migration failed: ' + (error.response?.data?.details || error.message));
-              }
-            }
-          }}
-          className="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg font-semibold transition-colors mr-3"
-        >
-          Add Post-Op Follow-Up Columns
-        </button>
-        <button
-          onClick={async () => {
-            if (confirm('Normalize presentation types and surgery roles? This merges duplicates.')) {
-              try {
-                const response = await api.post('/migrations/normalize-data');
-                alert(response.data.message);
-              } catch (error: any) {
-                alert('Failed: ' + (error.response?.data?.error || error.message));
-              }
-            }
-          }}
-          className="bg-teal-600 hover:bg-teal-700 text-white px-4 py-2 rounded-lg font-semibold transition-colors mr-3"
-        >
-          Normalize Data
-        </button>
-        <button
-          onClick={async () => {
-            if (confirm('Add detachment columns to surgical_logs and presentations?')) {
-              try {
-                const response = await api.post('/migrations/add-detachment-columns');
-                alert(response.data.message);
-              } catch (error: any) {
-                alert('Failed: ' + (error.response?.data?.error || error.message));
-              }
-            }
-          }}
-          className="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg font-semibold transition-colors mr-3"
-        >
-          Add Detachment Columns
-        </button>
-        <button
-          onClick={async () => {
-            if (confirm('Add residency_start_month column to resident_years?')) {
-              try {
-                const response = await api.post('/migrations/add-residency-start-month');
-                alert(response.data.message);
-              } catch (error: any) {
-                alert('Failed: ' + (error.response?.data?.error || error.message));
-              }
-            }
-          }}
-          className="bg-cyan-600 hover:bg-cyan-700 text-white px-4 py-2 rounded-lg font-semibold transition-colors mr-3"
-        >
-          Add Residency Start Month
-        </button>
-        <button
-          onClick={async () => {
-            if (confirm('Add comments system tables?')) {
-              try {
-                const response = await api.post('/migrations/add-comments-system');
-                alert(response.data.message);
-              } catch (error: any) {
-                alert('Failed: ' + (error.response?.data?.error || error.message));
-              }
-            }
-          }}
-          className="bg-rose-600 hover:bg-rose-700 text-white px-4 py-2 rounded-lg font-semibold transition-colors"
-        >
-          Add Comments System
+          Run Comprehensive Migration
         </button>
       </div>
 
