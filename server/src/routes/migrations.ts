@@ -982,7 +982,7 @@ router.post('/add-activity-monitoring', authenticate, async (req: AuthRequest, r
     await query(`
       CREATE TABLE IF NOT EXISTS login_sessions (
         id SERIAL PRIMARY KEY,
-        user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
+        user_id UUID REFERENCES users(id) ON DELETE CASCADE,
         device_fingerprint TEXT,
         device_info TEXT,
         ip_address TEXT,
@@ -995,7 +995,7 @@ router.post('/add-activity-monitoring', authenticate, async (req: AuthRequest, r
     await query(`
       CREATE TABLE IF NOT EXISTS user_activity (
         id SERIAL PRIMARY KEY,
-        user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
+        user_id UUID REFERENCES users(id) ON DELETE CASCADE,
         action_type TEXT NOT NULL,
         metadata TEXT,
         created_at TIMESTAMP DEFAULT NOW()
