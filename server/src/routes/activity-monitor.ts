@@ -5,7 +5,7 @@ import { authenticate, AuthRequest } from '../middleware/auth';
 const router = Router();
 
 // Helper: silently log activity (never throws — won't break existing flows)
-export async function logActivity(userId: number, actionType: string, metadata?: string) {
+export async function logActivity(userId: number | string, actionType: string, metadata?: string) {
   try {
     await query(
       'INSERT INTO user_activity (user_id, action_type, metadata, created_at) VALUES ($1, $2, $3, NOW())',
@@ -17,7 +17,7 @@ export async function logActivity(userId: number, actionType: string, metadata?:
 }
 
 // Helper: silently log login session
-export async function logLoginSession(userId: number, deviceFingerprint: string, deviceInfo: string, ipAddress: string) {
+export async function logLoginSession(userId: number | string, deviceFingerprint: string, deviceInfo: string, ipAddress: string) {
   try {
     await query(
       'INSERT INTO login_sessions (user_id, device_fingerprint, device_info, ip_address, login_time) VALUES ($1, $2, $3, $4, NOW())',
