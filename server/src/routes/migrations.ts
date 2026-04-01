@@ -968,4 +968,54 @@ router.post('/add-comments-system', authenticate, async (req: AuthRequest, res) 
   }
 });
 
+// ============================================
+// ACTIVITY MONITORING TABLES MIGRATION
+// ============================================
+router.post('/add-activity-monitoring', authenticate, async (req: AuthRequest, res) => {
+  if (req.user!.role !== 'MASTER') {
+    return res.status(403).json({ error: 'Only Master accounts can run migrations' });
+  }
+
+  const results: string[] = [];
+  try {
+    // Create login_sessions table
+    await query(`
+      CREATE TABLE IF NOT EXISTS login_sessions (
+        id SERIAL PRIMARY KEY,
+        user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
+        device_fingerprint TEXT,
+        device_info TEXT,
+        ip_address TEXT,
+        login_time TIMESTAMP DEFAULT NOW()
+      )
+    `);
+    results.push('Created login_sessions table');
+
+    // Create user_activity table
+    await query(`
+      CREATE TABLE IF NOT EXISTS user_activity (
+        id SERIAL PRIMARY KEY,
+        user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
+        action_type TEXT NOT NULL,
+        metadata TEXT,
+        created_at TIMESTAMP DEFAULT NOW()
+      )
+    `);
+    results.push('Created user_activity table');
+
+    // Create indexes for performance
+    await query('CREATE INDEX IF NOT EXISTS idx_login_sessions_user ON login_sessions(user_id)');
+    await query('CREATE INDEX IF NOT EXISTS idx_login_sessions_fingerprint ON login_sessions(device_fingerprint)');
+    await query('CREATE INDEX IF NOT EXISTS idx_login_sessions_time ON login_sessions(login_time)');
+    await query('CREATE INDEX IF NOT EXISTS idx_user_activity_user ON user_activity(user_id)');
+    await query('CREATE INDEX IF NOT EXISTS idx_user_activity_type ON user_activity(action_type)');
+    results.push('Created indexes');
+
+    res.json({ success: true, message: 'Activity monitoring tables created successfully', results });
+  } catch (error: any) {
+    console.error('Activity monitoring migration failed:', error);
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
 export default router;

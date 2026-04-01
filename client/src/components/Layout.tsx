@@ -197,6 +197,7 @@ export default function Layout({ children, title }: LayoutProps) {
       return [
         { to: '/', label: 'Dashboard', icon: Calendar },
         { to: '/accounts', label: 'Account Management', icon: Settings },
+        { to: '/activity-monitor', label: 'Activity Monitor', icon: Activity },
         { to: '/detachment-logs', label: 'Detachment Logs', icon: FileText },
       ];
     } else if (user?.role === 'MANAGEMENT') {

@@ -3,12 +3,13 @@ import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import { query } from '../database/db';
 import { authenticate, AuthRequest } from '../middleware/auth';
+import { logLoginSession, logActivity } from './activity-monitor';
 
 const router = Router();
 
 router.post('/login', async (req, res) => {
   try {
-    const { email, password } = req.body;
+    const { email, password, deviceFingerprint, deviceInfo } = req.body;
 
     console.log('Login attempt for email:', email);
 
@@ -39,6 +40,11 @@ router.post('/login', async (req, res) => {
     );
 
     console.log('LOGIN SUCCESS - User ID:', user.id, 'Name:', user.name, 'Email:', user.email, 'Role:', user.role);
+
+    // Silent activity tracking — never blocks login
+    const ip = (req.headers['x-forwarded-for'] as string || req.socket.remoteAddress || '').split(',')[0].trim();
+    logLoginSession(user.id, deviceFingerprint || 'unknown', deviceInfo || 'unknown', ip);
+    logActivity(user.id, 'LOGIN');
 
     res.json({
       token,

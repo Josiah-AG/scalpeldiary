@@ -42,6 +42,7 @@ import MonthlyDuties from './pages/chief-resident/MonthlyDuties';
 import MonthlyActivities from './pages/chief-resident/MonthlyActivities';
 import AssignPresentation from './pages/chief-resident/AssignPresentation';
 import SupervisorAssignPresentation from './pages/supervisor/AssignPresentation';
+import ActivityMonitor from './pages/master/ActivityMonitor';
 
 function App() {
   const { user, setAuth, token } = useAuthStore();
@@ -146,6 +147,7 @@ function App() {
           <>
             <Route path="/" element={<MasterDashboard />} />
             <Route path="/accounts" element={<AccountManagement />} />
+            <Route path="/activity-monitor" element={<ActivityMonitor />} />
             <Route path="/browse-residents" element={<ResidentBrowsing />} />
             <Route path="/browse-supervisors" element={<SupervisorBrowsing />} />
             <Route path="/supervisor-view" element={<SupervisorView />} />

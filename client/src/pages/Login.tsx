@@ -22,7 +22,12 @@ export default function Login() {
       // Clear any stale session and auth data from previous user
       sessionStorage.clear();
       localStorage.removeItem('auth-storage');
-      const response = await api.post('/auth/login', { email, password });
+      const response = await api.post('/auth/login', {
+        email,
+        password,
+        deviceFingerprint: `${navigator.userAgent}-${screen.width}x${screen.height}`,
+        deviceInfo: navigator.userAgent.substring(0, 200),
+      });
       setAuth(response.data.user, response.data.token);
       navigate('/');
     } catch (err: any) {

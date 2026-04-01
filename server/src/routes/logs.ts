@@ -2,6 +2,7 @@ import { Router } from 'express';
 import { query } from '../database/db';
 import { authenticate, authorize, AuthRequest } from '../middleware/auth';
 import { sendNotification } from '../utils/notifications';
+import { logActivity } from './activity-monitor';
 
 // Helper to get user name (fallback to DB if not in JWT)
 async function getUserName(user: any): Promise<string> {
@@ -130,6 +131,7 @@ router.post('/', authenticate, async (req: AuthRequest, res) => {
     }
 
     res.status(201).json(result.rows[0]);
+    logActivity(req.user!.id, 'ADD_PROCEDURE');
   } catch (error) {
     res.status(500).json({ error: 'Failed to create log' });
   }
@@ -238,6 +240,7 @@ router.post('/:logId/rate', authenticate, async (req: AuthRequest, res) => {
     );
 
     res.json(result.rows[0]);
+    logActivity(req.user!.id, 'RATE_PROCEDURE');
   } catch (error) {
     res.status(500).json({ error: 'Failed to rate log' });
   }

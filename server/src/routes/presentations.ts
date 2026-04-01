@@ -2,6 +2,7 @@ import { Router } from 'express';
 import { query } from '../database/db';
 import { authenticate, authorize, AuthRequest } from '../middleware/auth';
 import { sendNotification } from '../utils/notifications';
+import { logActivity } from './activity-monitor';
 
 // Helper to get user name (fallback to DB if not in JWT)
 async function getUserName(user: any): Promise<string> {
@@ -112,6 +113,7 @@ router.post('/', authenticate, async (req: AuthRequest, res) => {
     }
 
     res.status(201).json(result.rows[0]);
+    logActivity(req.user!.id, 'ADD_PRESENTATION');
   } catch (error) {
     console.error('Failed to create presentation:', error);
     res.status(500).json({ error: 'Failed to create presentation' });
@@ -339,6 +341,7 @@ router.post('/:presentationId/rate', authenticate, async (req: AuthRequest, res)
     );
 
     res.json(result.rows[0]);
+    logActivity(req.user!.id, 'RATE_PRESENTATION');
   } catch (error) {
     console.error('Failed to rate presentation:', error);
     res.status(500).json({ error: 'Failed to rate presentation' });

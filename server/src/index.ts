@@ -15,6 +15,7 @@ import dutiesRoutes from './routes/duties';
 import activitiesRoutes from './routes/activities';
 import presentationAssignmentsRoutes from './routes/presentation-assignments';
 import generalCommentsRoutes from './routes/general-comments';
+import activityMonitorRoutes from './routes/activity-monitor';
 import { errorHandler } from './middleware/errorHandler';
 import { startNotificationScheduler } from './services/dailyNotifications';
 
@@ -71,6 +72,7 @@ app.use('/api/duties', dutiesRoutes);
 app.use('/api/activities', activitiesRoutes);
 app.use('/api/presentation-assignments', presentationAssignmentsRoutes);
 app.use('/api/general-comments', generalCommentsRoutes);
+app.use('/api/activity-monitor', activityMonitorRoutes);
 
 app.use(errorHandler);
 

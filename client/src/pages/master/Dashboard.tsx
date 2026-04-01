@@ -122,6 +122,25 @@ export default function MasterDashboard() {
         </button>
       </div>
 
+      {/* Activity Monitor Card */}
+      <div className="mb-8">
+        <button
+          onClick={() => navigate('/activity-monitor')}
+          className="w-full bg-gradient-to-r from-indigo-600 to-indigo-700 text-white p-5 rounded-xl shadow-lg hover:shadow-2xl transition-all cursor-pointer flex items-center justify-between"
+        >
+          <div className="flex items-center space-x-4">
+            <div className="p-3 bg-white bg-opacity-20 rounded-lg">
+              <Activity className="w-7 h-7" />
+            </div>
+            <div className="text-left">
+              <h3 className="text-lg font-semibold">Activity Monitor</h3>
+              <p className="text-sm opacity-80">Login tracking, device sessions, resident engagement & supervisor responsiveness</p>
+            </div>
+          </div>
+          <ChevronRight className="w-6 h-6 opacity-70" />
+        </button>
+      </div>
+
       {/* Secondary Metrics */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
         <div className="bg-white p-6 rounded-xl shadow-md border-l-4 border-green-500">
@@ -172,6 +191,21 @@ export default function MasterDashboard() {
           className="bg-orange-600 hover:bg-orange-700 text-white px-4 py-2 rounded-lg font-semibold transition-colors"
         >
           Run Comprehensive Migration
+        </button>
+        <button
+          onClick={async () => {
+            if (confirm('Create Activity Monitoring tables? This adds login tracking and activity logging.')) {
+              try {
+                const response = await api.post('/migrations/add-activity-monitoring');
+                alert(response.data.message);
+              } catch (error: any) {
+                alert('Migration failed: ' + (error.response?.data?.details || error.message));
+              }
+            }
+          }}
+          className="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg font-semibold transition-colors ml-3"
+        >
+          Add Activity Monitoring
         </button>
       </div>
 
