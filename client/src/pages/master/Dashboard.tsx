@@ -168,47 +168,6 @@ export default function MasterDashboard() {
         </div>
       </div>
 
-      {/* Database Migration Section */}
-      <div className="mb-8 bg-gradient-to-r from-orange-50 to-amber-50 rounded-xl shadow-md border-2 border-orange-300 p-6">
-        <h3 className="text-lg font-semibold text-orange-900 mb-3 flex items-center">
-          <Activity className="w-5 h-5 mr-2" />
-          Database Migrations
-        </h3>
-        <p className="text-sm text-orange-800 mb-4">
-          Run comprehensive migration to ensure all database tables and columns are up to date.
-        </p>
-        <button
-          onClick={async () => {
-            if (confirm('Run comprehensive database migration? This will update all tables and columns.')) {
-              try {
-                const response = await api.post('/migrations/run-comprehensive');
-                alert(response.data.message);
-              } catch (error: any) {
-                alert('Migration failed: ' + (error.response?.data?.details || error.message));
-              }
-            }
-          }}
-          className="bg-orange-600 hover:bg-orange-700 text-white px-4 py-2 rounded-lg font-semibold transition-colors"
-        >
-          Run Comprehensive Migration
-        </button>
-        <button
-          onClick={async () => {
-            if (confirm('Create Activity Monitoring tables? This adds login tracking and activity logging.')) {
-              try {
-                const response = await api.post('/migrations/add-activity-monitoring');
-                alert(response.data.message);
-              } catch (error: any) {
-                alert('Migration failed: ' + (error.response?.data?.details || error.message));
-              }
-            }
-          }}
-          className="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg font-semibold transition-colors ml-3"
-        >
-          Add Activity Monitoring
-        </button>
-      </div>
-
       {/* Batch Start Month Configuration */}
       <BatchStartMonthConfig />
 
