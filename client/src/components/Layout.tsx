@@ -45,6 +45,13 @@ export default function Layout({ children, title }: LayoutProps) {
     return () => clearInterval(notifInterval);
   }, [user]);
 
+  // Silent heartbeat — update last_seen on page navigation
+  useEffect(() => {
+    if (user) {
+      api.post('/activity-monitor/heartbeat').catch(() => {});
+    }
+  }, [location.pathname]);
+
   useEffect(() => {
     // Fetch logs to rate count for Year 2+ residents
     if (user?.role === 'RESIDENT' && currentYear && currentYear >= 2) {

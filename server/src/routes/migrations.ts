@@ -1011,6 +1011,12 @@ router.post('/add-activity-monitoring', authenticate, async (req: AuthRequest, r
     await query('CREATE INDEX IF NOT EXISTS idx_user_activity_type ON user_activity(action_type)');
     results.push('Created indexes');
 
+    // Add last_seen column to users table
+    try {
+      await query('ALTER TABLE users ADD COLUMN IF NOT EXISTS last_seen TIMESTAMP');
+      results.push('Added last_seen column to users');
+    } catch (e) { /* column may already exist */ }
+
     res.json({ success: true, message: 'Activity monitoring tables created successfully', results });
   } catch (error: any) {
     console.error('Activity monitoring migration failed:', error);
