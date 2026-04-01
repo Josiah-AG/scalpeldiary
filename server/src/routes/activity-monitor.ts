@@ -63,6 +63,7 @@ router.get('/summary', authenticate, async (req: AuthRequest, res) => {
         SELECT device_fingerprint FROM login_sessions ls
         JOIN users u ON ls.user_id = u.id
         WHERE ls.login_time > NOW() - INTERVAL '30 days'
+        AND ls.device_fingerprint NOT IN (SELECT device_fingerprint FROM dismissed_alerts)
         GROUP BY device_fingerprint
         HAVING COUNT(DISTINCT u.role) > 1 AND COUNT(DISTINCT ls.user_id) > 1
       ) sub`
@@ -99,6 +100,7 @@ router.get('/suspicious', authenticate, async (req: AuthRequest, res) => {
               json_agg(json_build_object('user_id', u.id, 'name', u.name, 'role', u.role, 'email', u.email, 'login_time', ls.login_time)) as users
        FROM login_sessions ls JOIN users u ON ls.user_id = u.id
        WHERE ls.login_time > NOW() - INTERVAL '30 days'
+       AND ls.device_fingerprint NOT IN (SELECT device_fingerprint FROM dismissed_alerts)
        AND ls.device_fingerprint IN (
          SELECT device_fingerprint FROM login_sessions ls2
          JOIN users u2 ON ls2.user_id = u2.id
@@ -111,6 +113,21 @@ router.get('/suspicious', authenticate, async (req: AuthRequest, res) => {
     );
     res.json(result.rows);
   } catch (e) { res.json([]); }
+});
+
+// POST /activity-monitor/dismiss-alert — Dismiss a suspicious device alert
+router.post('/dismiss-alert', authenticate, async (req: AuthRequest, res) => {
+  if (req.user!.role !== 'MASTER') return res.status(403).json({ error: 'Forbidden' });
+  try {
+    const { deviceFingerprint } = req.body;
+    await query(
+      'INSERT INTO dismissed_alerts (device_fingerprint, dismissed_by) VALUES ($1, $2)',
+      [deviceFingerprint, req.user!.id]
+    );
+    res.json({ ok: true });
+  } catch (e) {
+    res.json({ ok: true }); // Silent
+  }
 });
 
 // GET /activity-monitor/resident-activity — with last_action and last_seen

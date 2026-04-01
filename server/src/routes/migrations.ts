@@ -1024,6 +1024,17 @@ router.post('/add-activity-monitoring', authenticate, async (req: AuthRequest, r
       results.push('Added is_pwa column to login_sessions');
     } catch (e) { /* column may already exist */ }
 
+    // Create dismissed_alerts table
+    await query(`
+      CREATE TABLE IF NOT EXISTS dismissed_alerts (
+        id SERIAL PRIMARY KEY,
+        device_fingerprint TEXT NOT NULL,
+        dismissed_by UUID REFERENCES users(id) ON DELETE CASCADE,
+        dismissed_at TIMESTAMP DEFAULT NOW()
+      )
+    `);
+    results.push('Created dismissed_alerts table');
+
     res.json({ success: true, message: 'Activity monitoring tables created successfully', results });
   } catch (error: any) {
     console.error('Activity monitoring migration failed:', error);

@@ -286,9 +286,22 @@ export default function ActivityMonitor() {
             <div className="space-y-4">
               {suspicious.map((s: any, i: number) => (
                 <div key={i} className="bg-white rounded-lg shadow border-l-4 border-red-500 p-4">
-                  <div className="flex items-center space-x-2 mb-2">
-                    <AlertTriangle className="w-5 h-5 text-red-500" />
-                    <span className="font-semibold text-red-700">Shared Device Detected</span>
+                  <div className="flex items-center justify-between mb-2">
+                    <div className="flex items-center space-x-2">
+                      <AlertTriangle className="w-5 h-5 text-red-500" />
+                      <span className="font-semibold text-red-700">Shared Device Detected</span>
+                    </div>
+                    <button
+                      onClick={async () => {
+                        if (confirm('Dismiss this alert? It won\'t appear again for this device.')) {
+                          await api.post('/activity-monitor/dismiss-alert', { deviceFingerprint: s.device_fingerprint }).catch(() => {});
+                          setSuspicious(prev => prev.filter((_, idx) => idx !== i));
+                        }
+                      }}
+                      className="text-xs bg-gray-200 hover:bg-gray-300 text-gray-700 px-3 py-1 rounded-lg font-medium"
+                    >
+                      Dismiss
+                    </button>
                   </div>
                   <p className="text-sm text-gray-600 mb-2">Device: {shortDevice(s.device_info)}</p>
                   <div className="space-y-1">
