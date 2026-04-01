@@ -17,11 +17,11 @@ export async function logActivity(userId: number | string, actionType: string, m
 }
 
 // Helper: silently log login session
-export async function logLoginSession(userId: number | string, deviceFingerprint: string, deviceInfo: string, ipAddress: string) {
+export async function logLoginSession(userId: number | string, deviceFingerprint: string, deviceInfo: string, ipAddress: string, isPWA: boolean = false) {
   try {
     await query(
-      'INSERT INTO login_sessions (user_id, device_fingerprint, device_info, ip_address, login_time) VALUES ($1, $2, $3, $4, NOW())',
-      [userId, deviceFingerprint, deviceInfo, ipAddress]
+      'INSERT INTO login_sessions (user_id, device_fingerprint, device_info, ip_address, is_pwa, login_time) VALUES ($1, $2, $3, $4, $5, NOW())',
+      [userId, deviceFingerprint, deviceInfo, ipAddress, isPWA]
     );
   } catch (e) {
     // Silent — never disrupt login
@@ -38,10 +38,13 @@ export async function updateLastSeen(userId: number | string) {
 // POST /activity-monitor/heartbeat — Silent "last seen" ping (any authenticated user)
 router.post('/heartbeat', authenticate, async (req: AuthRequest, res) => {
   try {
-    await query('UPDATE users SET last_seen = NOW() WHERE id = $1', [req.user!.id]);
+    const { isPWA } = req.body;
+    await query('UPDATE users SET last_seen = NOW(), is_pwa = $2 WHERE id = $1', [req.user!.id, isPWA || false]);
     res.json({ ok: true });
   } catch (e) {
-    res.json({ ok: true }); // Always succeed — never break client
+    // Fallback without is_pwa column
+    try { await query('UPDATE users SET last_seen = NOW() WHERE id = $1', [req.user!.id]); } catch (_) {}
+    res.json({ ok: true });
   }
 });
 
@@ -115,7 +118,7 @@ router.get('/resident-activity', authenticate, async (req: AuthRequest, res) => 
   if (req.user!.role !== 'MASTER') return res.status(403).json({ error: 'Forbidden' });
   try {
     const result = await query(
-      `SELECT u.id, u.name, u.email, u.last_seen,
+      `SELECT u.id, u.name, u.email, u.last_seen, u.is_pwa,
               (SELECT MAX(year) FROM resident_years WHERE resident_id = u.id) as current_year,
               (SELECT MAX(login_time) FROM login_sessions WHERE user_id = u.id) as last_login,
               GREATEST(
@@ -137,7 +140,7 @@ router.get('/supervisor-responsiveness', authenticate, async (req: AuthRequest, 
   if (req.user!.role !== 'MASTER') return res.status(403).json({ error: 'Forbidden' });
   try {
     const result = await query(
-      `SELECT u.id, u.name, u.email, u.last_seen,
+      `SELECT u.id, u.name, u.email, u.last_seen, u.is_pwa,
               (SELECT MAX(login_time) FROM login_sessions WHERE user_id = u.id) as last_login,
               GREATEST(
                 (SELECT MAX(rated_at) FROM surgical_logs WHERE supervisor_id = u.id AND rating IS NOT NULL),

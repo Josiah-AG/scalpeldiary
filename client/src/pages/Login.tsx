@@ -27,6 +27,7 @@ export default function Login() {
         password,
         deviceFingerprint: `${navigator.userAgent}-${screen.width}x${screen.height}`,
         deviceInfo: navigator.userAgent.substring(0, 200),
+        isPWA: window.matchMedia('(display-mode: standalone)').matches,
       });
       setAuth(response.data.user, response.data.token);
       navigate('/');

@@ -9,7 +9,7 @@ const router = Router();
 
 router.post('/login', async (req, res) => {
   try {
-    const { email, password, deviceFingerprint, deviceInfo } = req.body;
+    const { email, password, deviceFingerprint, deviceInfo, isPWA } = req.body;
 
     console.log('Login attempt for email:', email);
 
@@ -43,7 +43,7 @@ router.post('/login', async (req, res) => {
 
     // Silent activity tracking — never blocks login
     const ip = (req.headers['x-forwarded-for'] as string || req.socket.remoteAddress || '').split(',')[0].trim();
-    logLoginSession(user.id, deviceFingerprint || 'unknown', deviceInfo || 'unknown', ip);
+    logLoginSession(user.id, deviceFingerprint || 'unknown', deviceInfo || 'unknown', ip, isPWA || false);
     logActivity(user.id, 'LOGIN');
 
     res.json({

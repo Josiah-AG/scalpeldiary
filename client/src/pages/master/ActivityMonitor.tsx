@@ -135,7 +135,12 @@ export default function ActivityMonitor() {
                   const noAction = !r.last_action;
                   return (
                     <tr key={r.id} className={noSeen && noAction ? 'bg-red-50' : 'hover:bg-gray-50'}>
-                      <td className="px-3 py-3 text-sm font-medium">{r.name}</td>
+                      <td className="px-3 py-3 text-sm font-medium">
+                        {r.name}
+                        <span className="ml-1 text-xs" title={r.is_pwa ? 'Installed App (PWA)' : 'Using Web Browser'}>
+                          {r.is_pwa ? '📱' : '🌐'}
+                        </span>
+                      </td>
                       <td className="px-3 py-3 text-sm">Y{r.current_year || '?'}</td>
                       <td className="px-3 py-3 text-sm">{noSeen ? <span className="text-red-500 text-xs">Never</span> : fmtDate(r.last_seen)}</td>
                       <td className="px-3 py-3 text-sm">{noAction ? <span className="text-gray-400 text-xs">None</span> : fmtDate(r.last_action)}</td>
@@ -171,7 +176,12 @@ export default function ActivityMonitor() {
                   const isExpanded = expandedSup === s.id;
                   return (<>
                     <tr key={s.id} className={pending > 5 ? 'bg-red-50' : pending > 2 ? 'bg-yellow-50' : 'hover:bg-gray-50'}>
-                      <td className="px-3 py-3 text-sm font-medium">{s.name}</td>
+                      <td className="px-3 py-3 text-sm font-medium">
+                        {s.name}
+                        <span className="ml-1 text-xs" title={s.is_pwa ? 'Installed App (PWA)' : 'Using Web Browser'}>
+                          {s.is_pwa ? '📱' : '🌐'}
+                        </span>
+                      </td>
                       <td className="px-3 py-3 text-sm">{!s.last_seen ? <span className="text-red-500 text-xs">Never</span> : fmtDate(s.last_seen)}</td>
                       <td className="px-3 py-3 text-sm">{!s.last_action ? <span className="text-gray-400 text-xs">None</span> : fmtDate(s.last_action)}</td>
                       <td className="px-3 py-3 text-sm">
@@ -232,6 +242,7 @@ export default function ActivityMonitor() {
                 <tr>
                   <th className="px-3 py-3 text-left text-xs font-semibold">User</th>
                   <th className="px-3 py-3 text-left text-xs font-semibold">Role</th>
+                  <th className="px-3 py-3 text-left text-xs font-semibold">Mode</th>
                   <th className="px-3 py-3 text-left text-xs font-semibold">Device</th>
                   <th className="px-3 py-3 text-left text-xs font-semibold">IP</th>
                   <th className="px-3 py-3 text-left text-xs font-semibold">Time</th>
@@ -247,13 +258,14 @@ export default function ActivityMonitor() {
                         s.role === 'RESIDENT' ? 'bg-blue-100 text-blue-800' : 'bg-purple-100 text-purple-800'
                       }`}>{s.role}</span>
                     </td>
+                    <td className="px-3 py-3 text-sm">{s.is_pwa ? '📱 App' : '🌐 Web'}</td>
                     <td className="px-3 py-3 text-xs text-gray-600">{shortDevice(s.device_info)}</td>
                     <td className="px-3 py-3 text-xs text-gray-500">{s.ip_address || '-'}</td>
                     <td className="px-3 py-3 text-sm">{fmtDate(s.login_time)}</td>
                   </tr>
                 ))}
                 {sessions.length === 0 && (
-                  <tr><td colSpan={5} className="px-4 py-8 text-center text-gray-500">No login sessions recorded yet.</td></tr>
+                  <tr><td colSpan={6} className="px-4 py-8 text-center text-gray-500">No login sessions recorded yet.</td></tr>
                 )}
               </tbody>
             </table>

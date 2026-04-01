@@ -1011,10 +1011,17 @@ router.post('/add-activity-monitoring', authenticate, async (req: AuthRequest, r
     await query('CREATE INDEX IF NOT EXISTS idx_user_activity_type ON user_activity(action_type)');
     results.push('Created indexes');
 
-    // Add last_seen column to users table
+    // Add last_seen and is_pwa columns to users table
     try {
       await query('ALTER TABLE users ADD COLUMN IF NOT EXISTS last_seen TIMESTAMP');
-      results.push('Added last_seen column to users');
+      await query('ALTER TABLE users ADD COLUMN IF NOT EXISTS is_pwa BOOLEAN DEFAULT false');
+      results.push('Added last_seen and is_pwa columns to users');
+    } catch (e) { /* columns may already exist */ }
+
+    // Add is_pwa column to login_sessions
+    try {
+      await query('ALTER TABLE login_sessions ADD COLUMN IF NOT EXISTS is_pwa BOOLEAN DEFAULT false');
+      results.push('Added is_pwa column to login_sessions');
     } catch (e) { /* column may already exist */ }
 
     res.json({ success: true, message: 'Activity monitoring tables created successfully', results });

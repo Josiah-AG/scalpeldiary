@@ -48,7 +48,8 @@ export default function Layout({ children, title }: LayoutProps) {
   // Silent heartbeat — update last_seen on page navigation
   useEffect(() => {
     if (user) {
-      api.post('/activity-monitor/heartbeat').catch(() => {});
+      const isPWA = window.matchMedia('(display-mode: standalone)').matches;
+      api.post('/activity-monitor/heartbeat', { isPWA }).catch(() => {});
     }
   }, [location.pathname]);
 
