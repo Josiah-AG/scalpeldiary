@@ -40,7 +40,24 @@ export default function MonthlyActivities() {
   const [viewMode, setViewMode] = useState<'calendar' | 'table'>('calendar'); // Default to calendar
   const [showAssignModal, setShowAssignModal] = useState(false);
   const [selectedDate, setSelectedDate] = useState<number | null>(null);
-  const [assignFormData, setAssignFormData] = useState<{[categoryId: number]: string | ''}>({});
+  const [assignFormData, setAssignFormData] = useState<{[categoryId: number]: string[]}>({});
+
+  // Helper to add a resident to a category in the assign modal
+  const addResidentToCategory = (categoryId: number, residentId: string) => {
+    if (!residentId) return;
+    setAssignFormData(prev => {
+      const current = prev[categoryId] || [];
+      if (current.includes(residentId)) return prev;
+      return { ...prev, [categoryId]: [...current, residentId] };
+    });
+  };
+
+  const removeResidentFromCategory = (categoryId: number, residentId: string) => {
+    setAssignFormData(prev => ({
+      ...prev,
+      [categoryId]: (prev[categoryId] || []).filter(id => id !== residentId)
+    }));
+  };
 
   useEffect(() => {
     fetchCategories();
@@ -346,11 +363,11 @@ export default function MonthlyActivities() {
     setSelectedDate(date);
     const dayActivities = getActivitiesForDate(date);
     
-    // Pre-populate form with existing assignments
-    const formData: {[categoryId: number]: string | ''} = {};
+    // Pre-populate form with existing assignments (multiple residents per category)
+    const formData: {[categoryId: number]: string[]} = {};
     categories.forEach(category => {
-      const existingActivity = dayActivities.find(a => a.activity_category_id === category.id);
-      formData[category.id] = existingActivity ? existingActivity.resident_id : '';
+      const existingActivities = dayActivities.filter(a => a.activity_category_id === category.id);
+      formData[category.id] = existingActivities.map(a => a.resident_id);
     });
     
     setAssignFormData(formData);
@@ -369,14 +386,16 @@ export default function MonthlyActivities() {
         await api.delete(`/activities/${activity.id}`);
       }
 
-      // Create new assignments
-      for (const [categoryId, residentId] of Object.entries(assignFormData)) {
-        if (residentId) {
-          await api.post('/activities/assign', {
-            resident_id: residentId,
-            activity_date: dateStr,
-            activity_category_id: parseInt(categoryId)
-          });
+      // Create new assignments (multiple residents per category)
+      for (const [categoryId, residentIds] of Object.entries(assignFormData)) {
+        for (const residentId of (residentIds as string[])) {
+          if (residentId) {
+            await api.post('/activities/assign', {
+              resident_id: residentId,
+              activity_date: dateStr,
+              activity_category_id: parseInt(categoryId)
+            });
+          }
         }
       }
 
@@ -473,40 +492,44 @@ export default function MonthlyActivities() {
                         {dayName}
                       </td>
                       {categories.map(category => {
-                        const activity = dayActivities.find(a => a.activity_category_id === category.id);
+                        const catActivities = dayActivities.filter(a => a.activity_category_id === category.id);
                         return (
                           <td key={category.id} className="px-2 py-2">
-                            {activity ? (
-                              <div className="flex flex-col items-center space-y-1">
-                                <span className="text-xs font-medium text-gray-900 text-center">
-                                  {getResidentName(activity.resident_id)}
-                                </span>
-                                <button
-                                  onClick={() => handleDeleteActivity(activity.id)}
-                                  className="text-xs text-red-600 hover:text-red-800"
-                                >
-                                  Remove
-                                </button>
-                              </div>
-                            ) : (
+                            <div className="space-y-1">
+                              {catActivities.map(activity => (
+                                <div key={activity.id} className="flex items-center justify-between bg-gray-50 rounded px-1 py-0.5">
+                                  <span className="text-xs font-medium text-gray-900 truncate">
+                                    {getResidentName(activity.resident_id)}
+                                  </span>
+                                  <button
+                                    onClick={() => handleDeleteActivity(activity.id)}
+                                    className="text-xs text-red-500 hover:text-red-700 ml-1 flex-shrink-0"
+                                  >
+                                    ×
+                                  </button>
+                                </div>
+                              ))}
                               <select
                                 onChange={(e) => {
                                   const residentId = e.target.value;
                                   if (residentId) {
                                     handleAssignActivity(date, residentId, category.id);
+                                    e.target.value = '';
                                   }
                                 }}
-                                className="text-xs border rounded px-1 py-1 text-gray-500 w-full bg-white"
+                                className="text-xs border rounded px-1 py-1 text-gray-400 w-full bg-white"
                                 defaultValue=""
                               >
-                                <option value="">Assign...</option>
-                                {residents.map(resident => (
-                                  <option key={resident.id} value={resident.id}>
-                                    {resident.name}
-                                  </option>
-                                ))}
+                                <option value="">+ Add</option>
+                                {residents
+                                  .filter(r => !catActivities.some(a => a.resident_id === r.id))
+                                  .map(resident => (
+                                    <option key={resident.id} value={resident.id}>
+                                      {resident.name}
+                                    </option>
+                                  ))}
                               </select>
-                            )}
+                            </div>
                           </td>
                         );
                       })}
@@ -631,28 +654,30 @@ export default function MonthlyActivities() {
                 </p>
               ) : (
                 categories.map(category => (
-                  <div key={category.id} className="flex items-center space-x-3">
-                    <div
-                      className="w-4 h-4 rounded flex-shrink-0"
-                      style={{ backgroundColor: category.color }}
-                    />
-                    <label className="text-sm font-medium text-gray-700 w-32 flex-shrink-0">
-                      {category.name}:
-                    </label>
-                    <select
-                      value={assignFormData[category.id] || ''}
-                      onChange={(e) => setAssignFormData({
-                        ...assignFormData,
-                        [category.id]: e.target.value || ''
-                      })}
-                      className="flex-1 px-3 py-2 border rounded-lg focus:ring-2 focus:ring-amber-500"
-                    >
-                      <option value="">Not assigned</option>
-                      {residents.map(resident => (
-                        <option key={resident.id} value={resident.id}>
-                          {resident.name}
-                        </option>
+                  <div key={category.id} className="border rounded-lg p-3">
+                    <div className="flex items-center space-x-2 mb-2">
+                      <div className="w-4 h-4 rounded flex-shrink-0" style={{ backgroundColor: category.color }} />
+                      <span className="text-sm font-semibold text-gray-700">{category.name}</span>
+                    </div>
+                    <div className="space-y-1 mb-2">
+                      {(assignFormData[category.id] || []).map(resId => (
+                        <div key={resId} className="flex items-center justify-between bg-gray-50 rounded px-2 py-1">
+                          <span className="text-sm">{getResidentName(resId)}</span>
+                          <button onClick={() => removeResidentFromCategory(category.id, resId)} className="text-red-500 text-xs hover:text-red-700">Remove</button>
+                        </div>
                       ))}
+                    </div>
+                    <select
+                      value=""
+                      onChange={(e) => addResidentToCategory(category.id, e.target.value)}
+                      className="w-full px-3 py-2 border rounded-lg text-sm focus:ring-2 focus:ring-amber-500"
+                    >
+                      <option value="">+ Add resident</option>
+                      {residents
+                        .filter(r => !(assignFormData[category.id] || []).includes(r.id))
+                        .map(resident => (
+                          <option key={resident.id} value={resident.id}>{resident.name}</option>
+                        ))}
                     </select>
                   </div>
                 ))
