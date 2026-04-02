@@ -200,14 +200,25 @@ export function ActivityModal({ isOpen, onClose, activities }: ActivityModalProp
                     {format(new Date(date + 'T00:00:00'), 'EEE, MMM dd')} {isToday && '(Today)'}
                   </div>
                   <div className="flex flex-wrap gap-1.5">
-                    {dayActs.map((act: any, idx: number) => {
-                      const isMe = act.resident_id === currentUserId;
-                      return (
-                        <div key={idx} className={'text-white px-2 py-1 rounded text-xs font-medium ' + (isMe ? 'ring-2 ring-offset-1 ring-black' : '')} style={{ backgroundColor: act.color || '#9333EA' }}>
-                          {act.activity_category_name} · {act.resident_name}{isMe ? ' ★' : ''}
+                    {(() => {
+                      // Group by category
+                      const grouped = new Map<string, {color: string; residents: {name: string; isMe: boolean}[]}>();
+                      dayActs.forEach((act: any) => {
+                        const key = act.activity_category_name;
+                        if (!grouped.has(key)) grouped.set(key, { color: act.color || '#9333EA', residents: [] });
+                        grouped.get(key)!.residents.push({ name: act.resident_name, isMe: act.resident_id === currentUserId });
+                      });
+                      return Array.from(grouped.entries()).map(([cat, data]) => (
+                        <div key={cat} className="w-full rounded-lg p-2 mb-1" style={{ backgroundColor: data.color + '18', borderLeft: `3px solid ${data.color}` }}>
+                          <div className="text-xs font-bold mb-0.5" style={{ color: data.color }}>{cat}</div>
+                          <div className="flex flex-wrap gap-1">
+                            {data.residents.map((r, i) => (
+                              <span key={i} className={`text-xs bg-white rounded px-1.5 py-0.5 ${r.isMe ? 'ring-1 ring-black font-bold' : ''}`}>{r.name}{r.isMe ? ' ★' : ''}</span>
+                            ))}
+                          </div>
                         </div>
-                      );
-                    })}
+                      ));
+                    })()}
                   </div>
                 </div>
               );
