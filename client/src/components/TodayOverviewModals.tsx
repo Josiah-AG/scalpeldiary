@@ -101,7 +101,7 @@ export function DutyModal({ isOpen, onClose, duties }: DutyModalProps) {
 
   // Fixed duty category order and colors
   const DUTY_ORDER: {[key: string]: number} = { 'EOPD': 0, 'ICU': 1, 'Ward': 2, 'Senior Resident': 3, 'Consultation': 4 };
-  const DUTY_COLORS: {[key: string]: string} = { 'EOPD': '#DC2626', 'ICU': '#7C3AED', 'Ward': '#2563EB', 'Senior Resident': '#D97706', 'Consultation': '#9333EA' };
+  const DUTY_COLORS: {[key: string]: string} = { 'EOPD': '#DC2626', 'ICU': '#7C3AED', 'Ward': '#2563EB', 'Senior Resident': '#D97706', 'Consultation': '#EC4899' };
   const getDutyColor = (name: string) => DUTY_COLORS[name] || '#6B7280';
   const getDutyOrder = (name: string) => DUTY_ORDER[name] ?? 99;
 
@@ -134,27 +134,16 @@ export function DutyModal({ isOpen, onClose, duties }: DutyModalProps) {
                     {format(new Date(date + 'T00:00:00'), 'EEE, MMM dd')} {isToday && '(Today)'}
                   </div>
                   <div className="flex flex-wrap gap-1.5">
-                    {(() => {
-                      // Group by category with fixed order
-                      const grouped = new Map<string, {residents: {name: string; isMe: boolean}[]}>();
-                      dayDuties.forEach((duty: any) => {
-                        const key = duty.duty_category_name;
-                        if (!grouped.has(key)) grouped.set(key, { residents: [] });
-                        grouped.get(key)!.residents.push({ name: duty.resident_name, isMe: duty.resident_id === currentUserId });
-                      });
-                      return Array.from(grouped.entries())
-                        .sort((a, b) => getDutyOrder(a[0]) - getDutyOrder(b[0]))
-                        .map(([cat, data]) => (
-                          <div key={cat} className="w-full rounded-lg p-2 mb-1" style={{ backgroundColor: getDutyColor(cat) + '18', borderLeft: `4px solid ${getDutyColor(cat)}` }}>
-                            <div className="text-xs font-bold mb-0.5" style={{ color: getDutyColor(cat) }}>{cat}</div>
-                            <div className="flex flex-wrap gap-1">
-                              {data.residents.map((r, i) => (
-                                <span key={i} className={`text-xs bg-white rounded px-1.5 py-0.5 ${r.isMe ? 'ring-1 ring-black font-bold' : ''}`}>{r.name}{r.isMe ? ' ★' : ''}</span>
-                              ))}
-                            </div>
-                          </div>
-                        ));
-                    })()}
+                    {dayDuties
+                      .sort((a: any, b: any) => getDutyOrder(a.duty_category_name) - getDutyOrder(b.duty_category_name))
+                      .map((duty: any, idx: number) => {
+                      const isMe = duty.resident_id === currentUserId;
+                      return (
+                        <div key={idx} className={'text-white px-2 py-1 rounded text-xs font-medium ' + (isMe ? 'ring-2 ring-offset-1 ring-black' : '')} style={{ backgroundColor: getDutyColor(duty.duty_category_name) }}>
+                          {duty.duty_category_name} · {duty.resident_name}{isMe ? ' ★' : ''}
+                        </div>
+                      );
+                    })}
                   </div>
                 </div>
               );
