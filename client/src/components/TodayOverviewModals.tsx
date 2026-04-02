@@ -98,6 +98,13 @@ export function DutyModal({ isOpen, onClose, duties }: DutyModalProps) {
 
   const now = new Date();
   const dutyByDate = new Map<string, any[]>();
+
+  // Fixed duty category order and colors
+  const DUTY_ORDER: {[key: string]: number} = { 'EOPD': 0, 'ICU': 1, 'Ward': 2, 'Senior Resident': 3, 'Consultation': 4 };
+  const DUTY_COLORS: {[key: string]: string} = { 'EOPD': '#DC2626', 'ICU': '#7C3AED', 'Ward': '#2563EB', 'Senior Resident': '#D97706', 'Consultation': '#9333EA' };
+  const getDutyColor = (name: string) => DUTY_COLORS[name] || '#6B7280';
+  const getDutyOrder = (name: string) => DUTY_ORDER[name] ?? 99;
+
   duties.forEach(duty => {
     const date = duty.duty_date.split('T')[0];
     if (!dutyByDate.has(date)) dutyByDate.set(date, []);
@@ -127,14 +134,27 @@ export function DutyModal({ isOpen, onClose, duties }: DutyModalProps) {
                     {format(new Date(date + 'T00:00:00'), 'EEE, MMM dd')} {isToday && '(Today)'}
                   </div>
                   <div className="flex flex-wrap gap-1.5">
-                    {dayDuties.map((duty: any, idx: number) => {
-                      const isMe = duty.resident_id === currentUserId;
-                      return (
-                        <div key={idx} className={'text-white px-2 py-1 rounded text-xs font-medium ' + (isMe ? 'ring-2 ring-offset-1 ring-black' : '')} style={{ backgroundColor: duty.duty_color || '#D97706' }}>
-                          {duty.duty_category_name} · {duty.resident_name}{isMe ? ' ★' : ''}
-                        </div>
-                      );
-                    })}
+                    {(() => {
+                      // Group by category with fixed order
+                      const grouped = new Map<string, {residents: {name: string; isMe: boolean}[]}>();
+                      dayDuties.forEach((duty: any) => {
+                        const key = duty.duty_category_name;
+                        if (!grouped.has(key)) grouped.set(key, { residents: [] });
+                        grouped.get(key)!.residents.push({ name: duty.resident_name, isMe: duty.resident_id === currentUserId });
+                      });
+                      return Array.from(grouped.entries())
+                        .sort((a, b) => getDutyOrder(a[0]) - getDutyOrder(b[0]))
+                        .map(([cat, data]) => (
+                          <div key={cat} className="w-full rounded-lg p-2 mb-1" style={{ backgroundColor: getDutyColor(cat) + '18', borderLeft: `4px solid ${getDutyColor(cat)}` }}>
+                            <div className="text-xs font-bold mb-0.5" style={{ color: getDutyColor(cat) }}>{cat}</div>
+                            <div className="flex flex-wrap gap-1">
+                              {data.residents.map((r, i) => (
+                                <span key={i} className={`text-xs bg-white rounded px-1.5 py-0.5 ${r.isMe ? 'ring-1 ring-black font-bold' : ''}`}>{r.name}{r.isMe ? ' ★' : ''}</span>
+                              ))}
+                            </div>
+                          </div>
+                        ));
+                    })()}
                   </div>
                 </div>
               );
@@ -149,6 +169,8 @@ export function DutyModal({ isOpen, onClose, duties }: DutyModalProps) {
               dataMap={dutyByDate}
               color="amber"
               categoryKey="duty_category_name"
+              colorOverride={getDutyColor}
+              orderOverride={getDutyOrder}
             />
           </div>
         </div>
@@ -241,11 +263,13 @@ export function ActivityModal({ isOpen, onClose, activities }: ActivityModalProp
   );
 }
 
-function CalendarGrid({ days, dataMap, color, categoryKey }: {
+function CalendarGrid({ days, dataMap, color, categoryKey, colorOverride, orderOverride }: {
   days: Date[];
   dataMap: Map<string, any[]>;
   color: string;
   categoryKey: string;
+  colorOverride?: (name: string) => string;
+  orderOverride?: (name: string) => number;
 }) {
   const { user } = useAuthStore();
   const currentUserId = user?.id;
@@ -280,9 +304,10 @@ function CalendarGrid({ days, dataMap, color, categoryKey }: {
             <div className={`text-xs font-semibold mb-0.5 ${isToday ? 'text-blue-600' : 'text-gray-700'}`}>{format(day, 'd')}</div>
             {groups.size > 0 && (
               <div className="space-y-0.5">
-                {Array.from(groups.entries()).map(([cat, residents], idx) => {
-                  // Find the color from the original items
-                  const itemColor = items.find((i: any) => i[categoryKey] === cat)?.color || items.find((i: any) => i[categoryKey] === cat)?.duty_color || (color === 'purple' ? '#9333EA' : '#D97706');
+                {Array.from(groups.entries())
+                  .sort((a, b) => orderOverride ? orderOverride(a[0]) - orderOverride(b[0]) : 0)
+                  .map(([cat, residents], idx) => {
+                  const itemColor = colorOverride ? colorOverride(cat) : (items.find((i: any) => i[categoryKey] === cat)?.color || items.find((i: any) => i[categoryKey] === cat)?.duty_color || (color === 'purple' ? '#9333EA' : '#D97706'));
                   const hasMe = residents.some((r: string) => items.some((i: any) => i[categoryKey] === cat && i.resident_id === currentUserId));
                   return (
                     <div key={idx} className={'text-white px-1 py-0.5 rounded text-[10px] leading-tight ' + (hasMe ? 'ring-1 ring-black' : '')} style={{ backgroundColor: itemColor }}>
@@ -302,7 +327,7 @@ function CalendarGrid({ days, dataMap, color, categoryKey }: {
         const grouped = new Map<string, {color: string; residents: {name: string; isMe: boolean}[]}>();
         items.forEach((item: any) => {
           const key = item[categoryKey];
-          if (!grouped.has(key)) grouped.set(key, { color: item.color || item.duty_color || '#9333EA', residents: [] });
+          if (!grouped.has(key)) grouped.set(key, { color: colorOverride ? colorOverride(key) : (item.color || item.duty_color || '#9333EA'), residents: [] });
           grouped.get(key)!.residents.push({ name: item.resident_name, isMe: item.resident_id === currentUserId });
         });
         return (
@@ -313,7 +338,9 @@ function CalendarGrid({ days, dataMap, color, categoryKey }: {
                 <button onClick={() => setSelectedDay(null)} className="text-gray-400 hover:text-gray-600 text-xl">×</button>
               </div>
               <div className="space-y-3">
-                {Array.from(grouped.entries()).map(([cat, data]) => (
+                {Array.from(grouped.entries())
+                  .sort((a, b) => orderOverride ? orderOverride(a[0]) - orderOverride(b[0]) : 0)
+                  .map(([cat, data]) => (
                   <div key={cat} className="rounded-lg p-3" style={{ backgroundColor: data.color + '18', borderLeft: `4px solid ${data.color}` }}>
                     <div className="text-sm font-bold mb-1" style={{ color: data.color }}>{cat}</div>
                     <div className="flex flex-wrap gap-1">
