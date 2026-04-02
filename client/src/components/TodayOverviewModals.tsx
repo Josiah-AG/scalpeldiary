@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { X, Calendar } from 'lucide-react';
 import { format, startOfMonth, endOfMonth, eachDayOfInterval, isSameDay } from 'date-fns';
 import { useAuthStore } from '../store/authStore';
@@ -249,6 +249,7 @@ function CalendarGrid({ days, dataMap, color, categoryKey }: {
 }) {
   const { user } = useAuthStore();
   const currentUserId = user?.id;
+  const [selectedDay, setSelectedDay] = useState<string | null>(null);
   const c = color === 'purple'
     ? { bg: 'bg-purple-50', border: 'border-purple-400', badge: 'bg-purple-600' }
     : { bg: 'bg-amber-50', border: 'border-amber-400', badge: 'bg-amber-600' };
@@ -274,7 +275,8 @@ function CalendarGrid({ days, dataMap, color, categoryKey }: {
 
         return (
           <div key={dateStr}
-            className={`min-h-[70px] p-1 rounded border-2 ${items.length > 0 ? c.bg + ' ' + c.border : 'bg-white border-gray-200'} ${isToday ? 'ring-2 ring-blue-500' : ''}`}>
+            onClick={() => items.length > 0 && setSelectedDay(dateStr)}
+            className={`min-h-[70px] p-1 rounded border-2 ${items.length > 0 ? c.bg + ' ' + c.border + ' cursor-pointer hover:shadow-md' : 'bg-white border-gray-200'} ${isToday ? 'ring-2 ring-blue-500' : ''}`}>
             <div className={`text-xs font-semibold mb-0.5 ${isToday ? 'text-blue-600' : 'text-gray-700'}`}>{format(day, 'd')}</div>
             {groups.size > 0 && (
               <div className="space-y-0.5">
@@ -294,6 +296,40 @@ function CalendarGrid({ days, dataMap, color, categoryKey }: {
           </div>
         );
       })}
+      {/* Day detail popup */}
+      {selectedDay && (() => {
+        const items = dataMap.get(selectedDay) || [];
+        const grouped = new Map<string, {color: string; residents: {name: string; isMe: boolean}[]}>();
+        items.forEach((item: any) => {
+          const key = item[categoryKey];
+          if (!grouped.has(key)) grouped.set(key, { color: item.color || item.duty_color || '#9333EA', residents: [] });
+          grouped.get(key)!.residents.push({ name: item.resident_name, isMe: item.resident_id === currentUserId });
+        });
+        return (
+          <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4" onClick={() => setSelectedDay(null)}>
+            <div className="bg-white rounded-xl p-5 max-w-md w-full shadow-2xl" onClick={e => e.stopPropagation()}>
+              <div className="flex justify-between items-center mb-3">
+                <h3 className="font-bold text-lg">{format(new Date(selectedDay + 'T00:00:00'), 'EEEE, MMM dd')}</h3>
+                <button onClick={() => setSelectedDay(null)} className="text-gray-400 hover:text-gray-600 text-xl">×</button>
+              </div>
+              <div className="space-y-3">
+                {Array.from(grouped.entries()).map(([cat, data]) => (
+                  <div key={cat} className="rounded-lg p-3" style={{ backgroundColor: data.color + '18', borderLeft: `4px solid ${data.color}` }}>
+                    <div className="text-sm font-bold mb-1" style={{ color: data.color }}>{cat}</div>
+                    <div className="flex flex-wrap gap-1">
+                      {data.residents.map((r, i) => (
+                        <span key={i} className={`text-xs bg-white rounded px-2 py-1 shadow-sm ${r.isMe ? 'ring-1 ring-black font-bold' : ''}`}>
+                          {r.name}{r.isMe ? ' ★' : ''}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        );
+      })()}
     </div>
   );
 }

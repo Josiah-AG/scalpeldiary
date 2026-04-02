@@ -41,7 +41,6 @@ export default function MonthlyActivities() {
   const [showAssignModal, setShowAssignModal] = useState(false);
   const [selectedDate, setSelectedDate] = useState<number | null>(null);
   const [assignFormData, setAssignFormData] = useState<{[categoryId: number]: string[]}>({});
-  const [viewDate, setViewDate] = useState<number | null>(null);
 
   // Helper to add a resident to a category in the assign modal
   const addResidentToCategory = (categoryId: number, residentId: string) => {
@@ -269,7 +268,7 @@ export default function MonthlyActivities() {
               ? 'bg-blue-50 hover:bg-blue-100' 
               : 'bg-white hover:bg-amber-50'
           }`}
-          onClick={() => setViewDate(date)}
+          onClick={() => handleOpenAssignModal(date)}
         >
           <div className={`font-semibold mb-2 ${isWeekend ? 'text-blue-700' : 'text-gray-700'}`}>
             {date}
@@ -636,57 +635,6 @@ export default function MonthlyActivities() {
             ) : (
               renderCalendar()
             )}
-          </div>
-        </div>
-      )}
-
-      {/* Day Detail View Modal (desktop - shows grouped activities) */}
-      {viewDate !== null && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50" onClick={() => setViewDate(null)}>
-          <div className="bg-white rounded-lg p-6 max-w-lg w-full max-h-[80vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="text-xl font-semibold">
-                {currentDate.toLocaleDateString('en-US', { month: 'long' })} {viewDate}, {currentDate.getFullYear()}
-              </h3>
-              <button onClick={() => setViewDate(null)} className="text-gray-400 hover:text-gray-600 text-2xl">×</button>
-            </div>
-            
-            {(() => {
-              const dayActs = getActivitiesForDate(viewDate);
-              if (dayActs.length === 0) return <p className="text-gray-400 text-center py-4">No activities assigned</p>;
-              
-              // Group by category
-              const grouped: {[catId: number]: DailyActivity[]} = {};
-              dayActs.forEach(a => {
-                if (!grouped[a.activity_category_id]) grouped[a.activity_category_id] = [];
-                grouped[a.activity_category_id].push(a);
-              });
-              
-              return (
-                <div className="space-y-3">
-                  {Object.entries(grouped).map(([catId, acts]) => {
-                    const cat = categories.find(c => c.id === parseInt(catId));
-                    return (
-                      <div key={catId} className="rounded-lg p-3" style={{ backgroundColor: (cat?.color || '#888') + '15', borderLeft: `4px solid ${cat?.color || '#888'}` }}>
-                        <div className="font-semibold text-sm mb-1" style={{ color: cat?.color || '#888' }}>{cat?.name || 'Unknown'}</div>
-                        <div className="flex flex-wrap gap-1">
-                          {acts.map(a => (
-                            <span key={a.id} className="text-xs bg-white rounded px-2 py-1 shadow-sm">{getResidentName(a.resident_id)}</span>
-                          ))}
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-              );
-            })()}
-            
-            <button
-              onClick={() => { setViewDate(null); handleOpenAssignModal(viewDate); }}
-              className="w-full mt-4 bg-amber-600 text-white py-2 rounded-lg hover:bg-amber-700 font-semibold"
-            >
-              Edit Assignments
-            </button>
           </div>
         </div>
       )}
