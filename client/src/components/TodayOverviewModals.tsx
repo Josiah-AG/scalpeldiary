@@ -100,7 +100,7 @@ export function DutyModal({ isOpen, onClose, duties }: DutyModalProps) {
   const dutyByDate = new Map<string, any[]>();
 
   // Fixed duty category order and colors
-  const DUTY_ORDER: {[key: string]: number} = { 'EOPD': 0, 'ICU': 1, 'Ward': 2, 'Senior Resident': 3, 'Consultation': 4 };
+  const DUTY_ORDER: {[key: string]: number} = { 'Senior Resident': 0, 'Ward': 1, 'ICU': 2, 'EOPD': 3, 'Consultation': 4 };
   const DUTY_COLORS: {[key: string]: string} = { 'EOPD': '#DC2626', 'ICU': '#7C3AED', 'Ward': '#2563EB', 'Senior Resident': '#D97706', 'Consultation': '#EC4899' };
   const getDutyColor = (name: string) => DUTY_COLORS[name] || '#6B7280';
   const getDutyOrder = (name: string) => DUTY_ORDER[name] ?? 99;

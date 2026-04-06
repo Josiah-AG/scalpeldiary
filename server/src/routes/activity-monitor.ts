@@ -166,13 +166,13 @@ router.get('/supervisor-responsiveness', authenticate, async (req: AuthRequest, 
       `SELECT u.id, u.name, u.email, u.last_seen, u.is_pwa,
               (SELECT MAX(login_time) FROM login_sessions WHERE user_id = u.id) as last_login,
               GREATEST(
-                (SELECT MAX(rated_at) FROM surgical_logs WHERE supervisor_id = u.id AND rating IS NOT NULL),
-                (SELECT MAX(rated_at) FROM presentations WHERE supervisor_id = u.id AND rating IS NOT NULL)
+                (SELECT MAX(rated_at) FROM surgical_logs WHERE supervisor_id = u.id AND status != 'PENDING'),
+                (SELECT MAX(rated_at) FROM presentations WHERE supervisor_id = u.id AND status != 'PENDING')
               ) as last_action,
-              (SELECT COUNT(*) FROM surgical_logs WHERE supervisor_id = u.id AND rating IS NULL AND status = 'PENDING') as pending_procedures,
-              (SELECT COUNT(*) FROM presentations WHERE supervisor_id = u.id AND rating IS NULL AND status = 'PENDING') as pending_presentations,
-              (SELECT COUNT(*) FROM surgical_logs WHERE supervisor_id = u.id AND rating IS NOT NULL AND date >= date_trunc('month', NOW())) as rated_this_month,
-              (SELECT COUNT(*) FROM presentations WHERE supervisor_id = u.id AND rating IS NOT NULL AND date >= date_trunc('month', NOW())) as presentations_rated_this_month
+              (SELECT COUNT(*) FROM surgical_logs WHERE supervisor_id = u.id AND status = 'PENDING') as pending_procedures,
+              (SELECT COUNT(*) FROM presentations WHERE supervisor_id = u.id AND status = 'PENDING') as pending_presentations,
+              (SELECT COUNT(*) FROM surgical_logs WHERE supervisor_id = u.id AND status != 'PENDING' AND date >= date_trunc('month', NOW())) as rated_this_month,
+              (SELECT COUNT(*) FROM presentations WHERE supervisor_id = u.id AND status != 'PENDING' AND date >= date_trunc('month', NOW())) as presentations_rated_this_month
        FROM users u
        WHERE u.role = 'SUPERVISOR' AND u.is_suspended = false
        ORDER BY u.name`

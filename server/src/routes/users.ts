@@ -215,12 +215,12 @@ router.get('/supervisors/stats', authenticate, async (req: AuthRequest, res) => 
         u.institution,
         u.specialty,
         COALESCE(u.is_senior, false) as is_senior,
-        (SELECT COUNT(*) FROM (SELECT DISTINCT mrn, date FROM surgical_logs WHERE supervisor_id = u.id AND rating IS NOT NULL) sub) as total_procedures_rated,
+        (SELECT COUNT(*) FROM (SELECT DISTINCT mrn, date FROM surgical_logs WHERE supervisor_id = u.id AND status != 'PENDING') sub) as total_procedures_rated,
         COUNT(DISTINCT p.id) as total_presentations_rated,
         COALESCE((SELECT AVG(rating) FROM surgical_logs WHERE supervisor_id = u.id AND rating IS NOT NULL), 0) as avg_procedure_rating,
         COALESCE(AVG(p.rating), 0) as avg_presentation_rating
        FROM users u
-       LEFT JOIN presentations p ON p.supervisor_id = u.id AND p.rating IS NOT NULL
+       LEFT JOIN presentations p ON p.supervisor_id = u.id AND p.status != 'PENDING'
        WHERE u.role = 'SUPERVISOR'
        GROUP BY u.id, u.name, u.email, u.profile_picture, u.institution, u.specialty, u.is_senior
        ORDER BY u.name`
