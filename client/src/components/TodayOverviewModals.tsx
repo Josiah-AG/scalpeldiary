@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { X, Calendar } from 'lucide-react';
 import { format, startOfMonth, endOfMonth, eachDayOfInterval, isSameDay } from 'date-fns';
 import { useAuthStore } from '../store/authStore';
@@ -94,6 +94,14 @@ export function DutyModal({ isOpen, onClose, duties }: DutyModalProps) {
   useBodyScrollLock(isOpen);
   const { user } = useAuthStore();
   const currentUserId = user?.id;
+  const todayRef = React.useRef<HTMLDivElement>(null);
+
+  React.useEffect(() => {
+    if (isOpen && todayRef.current) {
+      setTimeout(() => todayRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' }), 100);
+    }
+  }, [isOpen]);
+
   if (!isOpen) return null;
 
   const now = new Date();
@@ -129,7 +137,7 @@ export function DutyModal({ isOpen, onClose, duties }: DutyModalProps) {
               const dayDuties = dutyByDate.get(date)!;
               const isToday = date === format(now, 'yyyy-MM-dd');
               return (
-                <div key={date} className={`p-3 rounded-lg border-2 ${isToday ? 'border-blue-500 bg-blue-50' : 'border-gray-200'}`}>
+                <div key={date} className={`p-3 rounded-lg border-2 ${isToday ? 'border-blue-500 bg-blue-50' : 'border-gray-200'}`} ref={isToday ? todayRef : undefined}>
                   <div className={`text-sm font-bold mb-2 ${isToday ? 'text-blue-600' : 'text-gray-700'}`}>
                     {format(new Date(date + 'T00:00:00'), 'EEE, MMM dd')} {isToday && '(Today)'}
                   </div>
@@ -178,6 +186,14 @@ export function ActivityModal({ isOpen, onClose, activities }: ActivityModalProp
   useBodyScrollLock(isOpen);
   const { user } = useAuthStore();
   const currentUserId = user?.id;
+  const actTodayRef = React.useRef<HTMLDivElement>(null);
+
+  React.useEffect(() => {
+    if (isOpen && actTodayRef.current) {
+      setTimeout(() => actTodayRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' }), 100);
+    }
+  }, [isOpen]);
+
   if (!isOpen) return null;
 
   const now = new Date();
@@ -206,7 +222,7 @@ export function ActivityModal({ isOpen, onClose, activities }: ActivityModalProp
               const dayActs = actByDate.get(date)!;
               const isToday = date === format(now, 'yyyy-MM-dd');
               return (
-                <div key={date} className={`p-3 rounded-lg border-2 ${isToday ? 'border-blue-500 bg-blue-50' : 'border-gray-200'}`}>
+                <div key={date} className={`p-3 rounded-lg border-2 ${isToday ? 'border-blue-500 bg-blue-50' : 'border-gray-200'}`} ref={isToday ? actTodayRef : undefined}>
                   <div className={`text-sm font-bold mb-2 ${isToday ? 'text-blue-600' : 'text-gray-700'}`}>
                     {format(new Date(date + 'T00:00:00'), 'EEE, MMM dd')} {isToday && '(Today)'}
                   </div>
