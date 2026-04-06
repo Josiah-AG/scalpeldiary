@@ -198,15 +198,21 @@ export default function SupervisorDashboard() {
         </h3>
         {todayDuties.length > 0 ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-            {todayDuties.map((duty: any, idx: number) => (
-              <div key={idx} className="flex items-center space-x-3 p-3 rounded-lg" style={{ backgroundColor: (duty.duty_color || '#6366F1') + '15' }}>
-                <div className="w-3 h-3 rounded-full flex-shrink-0" style={{ backgroundColor: duty.duty_color || '#6366F1' }}></div>
+            {[...todayDuties].sort((a: any, b: any) => {
+              const order: {[k: string]: number} = { 'Senior Resident': 0, 'Ward': 1, 'ICU': 2, 'EOPD': 3, 'Consultation': 4 };
+              return (order[a.duty_category_name] ?? 99) - (order[b.duty_category_name] ?? 99);
+            }).map((duty: any, idx: number) => {
+              const dutyColors: {[k: string]: string} = { 'EOPD': '#DC2626', 'ICU': '#7C3AED', 'Ward': '#2563EB', 'Senior Resident': '#D97706', 'Consultation': '#EC4899' };
+              const color = dutyColors[duty.duty_category_name] || duty.duty_color || '#6366F1';
+              return (
+              <div key={idx} className="flex items-center space-x-3 p-3 rounded-lg" style={{ backgroundColor: color + '15' }}>
+                <div className="w-3 h-3 rounded-full flex-shrink-0" style={{ backgroundColor: color }}></div>
                 <div>
                   <p className="font-semibold text-gray-900 text-sm">{duty.resident_name}</p>
-                  <p className="text-xs font-medium" style={{ color: duty.duty_color || '#6366F1' }}>{duty.duty_category_name}</p>
+                  <p className="text-xs font-medium" style={{ color: color }}>{duty.duty_category_name}</p>
                 </div>
               </div>
-            ))}
+            )})}
           </div>
         ) : (
           <p className="text-gray-500 text-sm">No duties assigned for today</p>
