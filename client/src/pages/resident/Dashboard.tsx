@@ -865,7 +865,7 @@ export default function Dashboard() {
                 <th className="px-3 py-2 md:px-6 md:py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider hidden md:table-cell">Role</th>
                 <th className="px-3 py-2 md:px-6 md:py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Rating</th>
                 {!isReadOnlyMode && (
-                  <th className="px-3 py-2 md:px-6 md:py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider hidden sm:table-cell">Actions</th>
+                  <th className="px-3 py-2 md:px-6 md:py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
                 )}
               </tr>
             </thead>
@@ -942,7 +942,7 @@ export default function Dashboard() {
                       )}
                     </td>
                     {!isReadOnlyMode && (
-                      <td className="px-3 py-3 md:px-6 md:py-4 whitespace-nowrap text-xs md:text-sm hidden sm:table-cell">
+                      <td className="px-3 py-3 md:px-6 md:py-4 whitespace-nowrap text-xs md:text-sm">
                         {surgery.status === 'PENDING' && (
                           <div className="flex items-center space-x-2">
                             <button
@@ -992,7 +992,7 @@ export default function Dashboard() {
                 <th className="px-3 py-2 md:px-6 md:py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider hidden lg:table-cell">Venue</th>
                 <th className="px-3 py-2 md:px-6 md:py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Rating</th>
                 {!isReadOnlyMode && (
-                  <th className="px-3 py-2 md:px-6 md:py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider hidden sm:table-cell">Actions</th>
+                  <th className="px-3 py-2 md:px-6 md:py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
                 )}
               </tr>
             </thead>
@@ -1059,7 +1059,7 @@ export default function Dashboard() {
                       )}
                     </td>
                     {!isReadOnlyMode && (
-                      <td className="px-3 py-3 md:px-6 md:py-4 whitespace-nowrap text-xs md:text-sm hidden sm:table-cell">
+                      <td className="px-3 py-3 md:px-6 md:py-4 whitespace-nowrap text-xs md:text-sm">
                         {pres.status === 'PENDING' && (
                           <div className="flex items-center space-x-2">
                             <button
