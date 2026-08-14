@@ -11,7 +11,8 @@ interface RatedProcedure {
   procedure_type: string;
   diagnosis: string;
   surgery_role: string;
-  rating: number;
+  status: string;
+  rating: number | null;
   comment: string;
   rated_at: string;
   resident_name: string;
@@ -26,7 +27,8 @@ interface RatedPresentation {
   venue: string;
   presentation_type: string;
   description: string;
-  rating: number;
+  status: string;
+  rating: number | null;
   comment: string;
   resident_name: string;
   resident_profile_picture: string | null;
@@ -119,10 +121,16 @@ export default function SupervisorView() {
               <FileText className="w-4 h-4" />
               <span>{procedures.length} procedures</span>
             </span>
+            <span className="text-green-300 text-xs">
+              ({procedures.filter(p => p.status !== 'PENDING').length} rated, {procedures.filter(p => p.status === 'PENDING').length} pending)
+            </span>
             <span>•</span>
             <span className="flex items-center space-x-1">
               <Presentation className="w-4 h-4" />
               <span>{presentations.length} presentations</span>
+            </span>
+            <span className="text-green-300 text-xs">
+              ({presentations.filter(p => p.status !== 'PENDING').length} rated, {presentations.filter(p => p.status === 'PENDING').length} pending)
             </span>
           </div>
         </div>
@@ -180,7 +188,9 @@ export default function SupervisorView() {
                     <div
                       key={proc.id}
                       onClick={() => setSelectedProcedure(proc)}
-                      className="border border-gray-200 rounded-lg p-3 md:p-4 hover:shadow-lg hover:border-blue-300 transition-all cursor-pointer bg-white"
+                      className={`border rounded-lg p-3 md:p-4 hover:shadow-lg transition-all cursor-pointer bg-white ${
+                        proc.status === 'PENDING' ? 'border-orange-200 hover:border-orange-400' : 'border-gray-200 hover:border-blue-300'
+                      }`}
                     >
                       <div className="flex items-start justify-between gap-3">
                         <div className="flex-1 min-w-0">
@@ -217,10 +227,22 @@ export default function SupervisorView() {
                           </div>
                         </div>
                         <div className="flex flex-col items-center space-y-1 flex-shrink-0">
-                          <div className="flex items-center space-x-1 text-yellow-500">
-                            <Star className="w-5 h-5 md:w-6 md:h-6 fill-current" />
-                          </div>
-                          <span className="font-bold text-gray-900 text-sm md:text-base">{proc.rating}/5</span>
+                          {proc.status === 'PENDING' ? (
+                            <span className="px-2 py-1 bg-orange-100 text-orange-700 rounded text-xs font-semibold">
+                              Pending
+                            </span>
+                          ) : proc.status === 'NOT_WITNESSED' ? (
+                            <span className="px-2 py-1 bg-gray-100 text-gray-600 rounded text-xs font-semibold">
+                              Not Witnessed
+                            </span>
+                          ) : (
+                            <>
+                              <div className="flex items-center space-x-1 text-yellow-500">
+                                <Star className="w-5 h-5 md:w-6 md:h-6 fill-current" />
+                              </div>
+                              <span className="font-bold text-gray-900 text-sm md:text-base">{proc.rating}/5</span>
+                            </>
+                          )}
                         </div>
                       </div>
                     </div>
@@ -239,7 +261,9 @@ export default function SupervisorView() {
                     <div
                       key={pres.id}
                       onClick={() => setSelectedPresentation(pres)}
-                      className="border border-gray-200 rounded-lg p-3 md:p-4 hover:shadow-lg hover:border-green-300 transition-all cursor-pointer bg-white"
+                      className={`border rounded-lg p-3 md:p-4 hover:shadow-lg transition-all cursor-pointer bg-white ${
+                        pres.status === 'PENDING' ? 'border-orange-200 hover:border-orange-400' : 'border-gray-200 hover:border-green-300'
+                      }`}
                     >
                       <div className="flex items-start justify-between gap-3">
                         <div className="flex-1 min-w-0">
@@ -274,10 +298,22 @@ export default function SupervisorView() {
                           </div>
                         </div>
                         <div className="flex flex-col items-center space-y-1 flex-shrink-0">
-                          <div className="flex items-center space-x-1 text-yellow-500">
-                            <Star className="w-5 h-5 md:w-6 md:h-6 fill-current" />
-                          </div>
-                          <span className="font-bold text-gray-900 text-sm md:text-base">{pres.rating}/5</span>
+                          {pres.status === 'PENDING' ? (
+                            <span className="px-2 py-1 bg-orange-100 text-orange-700 rounded text-xs font-semibold">
+                              Pending
+                            </span>
+                          ) : pres.status === 'NOT_WITNESSED' ? (
+                            <span className="px-2 py-1 bg-gray-100 text-gray-600 rounded text-xs font-semibold">
+                              Not Witnessed
+                            </span>
+                          ) : (
+                            <>
+                              <div className="flex items-center space-x-1 text-yellow-500">
+                                <Star className="w-5 h-5 md:w-6 md:h-6 fill-current" />
+                              </div>
+                              <span className="font-bold text-gray-900 text-sm md:text-base">{pres.rating}/5</span>
+                            </>
+                          )}
                         </div>
                       </div>
                     </div>
@@ -351,9 +387,17 @@ export default function SupervisorView() {
               </div>
 
               <div className="flex items-center justify-center space-x-2 py-4 bg-gradient-to-r from-yellow-50 to-orange-50 rounded-lg border-2 border-yellow-200">
-                <Star className="w-7 h-7 md:w-8 md:h-8 text-yellow-500 fill-current" />
-                <span className="text-3xl md:text-4xl font-bold text-gray-900">{selectedProcedure.rating}</span>
-                <span className="text-lg md:text-xl text-gray-500">/ 5</span>
+                {selectedProcedure.status === 'PENDING' ? (
+                  <span className="text-lg font-semibold text-orange-600">Awaiting Rating</span>
+                ) : selectedProcedure.status === 'NOT_WITNESSED' ? (
+                  <span className="text-lg font-semibold text-gray-500">Not Witnessed</span>
+                ) : (
+                  <>
+                    <Star className="w-7 h-7 md:w-8 md:h-8 text-yellow-500 fill-current" />
+                    <span className="text-3xl md:text-4xl font-bold text-gray-900">{selectedProcedure.rating}</span>
+                    <span className="text-lg md:text-xl text-gray-500">/ 5</span>
+                  </>
+                )}
               </div>
 
               {selectedProcedure.comment && (
@@ -431,9 +475,17 @@ export default function SupervisorView() {
               )}
 
               <div className="flex items-center justify-center space-x-2 py-4 bg-gradient-to-r from-yellow-50 to-orange-50 rounded-lg border-2 border-yellow-200">
-                <Star className="w-7 h-7 md:w-8 md:h-8 text-yellow-500 fill-current" />
-                <span className="text-3xl md:text-4xl font-bold text-gray-900">{selectedPresentation.rating}</span>
-                <span className="text-lg md:text-xl text-gray-500">/ 5</span>
+                {selectedPresentation.status === 'PENDING' ? (
+                  <span className="text-lg font-semibold text-orange-600">Awaiting Rating</span>
+                ) : selectedPresentation.status === 'NOT_WITNESSED' ? (
+                  <span className="text-lg font-semibold text-gray-500">Not Witnessed</span>
+                ) : (
+                  <>
+                    <Star className="w-7 h-7 md:w-8 md:h-8 text-yellow-500 fill-current" />
+                    <span className="text-3xl md:text-4xl font-bold text-gray-900">{selectedPresentation.rating}</span>
+                    <span className="text-lg md:text-xl text-gray-500">/ 5</span>
+                  </>
+                )}
               </div>
 
               {selectedPresentation.comment && (

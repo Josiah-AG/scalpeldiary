@@ -367,8 +367,8 @@ router.get('/supervisor/:supervisorId/rated', authenticate, async (req: AuthRequ
        FROM surgical_logs sl
        JOIN users res ON sl.resident_id = res.id
        JOIN resident_years ry ON sl.year_id = ry.id
-       WHERE sl.supervisor_id = $1 AND sl.status IN ('RATED', 'COMMENTED')
-       ORDER BY sl.rated_at DESC`,
+       WHERE sl.supervisor_id = $1
+       ORDER BY sl.created_at DESC`,
       [supervisorId]
     );
 

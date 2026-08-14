@@ -380,8 +380,8 @@ router.get('/supervisor/:supervisorId/rated', authenticate, async (req: AuthRequ
        FROM presentations p
        JOIN users res ON p.resident_id = res.id
        JOIN resident_years ry ON p.year_id = ry.id
-       WHERE p.supervisor_id = $1 AND p.rating IS NOT NULL
-       ORDER BY p.date DESC`,
+       WHERE p.supervisor_id = $1
+       ORDER BY p.created_at DESC`,
       [supervisorId]
     );
 

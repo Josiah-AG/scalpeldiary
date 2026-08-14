@@ -308,16 +308,44 @@ router.get('/supervisor', authenticate, async (req: AuthRequest, res) => {
       [req.user!.id]
     );
 
+    // Pending procedures (not yet rated)
+    const pendingProceduresResult = await query(
+      "SELECT COUNT(*) as count FROM surgical_logs WHERE supervisor_id = $1 AND status = 'PENDING'",
+      [req.user!.id]
+    );
+
+    // Rated procedures (responded to)
+    const ratedProceduresResult = await query(
+      "SELECT COUNT(*) as count FROM surgical_logs WHERE supervisor_id = $1 AND status != 'PENDING'",
+      [req.user!.id]
+    );
+
     // Total presentations supervised
     const totalPresentationsResult = await query(
       'SELECT COUNT(*) as count FROM presentations WHERE supervisor_id = $1',
       [req.user!.id]
     );
 
+    // Pending presentations
+    const pendingPresentationsResult = await query(
+      "SELECT COUNT(*) as count FROM presentations WHERE supervisor_id = $1 AND status = 'PENDING'",
+      [req.user!.id]
+    );
+
+    // Rated presentations
+    const ratedPresentationsResult = await query(
+      "SELECT COUNT(*) as count FROM presentations WHERE supervisor_id = $1 AND status != 'PENDING'",
+      [req.user!.id]
+    );
+
     res.json({
       totalSurgeries: parseInt(totalSurgeriesResult.rows[0].count),
       uniqueProcedures: parseInt(uniqueProceduresResult.rows[0].count),
-      totalPresentations: parseInt(totalPresentationsResult.rows[0].count)
+      pendingProcedures: parseInt(pendingProceduresResult.rows[0].count),
+      ratedProcedures: parseInt(ratedProceduresResult.rows[0].count),
+      totalPresentations: parseInt(totalPresentationsResult.rows[0].count),
+      pendingPresentations: parseInt(pendingPresentationsResult.rows[0].count),
+      ratedPresentations: parseInt(ratedPresentationsResult.rows[0].count)
     });
   } catch (error) {
     res.status(500).json({ error: 'Failed to fetch supervisor analytics' });
