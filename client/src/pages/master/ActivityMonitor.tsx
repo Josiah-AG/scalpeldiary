@@ -125,8 +125,8 @@ export default function ActivityMonitor() {
                   <SortHeader label="Year" active={sortKey==='current_year'} dir={sortDir} onClick={() => toggleSort('current_year')} />
                   <SortHeader label="Last Seen" active={sortKey==='last_seen'} dir={sortDir} onClick={() => toggleSort('last_seen')} />
                   <SortHeader label="Last Action" active={sortKey==='last_action'} dir={sortDir} onClick={() => toggleSort('last_action')} />
-                  <SortHeader label="Procs" active={sortKey==='procedures_this_month'} dir={sortDir} onClick={() => toggleSort('procedures_this_month')} />
-                  <SortHeader label="Pres" active={sortKey==='presentations_this_month'} dir={sortDir} onClick={() => toggleSort('presentations_this_month')} />
+                  <SortHeader label="Procs" active={sortKey==='procedures_total'} dir={sortDir} onClick={() => toggleSort('procedures_total')} />
+                  <SortHeader label="Pres" active={sortKey==='presentations_total'} dir={sortDir} onClick={() => toggleSort('presentations_total')} />
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-200">
@@ -144,8 +144,8 @@ export default function ActivityMonitor() {
                       <td className="px-3 py-3 text-sm">Y{r.current_year || '?'}</td>
                       <td className="px-3 py-3 text-sm">{noSeen ? <span className="text-red-500 text-xs">Never</span> : fmtDate(r.last_seen)}</td>
                       <td className="px-3 py-3 text-sm">{noAction ? <span className="text-gray-400 text-xs">None</span> : fmtDate(r.last_action)}</td>
-                      <td className="px-3 py-3 text-sm font-semibold">{r.procedures_this_month || 0}</td>
-                      <td className="px-3 py-3 text-sm font-semibold">{r.presentations_this_month || 0}</td>
+                      <td className="px-3 py-3 text-sm font-semibold">{r.procedures_total || 0}</td>
+                      <td className="px-3 py-3 text-sm font-semibold">{r.presentations_total || 0}</td>
                     </tr>
                   );
                 })}
@@ -167,7 +167,7 @@ export default function ActivityMonitor() {
                   <SortHeader label="Last Action" active={sortKey==='last_action'} dir={sortDir} onClick={() => toggleSort('last_action')} />
                   <SortHeader label="Pend Procs" active={sortKey==='pending_procedures'} dir={sortDir} onClick={() => toggleSort('pending_procedures')} />
                   <SortHeader label="Pend Pres" active={sortKey==='pending_presentations'} dir={sortDir} onClick={() => toggleSort('pending_presentations')} />
-                  <SortHeader label="Rated" active={sortKey==='rated_this_month'} dir={sortDir} onClick={() => toggleSort('rated_this_month')} />
+                  <SortHeader label="Rated" active={sortKey==='rated_procedures_total'} dir={sortDir} onClick={() => toggleSort('rated_procedures_total')} />
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-200">
@@ -197,7 +197,7 @@ export default function ActivityMonitor() {
                         </button>
                       </td>
                       <td className="px-3 py-3 text-sm font-semibold">
-                        {parseInt(s.rated_this_month || 0) + parseInt(s.presentations_rated_this_month || 0)}
+                        {parseInt(s.rated_procedures_total || 0) + parseInt(s.rated_presentations_total || 0)}
                       </td>
                     </tr>
                     {isExpanded && pendingDetails && (

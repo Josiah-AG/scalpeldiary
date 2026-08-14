@@ -148,8 +148,8 @@ router.get('/resident-activity', authenticate, async (req: AuthRequest, res) => 
                 (SELECT MAX(created_at) FROM surgical_logs WHERE resident_id = u.id),
                 (SELECT MAX(created_at) FROM presentations WHERE resident_id = u.id)
               ) as last_action,
-              (SELECT COUNT(*) FROM surgical_logs WHERE resident_id = u.id AND created_at >= date_trunc('month', NOW() AT TIME ZONE 'Africa/Addis_Ababa')) as procedures_this_month,
-              (SELECT COUNT(*) FROM presentations WHERE resident_id = u.id AND created_at >= date_trunc('month', NOW() AT TIME ZONE 'Africa/Addis_Ababa')) as presentations_this_month
+              (SELECT COUNT(*) FROM surgical_logs WHERE resident_id = u.id) as procedures_total,
+              (SELECT COUNT(*) FROM presentations WHERE resident_id = u.id) as presentations_total
        FROM users u
        WHERE u.role = 'RESIDENT' AND u.is_suspended = false
        ORDER BY u.name`
@@ -171,8 +171,8 @@ router.get('/supervisor-responsiveness', authenticate, async (req: AuthRequest, 
               ) as last_action,
               (SELECT COUNT(*) FROM surgical_logs WHERE supervisor_id = u.id AND status = 'PENDING') as pending_procedures,
               (SELECT COUNT(*) FROM presentations WHERE supervisor_id = u.id AND status = 'PENDING') as pending_presentations,
-              (SELECT COUNT(*) FROM surgical_logs WHERE supervisor_id = u.id AND status != 'PENDING' AND rated_at >= date_trunc('month', NOW() AT TIME ZONE 'Africa/Addis_Ababa')) as rated_this_month,
-              (SELECT COUNT(*) FROM presentations WHERE supervisor_id = u.id AND status != 'PENDING' AND rated_at >= date_trunc('month', NOW() AT TIME ZONE 'Africa/Addis_Ababa')) as presentations_rated_this_month
+              (SELECT COUNT(*) FROM surgical_logs WHERE supervisor_id = u.id AND status != 'PENDING') as rated_procedures_total,
+              (SELECT COUNT(*) FROM presentations WHERE supervisor_id = u.id AND status != 'PENDING') as rated_presentations_total
        FROM users u
        WHERE u.role = 'SUPERVISOR' AND u.is_suspended = false
        ORDER BY u.name`
