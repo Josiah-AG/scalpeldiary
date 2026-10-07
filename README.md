@@ -1,3 +1,5 @@
+> Current deployment, testing and migration instructions: [Operations runbook](docs/OPERATIONS.md). Historical commands below must not be used on production without review.
+
 # ScalpelDiary
 
 A comprehensive surgical training management system for residents and supervisors.

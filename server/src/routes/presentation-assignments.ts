@@ -1,3 +1,5 @@
+import { transactional } from '../database/transaction';
+import { ownedYear } from '../security/policy';
 import { Router } from 'express';
 import { query } from '../database/db';
 import { authenticate, AuthRequest } from '../middleware/auth';
@@ -12,28 +14,17 @@ async function getUserName(user: any): Promise<string> {
 
 const router = Router();
 
-// Ensure created_by column exists (handles both old and new table schemas)
-(async () => {
-  try {
-    await query(`ALTER TABLE presentation_assignments ADD COLUMN IF NOT EXISTS created_by UUID REFERENCES users(id) ON DELETE CASCADE`);
-    // Copy from assigned_by if created_by is empty
-    await query(`UPDATE presentation_assignments SET created_by = assigned_by WHERE created_by IS NULL AND assigned_by IS NOT NULL`);
-  } catch (e) {
-    // Column might already exist or table might not exist yet
-  }
-})();
-
 // Create presentation assignment (Chief Resident & Supervisor)
-router.post('/', authenticate, async (req: AuthRequest, res) => {
+router.post('/', authenticate, transactional(async (req: AuthRequest, res) => {
   try {
     // Check if user is Chief Resident or Supervisor
     const userRole = req.user!.role;
     let isChiefResident = false;
-    
+
     if (userRole === 'RESIDENT') {
       const userCheck = await query('SELECT is_chief_resident FROM users WHERE id = $1', [req.user!.id]);
       isChiefResident = userCheck.rows[0]?.is_chief_resident;
-      
+
       if (!isChiefResident) {
         return res.status(403).json({ error: 'Only Chief Residents can assign presentations' });
       }
@@ -43,7 +34,7 @@ router.post('/', authenticate, async (req: AuthRequest, res) => {
 
     const { title, type, presenter_id, moderator_id, scheduled_date, description } = req.body;
 
-    console.log('Creating presentation assignment:', { title, type, presenter_id, moderator_id, scheduled_date, description, created_by: req.user!.id });
+
 
     // Validate required fields
     if (!title || !type || !presenter_id || !moderator_id) {
@@ -56,7 +47,7 @@ router.post('/', authenticate, async (req: AuthRequest, res) => {
         `INSERT INTO presentation_assignments (
           title, presentation_type, presenter_id, moderator_id, scheduled_date, description, created_by, status
         ) VALUES ($1, $2, $3, $4, $5, $6, $7, 'assigned') RETURNING *`,
-        [title, type, presenter_id, moderator_id, scheduled_date || null, description, req.user!.id]
+        [title, String(type).toUpperCase().replace(/ /g, '_'), presenter_id, moderator_id, scheduled_date || null, description, req.user!.id]
       );
     } catch (insertError: any) {
       // Fallback: try with assigned_by column name
@@ -65,7 +56,7 @@ router.post('/', authenticate, async (req: AuthRequest, res) => {
           `INSERT INTO presentation_assignments (
             title, presentation_type, presenter_id, moderator_id, scheduled_date, description, assigned_by, status
           ) VALUES ($1, $2, $3, $4, $5, $6, $7, 'assigned') RETURNING *`,
-          [title, type, presenter_id, moderator_id, scheduled_date || null, description, req.user!.id]
+          [title, String(type).toUpperCase().replace(/ /g, '_'), presenter_id, moderator_id, scheduled_date || null, description, req.user!.id]
         );
       } else {
         throw insertError;
@@ -95,22 +86,22 @@ router.post('/', authenticate, async (req: AuthRequest, res) => {
 
     res.status(201).json(result.rows[0]);
   } catch (error: any) {
-    console.error('Failed to create presentation assignment:', error);
-    console.error('Error details:', error.message, error.stack);
+    console.error('Operation failed: presentation-assignments.ts:88');
+    console.error('Operation failed: presentation-assignments.ts:89');
     res.status(500).json({ error: 'Failed to create presentation assignment', details: error.message });
   }
-});
+}));
 
 // Get all assignments (Chief Resident & Supervisor)
 router.get('/', authenticate, async (req: AuthRequest, res) => {
   try {
     const userRole = req.user!.role;
     let isChiefResident = false;
-    
+
     if (userRole === 'RESIDENT') {
       const userCheck = await query('SELECT is_chief_resident FROM users WHERE id = $1', [req.user!.id]);
       isChiefResident = userCheck.rows[0]?.is_chief_resident;
-      
+
       if (!isChiefResident) {
         return res.status(403).json({ error: 'Only Chief Residents can view all assignments' });
       }
@@ -119,11 +110,11 @@ router.get('/', authenticate, async (req: AuthRequest, res) => {
     }
 
     let result;
-    
+
     // Chief Residents see ALL assignments
     if (isChiefResident) {
       result = await query(
-        `SELECT pa.*,
+        `SELECT pa.*, (pa.status = 'presented' AND pa.presentation_id IS NULL) AS linked_record_unavailable,
                 presenter.name as presenter_name,
                 moderator.name as moderator_name,
                 creator.name as created_by_name
@@ -132,16 +123,14 @@ router.get('/', authenticate, async (req: AuthRequest, res) => {
          JOIN users moderator ON pa.moderator_id = moderator.id
          LEFT JOIN users creator ON pa.created_by = creator.id
          WHERE pa.status = 'assigned'
-            OR (pa.status = 'presented' AND EXISTS (
-                SELECT 1 FROM presentations p WHERE p.id = pa.presentation_id
-            ))
+            OR pa.status = 'presented'
          ORDER BY pa.created_at DESC`
       );
-    } 
+    }
     // Supervisors see only assignments they created OR where they are the moderator
     else if (userRole === 'SUPERVISOR') {
       result = await query(
-        `SELECT pa.*,
+        `SELECT pa.*, (pa.status = 'presented' AND pa.presentation_id IS NULL) AS linked_record_unavailable,
                 presenter.name as presenter_name,
                 moderator.name as moderator_name,
                 creator.name as created_by_name
@@ -151,9 +140,7 @@ router.get('/', authenticate, async (req: AuthRequest, res) => {
          LEFT JOIN users creator ON pa.created_by = creator.id
          WHERE (pa.created_by = $1 OR pa.moderator_id = $1)
          AND (pa.status = 'assigned'
-              OR (pa.status = 'presented' AND EXISTS (
-                  SELECT 1 FROM presentations p WHERE p.id = pa.presentation_id
-              )))
+              OR pa.status = 'presented')
          ORDER BY pa.created_at DESC`,
         [req.user!.id]
       );
@@ -165,7 +152,7 @@ router.get('/', authenticate, async (req: AuthRequest, res) => {
 
     res.json(result.rows);
   } catch (error: any) {
-    console.error('Failed to fetch assignments:', error);
+    console.error('Operation failed: presentation-assignments.ts:154');
     res.status(500).json({ error: 'Failed to fetch assignments' });
   }
 });
@@ -178,7 +165,7 @@ router.get('/my-assignments', authenticate, async (req: AuthRequest, res) => {
     }
 
     const result = await query(
-      `SELECT pa.*,
+      `SELECT pa.*, (pa.status = 'presented' AND pa.presentation_id IS NULL) AS linked_record_unavailable,
               moderator.name as moderator_name,
               creator.name as created_by_name
        FROM presentation_assignments pa
@@ -191,7 +178,7 @@ router.get('/my-assignments', authenticate, async (req: AuthRequest, res) => {
 
     res.json(result.rows);
   } catch (error: any) {
-    console.error('Failed to fetch my assignments:', error);
+    console.error('Operation failed: presentation-assignments.ts:180');
     res.status(500).json({ error: 'Failed to fetch my assignments' });
   }
 });
@@ -212,7 +199,7 @@ router.get('/my-assignments/count', authenticate, async (req: AuthRequest, res) 
 
     res.json({ count: parseInt(result.rows[0].count) });
   } catch (error: any) {
-    console.error('Failed to fetch assignment count:', error);
+    console.error('Operation failed: presentation-assignments.ts:201');
     res.status(500).json({ error: 'Failed to fetch assignment count' });
   }
 });
@@ -233,13 +220,13 @@ router.get('/moderator-assignments/count', authenticate, async (req: AuthRequest
 
     res.json({ count: parseInt(result.rows[0].count) });
   } catch (error: any) {
-    console.error('Failed to fetch moderator assignment count:', error);
+    console.error('Operation failed: presentation-assignments.ts:222');
     res.status(500).json({ error: 'Failed to fetch moderator assignment count' });
   }
 });
 
 // Mark assignment as presented (Resident)
-router.post('/:id/mark-presented', authenticate, async (req: AuthRequest, res) => {
+router.post('/:id/mark-presented', authenticate, ownedYear, transactional(async (req: AuthRequest, res) => {
   try {
     if (req.user!.role !== 'RESIDENT') {
       return res.status(403).json({ error: 'Only residents can mark presentations as presented' });
@@ -250,7 +237,7 @@ router.post('/:id/mark-presented', authenticate, async (req: AuthRequest, res) =
 
     // Get assignment details
     const assignmentResult = await query(
-      'SELECT * FROM presentation_assignments WHERE id = $1 AND presenter_id = $2',
+      'SELECT * FROM presentation_assignments WHERE id = $1 AND presenter_id = $2 FOR UPDATE',
       [id, req.user!.id]
     );
 
@@ -259,6 +246,11 @@ router.post('/:id/mark-presented', authenticate, async (req: AuthRequest, res) =
     }
 
     const assignment = assignmentResult.rows[0];
+    if (assignment.status === 'presented') {
+      if (!assignment.presentation_id) return res.status(409).json({error:'This completed assignment needs administrator reconciliation'});
+      const existing = await query('SELECT * FROM presentations WHERE id = $1', [assignment.presentation_id]);
+      return res.json({success:true, presentation:existing.rows[0]});
+    }
 
     // Create presentation entry
     const presentationResult = await query(
@@ -279,22 +271,8 @@ router.post('/:id/mark-presented', authenticate, async (req: AuthRequest, res) =
 
     const presentation = presentationResult.rows[0];
 
-    // Update assignment status
-    try {
-      await query(
-        `UPDATE presentation_assignments 
-         SET status = 'presented', presented_date = $1, presentation_id = $2, updated_at = NOW()
-         WHERE id = $3`,
-        [presented_date, presentation.id, id]
-      );
-    } catch (updateError: any) {
-      // Fallback: columns might not exist, just update status
-      console.error('Full update failed, trying status-only:', updateError.message);
-      await query(
-        `UPDATE presentation_assignments SET status = 'presented', updated_at = NOW() WHERE id = $1`,
-        [id]
-      );
-    }
+    await query(`UPDATE presentation_assignments SET status = 'presented', presented_date = $1,
+      presentation_id = $2, updated_at = NOW() WHERE id = $3`, [presented_date, presentation.id, id]);
 
     // Notify the moderator/supervisor that the presentation was marked as presented
     if (assignment.moderator_id) {
@@ -306,28 +284,28 @@ router.post('/:id/mark-presented', authenticate, async (req: AuthRequest, res) =
       );
     }
 
-    res.json({ 
-      success: true, 
+    res.json({
+      success: true,
       message: 'Presentation marked as presented',
       presentation: presentation
     });
   } catch (error: any) {
-    console.error('Failed to mark as presented:', error);
-    console.error('Error details:', error.message, error.detail);
+    console.error('Operation failed: presentation-assignments.ts:292');
+    console.error('Operation failed: presentation-assignments.ts:293');
     res.status(500).json({ error: 'Failed to mark as presented', details: error.message });
   }
-});
+}));
 
 // Update assignment (Chief Resident & Supervisor)
-router.put('/:id', authenticate, async (req: AuthRequest, res) => {
+router.put('/:id', authenticate, transactional(async (req: AuthRequest, res) => {
   try {
     const userRole = req.user!.role;
     let isChiefResident = false;
-    
+
     if (userRole === 'RESIDENT') {
       const userCheck = await query('SELECT is_chief_resident FROM users WHERE id = $1', [req.user!.id]);
       isChiefResident = userCheck.rows[0]?.is_chief_resident;
-      
+
       if (!isChiefResident) {
         return res.status(403).json({ error: 'Only Chief Residents can update assignments' });
       }
@@ -339,12 +317,12 @@ router.put('/:id', authenticate, async (req: AuthRequest, res) => {
     const { title, type, presenter_id, moderator_id, scheduled_date, description } = req.body;
 
     const result = await query(
-      `UPDATE presentation_assignments 
-       SET title = $1, presentation_type = $2, presenter_id = $3, moderator_id = $4, 
+      `UPDATE presentation_assignments
+       SET title = $1, presentation_type = $2, presenter_id = $3, moderator_id = $4,
            scheduled_date = $5, description = $6, updated_at = NOW()
        WHERE id = $7 AND (created_by = $8 OR assigned_by = $8)
        RETURNING *`,
-      [title, type, presenter_id, moderator_id, scheduled_date || null, description, id, req.user!.id]
+      [title, String(type).toUpperCase().replace(/ /g, '_'), presenter_id, moderator_id, scheduled_date || null, description, id, req.user!.id]
     );
 
     if (result.rows.length === 0) {
@@ -353,21 +331,21 @@ router.put('/:id', authenticate, async (req: AuthRequest, res) => {
 
     res.json(result.rows[0]);
   } catch (error: any) {
-    console.error('Failed to update assignment:', error);
+    console.error('Operation failed: presentation-assignments.ts:333');
     res.status(500).json({ error: 'Failed to update assignment' });
   }
-});
+}));
 
 // Delete assignment (Chief Resident & Supervisor)
-router.delete('/:id', authenticate, async (req: AuthRequest, res) => {
+router.delete('/:id', authenticate, transactional(async (req: AuthRequest, res) => {
   try {
     const userRole = req.user!.role;
     let isChiefResident = false;
-    
+
     if (userRole === 'RESIDENT') {
       const userCheck = await query('SELECT is_chief_resident FROM users WHERE id = $1', [req.user!.id]);
       isChiefResident = userCheck.rows[0]?.is_chief_resident;
-      
+
       if (!isChiefResident) {
         return res.status(403).json({ error: 'Only Chief Residents can delete assignments' });
       }
@@ -414,9 +392,9 @@ router.delete('/:id', authenticate, async (req: AuthRequest, res) => {
 
     res.json({ message: 'Assignment deleted successfully' });
   } catch (error: any) {
-    console.error('Failed to delete assignment:', error);
+    console.error('Operation failed: presentation-assignments.ts:394');
     res.status(500).json({ error: 'Failed to delete assignment' });
   }
-});
+}));
 
 export default router;

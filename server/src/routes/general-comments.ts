@@ -1,12 +1,14 @@
+import { transactional } from '../database/transaction';
+import { residentScope, ownedYear, validRating } from '../security/policy';
 import { Router } from 'express';
 import { query } from '../database/db';
-import { authenticate, AuthRequest } from '../middleware/auth';
+import { authorize, authenticate, AuthRequest } from '../middleware/auth';
 import { sendNotification } from '../utils/notifications';
 
 const router = Router();
 
 // Get general comments for a resident (supervisor/master view)
-router.get('/resident/:residentId', authenticate, async (req: AuthRequest, res) => {
+router.get('/resident/:residentId', authenticate, residentScope, async (req: AuthRequest, res) => {
   try {
     const { residentId } = req.params;
     const result = await query(
@@ -24,7 +26,7 @@ router.get('/resident/:residentId', authenticate, async (req: AuthRequest, res) 
 });
 
 // Add general comment
-router.post('/', authenticate, async (req: AuthRequest, res) => {
+router.post('/', authenticate, authorize('SUPERVISOR', 'MASTER', 'MANAGEMENT'), transactional(async (req: AuthRequest, res) => {
   try {
     const { residentId, comment, isAnonymous } = req.body;
     if (!comment || !comment.trim()) {
@@ -52,10 +54,10 @@ router.post('/', authenticate, async (req: AuthRequest, res) => {
   } catch (error) {
     res.status(500).json({ error: 'Failed to add comment' });
   }
-});
+}));
 
 // Get residents grouped by year (for the comments page)
-router.get('/residents-by-year', authenticate, async (req: AuthRequest, res) => {
+router.get('/residents-by-year', authenticate, authorize('SUPERVISOR', 'MASTER', 'MANAGEMENT'), async (req: AuthRequest, res) => {
   try {
     const result = await query(
       `SELECT u.id, u.name, u.profile_picture,

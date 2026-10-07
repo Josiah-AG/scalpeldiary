@@ -360,10 +360,7 @@ function RotationsViewModal({ onClose }: { onClose: () => void }) {
     }
   };
 
-  const months = [
-    'July', 'August', 'September', 'October', 'November', 'December',
-    'January', 'February', 'March', 'April', 'May', 'June'
-  ];
+  const months = Array.from({length:12}, (_,i) => new Date(2026, ((rotations[0]?.academic_start_month || 7)-1+i)%12, 1).toLocaleString('en',{month:'long'}));
 
   const rotationsByResident = rotations.reduce((acc: any, rotation: any) => {
     if (!acc[rotation.resident_id]) {
@@ -377,7 +374,7 @@ function RotationsViewModal({ onClose }: { onClose: () => void }) {
   }, {});
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+    <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
       <div className="bg-white rounded-xl shadow-2xl max-w-6xl w-full max-h-[90vh] overflow-hidden">
         <div className="bg-gradient-to-r from-purple-600 to-indigo-600 text-white p-6 flex justify-between items-center">
           <h2 className="text-2xl font-bold flex items-center">
@@ -388,7 +385,7 @@ function RotationsViewModal({ onClose }: { onClose: () => void }) {
             <span className="text-2xl">×</span>
           </button>
         </div>
-        
+
         <div className="p-6 overflow-y-auto max-h-[calc(90vh-100px)]">
           {loading ? (
             <div className="text-center py-12">
@@ -486,7 +483,7 @@ function ActivitiesViewModal({ onClose }: { onClose: () => void }) {
   };
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+    <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
       <div className="bg-white rounded-xl shadow-2xl max-w-6xl w-full max-h-[90vh] overflow-hidden">
         <div className="bg-gradient-to-r from-amber-600 to-orange-600 text-white p-6 flex justify-between items-center">
           <h2 className="text-2xl font-bold flex items-center">
@@ -497,7 +494,7 @@ function ActivitiesViewModal({ onClose }: { onClose: () => void }) {
             <span className="text-2xl">×</span>
           </button>
         </div>
-        
+
         <div className="p-6 overflow-y-auto max-h-[calc(90vh-100px)]">
           <div className="flex justify-between items-center mb-6">
             <button
@@ -525,16 +522,16 @@ function ActivitiesViewModal({ onClose }: { onClose: () => void }) {
               {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(day => (
                 <div key={day} className="text-center font-bold text-gray-600 py-2">{day}</div>
               ))}
-              
+
               {Array.from({ length: monthStart.getDay() }).map((_, i) => (
                 <div key={`empty-${i}`} className="bg-gray-50 rounded-lg p-2 min-h-[100px]"></div>
               ))}
-              
+
               {days.map(day => {
                 const dateStr = format(day, 'yyyy-MM-dd');
                 const dayActivities = activityMap.get(dateStr) || [];
                 const isToday = isSameDay(day, new Date());
-                
+
                 return (
                   <div
                     key={dateStr}

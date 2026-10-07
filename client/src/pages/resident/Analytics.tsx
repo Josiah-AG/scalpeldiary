@@ -1,3 +1,4 @@
+import { ratingRank } from '../../utils/ratingUtils';
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Layout from '../../components/Layout';
@@ -33,6 +34,7 @@ export default function Analytics() {
   }, [selectedYear]);
 
   const fetchYears = async () => {
+    try {
     if (isReadOnlyMode && viewingResidentId) {
       const response = await api.get(`/users/resident-years/${viewingResidentId}`);
       setYears(response.data);
@@ -46,6 +48,7 @@ export default function Analytics() {
         setSelectedYear(response.data[response.data.length - 1].id);
       }
     }
+    } catch { console.error('Unable to load resident years'); } finally { setLoading(false); }
   };
 
   const fetchAnalytics = async () => {
@@ -111,9 +114,9 @@ export default function Analytics() {
   // Filter comments based on rating
   const filteredComments = analytics?.comments?.filter((comment: any) => {
     if (commentFilter === 'all') return true;
-    if (commentFilter === 'excellent') return comment.rating >= 90;
-    if (commentFilter === 'good') return comment.rating >= 71 && comment.rating < 90;
-    if (commentFilter === 'bad') return comment.rating < 50;
+    if (commentFilter === 'excellent') return ratingRank(comment.rating) >= 90;
+    if (commentFilter === 'good') return ratingRank(comment.rating) >= 71 && ratingRank(comment.rating) < 90;
+    if (commentFilter === 'bad') return ratingRank(comment.rating) < 50;
     return true;
   }) || [];
 
@@ -153,8 +156,8 @@ export default function Analytics() {
       {/* Year Progress Bar */}
       {yearProgress && (
         <div className="mb-8">
-          <YearProgressBar 
-            progress={yearProgress} 
+          <YearProgressBar
+            progress={yearProgress}
             onClick={() => setShowProgressModal(true)}
           />
         </div>
@@ -561,9 +564,9 @@ export default function Analytics() {
             // Presentation comments
             (analytics?.presentationComments || []).forEach((c: any) => {
               if (commentFilter === 'all' ||
-                  (commentFilter === 'excellent' && c.rating >= 90) ||
-                  (commentFilter === 'good' && c.rating >= 71 && c.rating < 90) ||
-                  (commentFilter === 'bad' && c.rating < 50)) {
+                  (commentFilter === 'excellent' && ratingRank(c.rating) >= 90) ||
+                  (commentFilter === 'good' && ratingRank(c.rating) >= 71 && ratingRank(c.rating) < 90) ||
+                  (commentFilter === 'bad' && ratingRank(c.rating) < 50)) {
                 allComments.push({ ...c, type: 'presentation', sortDate: c.date, procedure: c.title });
               }
             });
@@ -586,8 +589,8 @@ export default function Analytics() {
             if (allComments.length === 0) {
               return (
                 <p className="text-gray-500 text-center py-8">
-                  {analytics?.comments?.length > 0 
-                    ? 'No comments match the selected filter' 
+                  {analytics?.comments?.length > 0
+                    ? 'No comments match the selected filter'
                     : 'No comments yet'}
                 </p>
               );
@@ -596,12 +599,12 @@ export default function Analytics() {
             return (
               <>
                 {displayComments.map((item: any, index: number) => (
-                  <div 
-                    key={`${item.id}-${item.type}-${index}`} 
+                  <div
+                    key={`${item.id}-${item.type}-${index}`}
                     className={`border-l-4 ${
                       item.type === 'anonymous' || item.type === 'anonymous-general' ? 'border-yellow-400 bg-yellow-50' :
                       item.type === 'general' ? 'border-indigo-500 bg-indigo-50' :
-                      item.type === 'postop' ? 'border-purple-500 bg-purple-50' : 
+                      item.type === 'postop' ? 'border-purple-500 bg-purple-50' :
                       item.type === 'presentation' ? 'border-green-500 bg-green-50' : 'border-blue-500 bg-blue-50'
                     } p-4 rounded-r-lg hover:opacity-90 transition-colors`}
                   >
@@ -619,23 +622,23 @@ export default function Analytics() {
                             ? 'bg-yellow-400 text-yellow-900'
                             : item.type === 'general'
                             ? 'bg-indigo-500 text-white'
-                            : item.type === 'postop' 
-                            ? 'bg-purple-500 text-white' 
+                            : item.type === 'postop'
+                            ? 'bg-purple-500 text-white'
                             : item.type === 'presentation'
                             ? 'bg-green-500 text-white'
                             : 'bg-blue-500 text-white'
                         }`}>
-                          {item.type === 'anonymous' ? 'Anonymous Comment' : 
+                          {item.type === 'anonymous' ? 'Anonymous Comment' :
                            item.type === 'anonymous-general' ? 'Anonymous General' :
                            item.type === 'general' ? 'General Comment' :
-                           item.type === 'postop' ? 'Post-Op Follow-Up' : 
+                           item.type === 'postop' ? 'Post-Op Follow-Up' :
                            item.type === 'presentation' ? 'Presentation Comment' : 'Procedure Comment'}
                         </span>
                         {item.rating && (
                           <span className={`inline-block px-2 py-0.5 rounded-full text-xs font-bold ${
-                            item.rating >= 90 ? 'bg-green-500 text-white' : item.rating >= 71 ? 'bg-blue-500 text-white' : item.rating >= 50 ? 'bg-yellow-500 text-white' : 'bg-red-500 text-white'
+                            ratingRank(item.rating) >= 90 ? 'bg-green-500 text-white' : ratingRank(item.rating) >= 71 ? 'bg-blue-500 text-white' : ratingRank(item.rating) >= 50 ? 'bg-yellow-500 text-white' : 'bg-red-500 text-white'
                           }`}>
-                            {item.rating >= 90 ? 'Excellent' : item.rating >= 71 ? 'Good' : item.rating >= 50 ? 'Satisfactory' : 'Poor'}
+                            {ratingRank(item.rating) >= 90 ? 'Excellent' : ratingRank(item.rating) >= 71 ? 'Good' : ratingRank(item.rating) >= 50 ? 'Satisfactory' : 'Poor'}
                           </span>
                         )}
                       </div>

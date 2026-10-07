@@ -15,7 +15,7 @@ Add these 3 environment variables:
 ```
 VAPID_PUBLIC_KEY=BC2vMPdgE4fBxuk35hWLXlLN7BgTZA4g3bgW0RqdD584fJyfX0zjLFypS-mGQwKVlJwxdRM3a6beEVMlKxSeNdM
 
-VAPID_PRIVATE_KEY=KqDe_-QjwI28FKxZWKzAyJpR8vz_mAKzLk_tHeTXwcw
+VAPID_PRIVATE_KEY=<set-in-Railway-only>
 
 VAPID_EMAIL=mailto:admin@scalpeldiary.com
 ```

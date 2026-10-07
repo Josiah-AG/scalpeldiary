@@ -1,3 +1,4 @@
+import { transactional } from '../database/transaction';
 import { Router } from 'express';
 import { query } from '../database/db';
 import { authenticate, AuthRequest } from '../middleware/auth';
@@ -16,13 +17,13 @@ try {
   if (vapidPublicKey && vapidPrivateKey) {
     webpush.setVapidDetails(vapidEmail, vapidPublicKey, vapidPrivateKey);
     pushNotificationsEnabled = true;
-    console.log('✅ Push notifications enabled');
+
   } else {
-    console.log('⚠️  Push notifications disabled - VAPID keys not configured');
+
   }
 } catch (error) {
-  console.error('⚠️  Failed to configure push notifications:', error);
-  console.log('Push notifications will be disabled');
+  console.error('Operation failed: notifications.ts:24');
+
 }
 
 // Get notifications for user (exclude notifications older than 48 hours)
@@ -40,33 +41,42 @@ router.get('/', authenticate, async (req: AuthRequest, res) => {
     );
     res.json(result.rows);
   } catch (error) {
-    console.error('Failed to fetch notifications:', error);
+    console.error('Operation failed: notifications.ts:43');
     res.status(500).json({ error: 'Failed to fetch notifications' });
   }
 });
 
+router.get('/public-key', authenticate, (_req, res) => res.json({publicKey:process.env.VAPID_PUBLIC_KEY || null}));
+router.post('/unsubscribe', authenticate, transactional(async (req: AuthRequest,res) => {
+ await query('DELETE FROM push_subscriptions WHERE user_id=$1 AND endpoint=$2',[req.user!.id,req.body.endpoint]);
+ res.json({success:true});
+}));
+
 // Subscribe to push notifications
-router.post('/subscribe', authenticate, async (req: AuthRequest, res) => {
+router.post('/subscribe', authenticate, transactional(async (req: AuthRequest, res) => {
   try {
     if (!pushNotificationsEnabled) {
-      return res.status(503).json({ 
+      return res.status(503).json({
         error: 'Push notifications are not configured on the server',
         message: 'Contact administrator to enable push notifications'
       });
     }
 
     const { subscription } = req.body;
-    
+
     if (!subscription || !subscription.endpoint || !subscription.keys) {
       return res.status(400).json({ error: 'Invalid subscription data' });
     }
 
+    let endpoint: URL;
+    try { endpoint = new URL(subscription.endpoint); } catch { return res.status(400).json({error:'Invalid push endpoint'}); }
+    if (endpoint.protocol !== 'https:' || !['fcm.googleapis.com','updates.push.services.mozilla.com','web.push.apple.com','wns.windows.com'].some(host => endpoint.hostname === host || endpoint.hostname.endsWith('.'+host))) return res.status(400).json({error:'Unsupported push provider'});
     // Store subscription in database
     await query(
       `INSERT INTO push_subscriptions (user_id, endpoint, p256dh, auth)
        VALUES ($1, $2, $3, $4)
-       ON CONFLICT (user_id, endpoint) 
-       DO UPDATE SET p256dh = $3, auth = $4, updated_at = NOW()`,
+       ON CONFLICT (endpoint)
+       DO UPDATE SET user_id = $1, p256dh = $3, auth = $4, updated_at = NOW()`,
       [
         req.user!.id,
         subscription.endpoint,
@@ -77,17 +87,14 @@ router.post('/subscribe', authenticate, async (req: AuthRequest, res) => {
 
     res.json({ message: 'Subscription saved successfully' });
   } catch (error) {
-    console.error('Error saving subscription:', error);
+    console.error('Operation failed: notifications.ts:89');
     res.status(500).json({ error: 'Failed to save subscription' });
   }
-});
+}));
 
 // Send push notification to user (internal use)
 export async function sendPushNotification(userId: string, title: string, body: string, url?: string) {
-  if (!pushNotificationsEnabled) {
-    console.log('Push notifications disabled - skipping notification');
-    return;
-  }
+  if (!pushNotificationsEnabled) throw new Error('Push service unavailable');
 
   try {
     // Get all subscriptions for the user
@@ -99,7 +106,7 @@ export async function sendPushNotification(userId: string, title: string, body: 
     const subscriptions = result.rows;
 
     if (subscriptions.length === 0) {
-      console.log('No push subscriptions found for user:', userId);
+
       return;
     }
 
@@ -121,25 +128,25 @@ export async function sendPushNotification(userId: string, title: string, body: 
               auth: sub.auth
             }
           },
-          payload
+          payload, {timeout:10_000}
         );
       } catch (error: any) {
         // If subscription is invalid, remove it
-        if (error.statusCode === 410) {
+        if (error.statusCode === 410 || error.statusCode === 404) {
           await query('DELETE FROM push_subscriptions WHERE id = $1', [sub.id]);
         }
-        console.error('Error sending push notification:', error);
+        else { throw error; }
       }
     });
 
     await Promise.all(promises);
   } catch (error) {
-    console.error('Error in sendPushNotification:', error);
+    throw error;
   }
 }
 
 // Mark notification as read
-router.put('/:notificationId/read', authenticate, async (req: AuthRequest, res) => {
+router.put('/:notificationId/read', authenticate, transactional(async (req: AuthRequest, res) => {
   try {
     const { notificationId } = req.params;
     await query(
@@ -150,10 +157,10 @@ router.put('/:notificationId/read', authenticate, async (req: AuthRequest, res) 
   } catch (error) {
     res.status(500).json({ error: 'Failed to mark notification as read' });
   }
-});
+}));
 
 // Mark all notifications as read
-router.put('/read-all', authenticate, async (req: AuthRequest, res) => {
+router.put('/read-all', authenticate, transactional(async (req: AuthRequest, res) => {
   try {
     await query(
       'UPDATE notifications SET read = TRUE WHERE user_id = $1',
@@ -163,6 +170,6 @@ router.put('/read-all', authenticate, async (req: AuthRequest, res) => {
   } catch (error) {
     res.status(500).json({ error: 'Failed to mark all notifications as read' });
   }
-});
+}));
 
 export default router;

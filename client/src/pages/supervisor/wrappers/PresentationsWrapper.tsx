@@ -10,13 +10,13 @@ export default function PresentationsWrapper() {
   useEffect(() => {
     const residentId = sessionStorage.getItem('viewingResidentId');
     const isReadOnly = sessionStorage.getItem('isReadOnlyMode');
-    
+
     if (!residentId || !isReadOnly) {
       navigate('/');
       return;
     }
 
-    setReadOnlyMode(parseInt(residentId));
+    setReadOnlyMode(residentId);
   }, [setReadOnlyMode, navigate]);
 
   return <Presentations />;

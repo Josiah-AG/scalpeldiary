@@ -58,7 +58,7 @@ export default function SupervisorView() {
   const fetchData = async () => {
     try {
       console.log('Fetching data for supervisor:', supervisorId);
-      
+
       // Fetch procedures using api instance (has auth interceptor)
       const procResponse = await api.get(`/logs/supervisor/${supervisorId}/rated`);
       console.log('Procedures data:', procResponse.data);
@@ -327,7 +327,7 @@ export default function SupervisorView() {
 
       {/* Procedure Detail Modal */}
       {selectedProcedure && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-2 md:p-4 z-50" onClick={() => setSelectedProcedure(null)}>
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-2 md:p-4 z-50" onClick={() => setSelectedProcedure(null)}>
           <div className="bg-white rounded-lg max-w-2xl w-full max-h-[95vh] md:max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
             <div className="sticky top-0 bg-white border-b px-4 md:px-6 py-3 md:py-4 flex items-center justify-between z-10">
               <h3 className="text-lg md:text-xl font-bold text-gray-900">Procedure Details</h3>
@@ -416,7 +416,7 @@ export default function SupervisorView() {
 
       {/* Presentation Detail Modal */}
       {selectedPresentation && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-2 md:p-4 z-50" onClick={() => setSelectedPresentation(null)}>
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-2 md:p-4 z-50" onClick={() => setSelectedPresentation(null)}>
           <div className="bg-white rounded-lg max-w-2xl w-full max-h-[95vh] md:max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
             <div className="sticky top-0 bg-white border-b px-4 md:px-6 py-3 md:py-4 flex items-center justify-between z-10">
               <h3 className="text-lg md:text-xl font-bold text-gray-900">Presentation Details</h3>

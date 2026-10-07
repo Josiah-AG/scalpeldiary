@@ -10,6 +10,7 @@ export default function NotificationPermission() {
     // Check current permission status
     if ('Notification' in window) {
       setPermission(Notification.permission);
+      if (Notification.permission === 'granted') void subscribeToPushNotifications();
 
       // Show prompt if permission is default and user hasn't dismissed it
       if (Notification.permission === 'default') {
@@ -50,14 +51,23 @@ export default function NotificationPermission() {
   const subscribeToPushNotifications = async () => {
     try {
       const registration = await navigator.serviceWorker.ready;
-      
+
+      const {data} = await api.get('/notifications/public-key');
+      const vapidPublicKey = data.publicKey;
+      if (!vapidPublicKey) return;
+      const applicationKey = urlBase64ToUint8Array(vapidPublicKey);
       // Check if already subscribed
       let subscription = await registration.pushManager.getSubscription();
-      
+
+      if (subscription) {
+        const existing = subscription.options.applicationServerKey;
+        if (!existing || Array.from(new Uint8Array(existing)).join(',') !== Array.from(applicationKey).join(',')) {
+          await subscription.unsubscribe(); subscription=null;
+        }
+      }
       if (!subscription) {
         // Create new subscription
-        const vapidPublicKey = import.meta.env.VITE_VAPID_PUBLIC_KEY || 'BEl62iUYgUivxIkv69yViEuiBIa-Ib37J8xQmrpcPBblQjBITjdmeaWdndBAGqhXWM6EmgBkXnOmHGhGlXe-QZs';
-        
+
         subscription = await registration.pushManager.subscribe({
           userVisibleOnly: true,
           applicationServerKey: urlBase64ToUint8Array(vapidPublicKey)
@@ -117,12 +127,12 @@ export default function NotificationPermission() {
             <X className="w-5 h-5" />
           </button>
         </div>
-        
+
         <div className="p-4">
           <p className="text-gray-700 mb-4">
             Get instant alerts for new ratings, presentations, and important updates!
           </p>
-          
+
           <div className="flex space-x-3">
             <button
               onClick={requestPermission}

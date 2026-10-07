@@ -1,3 +1,4 @@
+import { ratingRank } from '../../utils/ratingUtils';
 import { useEffect, useState } from 'react';
 import Layout from '../../components/Layout';
 import api from '../../api/axios';
@@ -14,12 +15,12 @@ export default function AllProcedures() {
   const [selectedLog, setSelectedLog] = useState<any>(null);
   const [showFilters, setShowFilters] = useState(false);
   const [categories] = useState<string[]>(getAllCategories());
-  
+
   const isReadOnlyMode = sessionStorage.getItem('isReadOnlyMode') === 'true';
   const viewingResidentId = sessionStorage.getItem('viewingResidentId');
   const { user } = useAuthStore();
   const isMaster = user?.role === 'MASTER';
-  
+
   const [filters, setFilters] = useState({
     startDate: '',
     endDate: '',
@@ -88,7 +89,7 @@ export default function AllProcedures() {
           const response = await api.get(`/logs/resident/${viewingResidentId}`);
           setAllLogs(response.data);
         } else {
-          const yearData = years.find(y => y.id === parseInt(selectedYear));
+          const yearData = years.find(y => String(y.id) === selectedYear);
           if (yearData) {
             const response = await api.get(`/logs/resident/${viewingResidentId}?year=${yearData.year}`);
             setAllLogs(response.data);
@@ -113,13 +114,13 @@ export default function AllProcedures() {
     if (filters.procedureCategory && log.procedure_category !== filters.procedureCategory) return false;
     if (filters.placeOfPractice && log.place_of_practice !== filters.placeOfPractice) return false;
     if (filters.supervisorId && log.supervisor_id !== filters.supervisorId) return false;
-    if (filters.startDate && log.date < filters.startDate) return false;
-    if (filters.endDate && log.date > filters.endDate) return false;
+    if (filters.startDate && log.date.slice(0, 10) < filters.startDate) return false;
+    if (filters.endDate && log.date.slice(0, 10) > filters.endDate) return false;
     return true;
   });
 
   const canEdit = (log: any) => {
-    return log.status === 'PENDING' && !isReadOnlyMode;
+    return log.status === 'PENDING' && !log.detachment_verified && !isReadOnlyMode && isCurrentYear(log.year_id);
   };
 
   const handleEdit = (log: any, e?: React.MouseEvent) => {
@@ -180,8 +181,8 @@ export default function AllProcedures() {
 
   const getRowColor = (log: any) => {
     if (log.status === 'NOT_WITNESSED') return 'bg-gray-100';
-    if (!log.rating) return 'bg-white';
-    return log.rating > 50 ? 'bg-green-50' : 'bg-red-50';
+    if (log.rating == null) return 'bg-white';
+    return ratingRank(log.rating) >= 50 ? 'bg-green-50' : 'bg-red-50';
   };
 
   const showExactScores = canSeeExactScores(user?.role, isReadOnlyMode);
@@ -381,7 +382,7 @@ export default function AllProcedures() {
 
       {/* Detail Modal */}
       {selectedLog && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
           <div className="bg-white rounded-xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
             <div className="bg-gradient-to-r from-blue-600 to-blue-700 text-white px-6 py-4 flex justify-between items-center">
               <h3 className="text-xl font-bold">Procedure Details</h3>
@@ -443,7 +444,7 @@ export default function AllProcedures() {
                   <p className="text-gray-700 font-medium">Not Witnessed (N/A)</p>
                 </div>
               )}
-              {selectedLog.rating && (
+              {selectedLog.rating != null && (
                 <>
                   <div>
                     <label className="text-sm font-semibold text-gray-600">Rating</label>
@@ -479,7 +480,7 @@ export default function AllProcedures() {
 
       {/* Edit Modal */}
       {showEditModal && editingLog && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50 overflow-y-auto">
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50 overflow-y-auto">
           <div className="bg-white rounded-xl shadow-2xl max-w-4xl w-full my-8">
             <div className="bg-gradient-to-r from-green-600 to-green-700 text-white px-6 py-4 flex justify-between items-center rounded-t-xl">
               <h3 className="text-xl font-bold">Edit Procedure</h3>

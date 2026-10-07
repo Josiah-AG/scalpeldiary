@@ -31,12 +31,12 @@ export default function NotificationPopup() {
     try {
       const response = await api.get('/notifications');
       const unread = response.data.filter((n: Notification) => !n.read);
-      
+
       if (unread.length > 0) {
         // Track which notification IDs we've already shown the popup for
         const shownIds = JSON.parse(sessionStorage.getItem('shownNotificationIds') || '[]');
         const newNotifications = unread.filter((n: Notification) => !shownIds.includes(n.id));
-        
+
         if (newNotifications.length > 0) {
           setNotifications(unread);
           setShowPopup(true);
@@ -55,7 +55,7 @@ export default function NotificationPopup() {
       await api.put(`/notifications/${notificationId}/read`);
       // Immediately update local state
       setNotifications(prev => prev.filter(n => n.id !== notificationId));
-      
+
       // Close popup if no more notifications
       if (notifications.length === 1) {
         setShowPopup(false);
@@ -99,15 +99,15 @@ export default function NotificationPopup() {
       navigate('/analytics');
       return;
     }
-    
+
     // For actionable notifications (procedure/presentation to rate)
     if (autoMarkRead) {
       await markAsRead(notification.id);
     }
-    
+
     // Close popup first
     setShowPopup(false);
-    
+
     // Navigate based on notification type and user role
     if (notification.notification_type === 'procedure') {
       if (user?.role === 'RESIDENT') {
@@ -132,7 +132,7 @@ export default function NotificationPopup() {
       // Determine if it's a procedure or presentation
       // Procedures have UUID format (with dashes), presentations are numeric
       const isProcedure = logId.includes('-');
-      
+
       if (isProcedure) {
         // Fetch all logs to find this one
         const response = await api.get('/logs/my-logs?yearId=all');
@@ -204,7 +204,7 @@ export default function NotificationPopup() {
     return (
       <>
         {loadingItem && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
             <div className="bg-white rounded-lg p-6">
               <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
             </div>
@@ -223,7 +223,7 @@ export default function NotificationPopup() {
 
   return (
     <>
-      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50 animate-fadeIn">
+      <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50 animate-fadeIn">
       <div className="bg-white rounded-xl shadow-2xl max-w-md w-full max-h-[80vh] overflow-hidden animate-slideUp">
         {/* Header */}
         <div className="bg-gradient-to-r from-blue-600 to-blue-700 px-6 py-4 flex items-center justify-between">
@@ -255,7 +255,7 @@ export default function NotificationPopup() {
             const isActionable = (notification.notification_type === 'procedure' || notification.notification_type === 'presentation') && !notification.message?.includes('cancelled');
             const isRated = notification.notification_type === 'rated';
             const isClickable = isActionable || isRated;
-            
+
             return (
               <div
                 key={notification.id}
@@ -273,7 +273,7 @@ export default function NotificationPopup() {
                     <p className="text-xs text-gray-500 mt-1">
                       {format(new Date(notification.created_at), 'MMM dd, yyyy h:mm a')}
                     </p>
-                    
+
                     {/* Action Buttons */}
                     <div className="flex items-center space-x-2 mt-3">
                       {isActionable && (
@@ -284,7 +284,7 @@ export default function NotificationPopup() {
                           }}
                           className={`${colorScheme.buttonBg} text-white px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors`}
                         >
-                          {notification.notification_type === 'procedure' ? 'Rate Procedure' 
+                          {notification.notification_type === 'procedure' ? 'Rate Procedure'
                             : notification.message?.includes('assigned to present') ? 'View Assignment'
                             : notification.message?.includes('ready for rating') ? 'Rate Presentation'
                             : 'View'}
@@ -338,7 +338,7 @@ export default function NotificationPopup() {
 
       {/* Loading Overlay */}
       {loadingItem && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
           <div className="bg-white rounded-lg p-6">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
           </div>

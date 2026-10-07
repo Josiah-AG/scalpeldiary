@@ -23,6 +23,13 @@ export const useAuthStore = create<AuthState>()(
       token: null,
       setAuth: (user, token) => set({ user, token }),
       logout: () => {
+        if ('serviceWorker' in navigator) {
+          void navigator.serviceWorker.ready.then(async registration => {
+            const subscription=await registration.pushManager.getSubscription();
+            if(subscription) await subscription.unsubscribe();
+          }).catch(() => {});
+        }
+        sessionStorage.clear();
         localStorage.removeItem('auth-storage');
         set({ user: null, token: null });
       },

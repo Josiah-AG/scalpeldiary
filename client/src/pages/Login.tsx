@@ -50,10 +50,10 @@ export default function Login() {
             <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-4 inline-block border border-white/20">
               <div className="flex items-center space-x-3">
                 <div className="bg-white rounded-xl p-2 shadow-lg">
-                  <img 
-                    src="/logo-sd.svg?v=2" 
-                    alt="ScalpelDiary Logo" 
-                    width="40" 
+                  <img
+                    src="/logo-sd.svg?v=2"
+                    alt="ScalpelDiary Logo"
+                    width="40"
                     height="40"
                     className="flex-shrink-0"
                   />
@@ -84,7 +84,7 @@ export default function Login() {
         {/* Decorative elements */}
         <div className="absolute top-0 right-0 w-96 h-96 bg-blue-500 rounded-full opacity-10 -mr-48 -mt-48"></div>
         <div className="absolute bottom-0 left-0 w-96 h-96 bg-blue-900 rounded-full opacity-10 -ml-48 -mb-48"></div>
-        
+
         <div className="relative z-10">
           <button
             onClick={() => navigate('/')}
@@ -93,15 +93,15 @@ export default function Login() {
             <ArrowLeft size={20} />
             <span>Back to Home</span>
           </button>
-          
+
           {/* Enhanced Logo Container */}
           <div className="bg-white/10 backdrop-blur-sm rounded-3xl p-8 inline-block border border-white/20 shadow-2xl cursor-pointer hover:bg-white/15 transition-all" onClick={() => navigate('/')}>
             <div className="flex items-center space-x-4">
               <div className="bg-white rounded-2xl p-4 shadow-lg">
-                <img 
-                  src="/logo-sd.svg?v=2" 
-                  alt="ScalpelDiary Logo" 
-                  width="64" 
+                <img
+                  src="/logo-sd.svg?v=2"
+                  alt="ScalpelDiary Logo"
+                  width="64"
                   height="64"
                   className="flex-shrink-0"
                 />
@@ -128,7 +128,7 @@ export default function Login() {
         </div>
 
         <div className="relative z-10 text-blue-200 text-sm">
-          © 2025 ScalpelDiary. All rights reserved.
+          © 2026 ScalpelDiary. All rights reserved.
         </div>
       </div>
 

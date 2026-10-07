@@ -16,6 +16,7 @@ export default function SupervisorSettings() {
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
+      if (!['image/png','image/jpeg','image/webp'].includes(file.type) || file.size > 2*1024*1024) { setError('Choose a PNG, JPEG or WebP image up to 2 MB'); return; }
       setProfilePicture(file);
       const reader = new FileReader();
       reader.onloadend = () => {
@@ -29,13 +30,8 @@ export default function SupervisorSettings() {
     e.preventDefault();
     if (!profilePicture) return;
 
-    const formData = new FormData();
-    formData.append('profilePicture', profilePicture);
-
     try {
-      const response = await api.post('/users/profile-picture', formData, {
-        headers: { 'Content-Type': 'multipart/form-data' }
-      });
+      await api.post('/users/profile-picture', { profilePicture: previewUrl });
       if (user && token) {
         setAuth({ ...user }, token);
       }
@@ -59,8 +55,8 @@ export default function SupervisorSettings() {
       return;
     }
 
-    if (newPassword.length < 6) {
-      setError('Password must be at least 6 characters');
+    if (newPassword.length < 8) {
+      setError('Password must be at least 8 characters');
       return;
     }
 
@@ -84,13 +80,13 @@ export default function SupervisorSettings() {
         {/* Profile Picture Section */}
         <div className="bg-white p-6 rounded-lg shadow">
           <h2 className="text-xl font-semibold mb-4">Profile Picture</h2>
-          
+
           <div className="flex items-center space-x-6 mb-4">
             <div className="w-24 h-24 rounded-full bg-gray-200 flex items-center justify-center overflow-hidden">
               {previewUrl ? (
-                <img 
-                  src={previewUrl} 
-                  alt="Profile" 
+                <img
+                  src={previewUrl}
+                  alt="Profile"
                   className="w-full h-full object-cover"
                 />
               ) : (
@@ -99,7 +95,7 @@ export default function SupervisorSettings() {
                 </span>
               )}
             </div>
-            
+
             <div>
               <p className="text-sm text-gray-600 mb-2">
                 Upload a new profile picture
@@ -126,7 +122,7 @@ export default function SupervisorSettings() {
         {/* Password Change Section */}
         <div className="bg-white p-6 rounded-lg shadow">
           <h2 className="text-xl font-semibold mb-4">Change Password</h2>
-          
+
           <form onSubmit={handlePasswordChange} className="space-y-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">

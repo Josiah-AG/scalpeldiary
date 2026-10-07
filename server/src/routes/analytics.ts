@@ -1,15 +1,16 @@
+import { residentScope, ownedYear, validRating } from '../security/policy';
 import { Router } from 'express';
 import { query } from '../database/db';
-import { authenticate, AuthRequest } from '../middleware/auth';
+import { authorize, authenticate, AuthRequest } from '../middleware/auth';
 
 const router = Router();
 
 // Get dashboard metrics for resident
-router.get('/dashboard', authenticate, async (req: AuthRequest, res) => {
+router.get('/dashboard', authenticate, residentScope, async (req: AuthRequest, res) => {
   try {
     const { yearId, residentId } = req.query;
     const targetResidentId = residentId || req.user!.id;
-    
+
     // Total surgeries
     const totalResult = await query(
       'SELECT COUNT(*) as count FROM surgical_logs WHERE resident_id = $1 AND year_id = $2',
@@ -18,14 +19,14 @@ router.get('/dashboard', authenticate, async (req: AuthRequest, res) => {
 
     // Verified surgeries (not PENDING)
     const verifiedSurgeriesResult = await query(
-      "SELECT COUNT(*) as count FROM surgical_logs WHERE resident_id = $1 AND year_id = $2 AND status != 'PENDING'",
+      "SELECT COUNT(*) as count FROM surgical_logs WHERE resident_id = $1 AND year_id = $2 AND (status = 'RATED' OR detachment_verified = true)",
       [targetResidentId, yearId]
     );
 
     // Average rating (exclude NOT_WITNESSED)
     const ratingResult = await query(
-      `SELECT AVG(rating) as avg_rating 
-       FROM surgical_logs 
+      `SELECT AVG(rating) as avg_rating
+       FROM surgical_logs
        WHERE resident_id = $1 AND year_id = $2 AND rating IS NOT NULL AND status != 'NOT_WITNESSED'`,
       [targetResidentId, yearId]
     );
@@ -44,7 +45,7 @@ router.get('/dashboard', authenticate, async (req: AuthRequest, res) => {
 
     // Recent surgeries
     const recentResult = await query(
-      `SELECT sl.*, u.name as supervisor_name 
+      `SELECT sl.*, u.name as supervisor_name
        FROM surgical_logs sl
        LEFT JOIN users u ON sl.supervisor_id = u.id
        WHERE sl.resident_id = $1 AND sl.year_id = $2
@@ -70,7 +71,7 @@ router.get('/dashboard', authenticate, async (req: AuthRequest, res) => {
 
     // Verified presentations (not PENDING)
     const verifiedPresResult = await query(
-      "SELECT COUNT(*) as count FROM presentations WHERE resident_id = $1 AND year_id = $2 AND status != 'PENDING'",
+      "SELECT COUNT(*) as count FROM presentations WHERE resident_id = $1 AND year_id = $2 AND (status = 'RATED' OR detachment_verified = true)",
       [targetResidentId, yearId]
     );
 
@@ -97,7 +98,7 @@ router.get('/dashboard', authenticate, async (req: AuthRequest, res) => {
 });
 
 // Get analytics for resident
-router.get('/resident', authenticate, async (req: AuthRequest, res) => {
+router.get('/resident', authenticate, residentScope, async (req: AuthRequest, res) => {
   try {
     const { yearId, residentId } = req.query;
     const targetResidentId = residentId || req.user!.id;
@@ -112,7 +113,7 @@ router.get('/resident', authenticate, async (req: AuthRequest, res) => {
 
     // Verified surgeries (not PENDING)
     const verifiedSurgeriesResult = await query(
-      "SELECT COUNT(*) as count FROM surgical_logs WHERE resident_id = $1 AND year_id = $2 AND status != 'PENDING'",
+      "SELECT COUNT(*) as count FROM surgical_logs WHERE resident_id = $1 AND year_id = $2 AND (status = 'RATED' OR detachment_verified = true)",
       [targetResidentId, yearId]
     );
 
@@ -148,18 +149,18 @@ router.get('/resident', authenticate, async (req: AuthRequest, res) => {
 
     // Average rating (exclude NOT_WITNESSED)
     const ratingResult = await query(
-      `SELECT AVG(rating) as avg_rating 
-       FROM surgical_logs 
+      `SELECT AVG(rating) as avg_rating
+       FROM surgical_logs
        WHERE resident_id = $1 AND year_id = $2 AND rating IS NOT NULL AND status != 'NOT_WITNESSED'`,
       [targetResidentId, yearId]
     );
 
     // Senior supervisor rating (supervisors with SUPERVISOR role, exclude NOT_WITNESSED)
     const seniorRatingResult = await query(
-      `SELECT AVG(sl.rating) as avg_rating 
+      `SELECT AVG(sl.rating) as avg_rating
        FROM surgical_logs sl
        JOIN users u ON sl.supervisor_id = u.id
-       WHERE sl.resident_id = $1 AND sl.year_id = $2 AND sl.rating IS NOT NULL 
+       WHERE sl.resident_id = $1 AND sl.year_id = $2 AND sl.rating IS NOT NULL
        AND u.role = 'SUPERVISOR' AND sl.status != 'NOT_WITNESSED'`,
       [targetResidentId, yearId]
     );
@@ -172,7 +173,7 @@ router.get('/resident', authenticate, async (req: AuthRequest, res) => {
               sl.anonymous_comment
        FROM surgical_logs sl
        JOIN users u ON sl.supervisor_id = u.id
-       WHERE sl.resident_id = $1 AND sl.year_id = $2 
+       WHERE sl.resident_id = $1 AND sl.year_id = $2
        AND (
          (sl.comment IS NOT NULL AND sl.comment != '')
          OR (sl.postop_followup_comment IS NOT NULL AND sl.postop_followup_comment != '')
@@ -188,7 +189,7 @@ router.get('/resident', authenticate, async (req: AuthRequest, res) => {
               u.name as supervisor_name
        FROM presentations p
        JOIN users u ON p.supervisor_id = u.id
-       WHERE p.resident_id = $1 AND p.year_id = $2 
+       WHERE p.resident_id = $1 AND p.year_id = $2
        AND p.comment IS NOT NULL AND p.comment != ''
        ORDER BY p.rated_at DESC`,
       [targetResidentId, yearId]
@@ -202,14 +203,14 @@ router.get('/resident', authenticate, async (req: AuthRequest, res) => {
 
     // Verified presentations (not PENDING)
     const verifiedPresentationsResult = await query(
-      "SELECT COUNT(*) as count FROM presentations WHERE resident_id = $1 AND year_id = $2 AND status != 'PENDING'",
+      "SELECT COUNT(*) as count FROM presentations WHERE resident_id = $1 AND year_id = $2 AND (status = 'RATED' OR detachment_verified = true)",
       [targetResidentId, yearId]
     );
 
     // Average presentation rating (exclude NOT_WITNESSED)
     const presentationRatingResult = await query(
-      `SELECT AVG(rating) as avg_rating 
-       FROM presentations 
+      `SELECT AVG(rating) as avg_rating
+       FROM presentations
        WHERE resident_id = $1 AND year_id = $2 AND rating IS NOT NULL AND status != 'NOT_WITNESSED'`,
       [targetResidentId, yearId]
     );
@@ -228,7 +229,7 @@ router.get('/resident', authenticate, async (req: AuthRequest, res) => {
 
     // Supervisor distribution - who the resident works with most
     const supervisorDistributionResult = await query(
-      `SELECT u.name as supervisor_name, COUNT(*) as count, 
+      `SELECT u.name as supervisor_name, COUNT(*) as count,
               ROUND(AVG(CASE WHEN sl.rating IS NOT NULL THEN sl.rating END)) as avg_rating
        FROM surgical_logs sl
        JOIN users u ON sl.supervisor_id = u.id
@@ -250,12 +251,12 @@ router.get('/resident', authenticate, async (req: AuthRequest, res) => {
 
     // Detachment ratings (per detachment type)
     const detachmentRatingsResult = await query(
-      `SELECT detachment_type, 
-              MAX(detachment_rating) as rating, 
+      `SELECT detachment_type,
+              MAX(detachment_rating) as rating,
               MAX(detachment_comment) as comment,
               BOOL_OR(detachment_verified) as verified,
               COUNT(*) as procedure_count
-       FROM surgical_logs 
+       FROM surgical_logs
        WHERE resident_id = $1 AND year_id = $2 AND is_detachment = true
        GROUP BY detachment_type`,
       [targetResidentId, yearId]
@@ -316,7 +317,7 @@ router.get('/supervisor', authenticate, async (req: AuthRequest, res) => {
 
     // Rated procedures (responded to)
     const ratedProceduresResult = await query(
-      "SELECT COUNT(*) as count FROM surgical_logs WHERE supervisor_id = $1 AND status != 'PENDING'",
+      "SELECT COUNT(*) as count FROM surgical_logs WHERE supervisor_id = $1 AND (status = 'RATED' OR detachment_verified = true)",
       [req.user!.id]
     );
 
@@ -334,7 +335,7 @@ router.get('/supervisor', authenticate, async (req: AuthRequest, res) => {
 
     // Rated presentations
     const ratedPresentationsResult = await query(
-      "SELECT COUNT(*) as count FROM presentations WHERE supervisor_id = $1 AND status != 'PENDING'",
+      "SELECT COUNT(*) as count FROM presentations WHERE supervisor_id = $1 AND (status = 'RATED' OR detachment_verified = true)",
       [req.user!.id]
     );
 
@@ -353,33 +354,33 @@ router.get('/supervisor', authenticate, async (req: AuthRequest, res) => {
 });
 
 // Get residents by year for supervisor
-router.get('/supervisor/residents', authenticate, async (req: AuthRequest, res) => {
+router.get('/supervisor/residents', authenticate, authorize('SUPERVISOR', 'MASTER', 'MANAGEMENT'), async (req: AuthRequest, res) => {
   try {
     const { year } = req.query;
 
     // Get all residents whose CURRENT year (max year) matches the requested year
     const residentsResult = await query(
-      `SELECT DISTINCT 
-        u.id, 
-        u.name, 
+      `SELECT DISTINCT
+        u.id,
+        u.name,
         u.profile_picture,
         u.is_chief_resident,
-        (SELECT COUNT(*) FROM surgical_logs sl 
-         JOIN resident_years ry ON sl.year_id = ry.id 
-         WHERE sl.resident_id = u.id AND ry.year = $1 AND sl.status != 'PENDING') as total_procedures,
-        (SELECT COUNT(*) FROM presentations p 
-         JOIN resident_years ry ON p.year_id = ry.id 
-         WHERE p.resident_id = u.id AND ry.year = $1 AND p.status != 'PENDING') as total_presentations,
-        (SELECT AVG(rating) FROM surgical_logs sl 
-         JOIN resident_years ry ON sl.year_id = ry.id 
+        (SELECT COUNT(*) FROM surgical_logs sl
+         JOIN resident_years ry ON sl.year_id = ry.id
+         WHERE sl.resident_id = u.id AND ry.year = $1 AND (sl.status = 'RATED' OR sl.detachment_verified = true)) as total_procedures,
+        (SELECT COUNT(*) FROM presentations p
+         JOIN resident_years ry ON p.year_id = ry.id
+         WHERE p.resident_id = u.id AND ry.year = $1 AND (p.status = 'RATED' OR p.detachment_verified = true)) as total_presentations,
+        (SELECT AVG(rating) FROM surgical_logs sl
+         JOIN resident_years ry ON sl.year_id = ry.id
          WHERE sl.resident_id = u.id AND ry.year = $1 AND sl.rating IS NOT NULL) as avg_procedure_rating,
-        (SELECT AVG(rating) FROM presentations p 
-         JOIN resident_years ry ON p.year_id = ry.id 
+        (SELECT AVG(rating) FROM presentations p
+         JOIN resident_years ry ON p.year_id = ry.id
          WHERE p.resident_id = u.id AND ry.year = $1 AND p.rating IS NOT NULL) as avg_presentation_rating,
-        (SELECT COUNT(*) FROM surgical_logs sl 
+        (SELECT COUNT(*) FROM surgical_logs sl
          WHERE sl.supervisor_id = u.id AND sl.rating IS NOT NULL) as rated_logs
        FROM users u
-       WHERE u.role = 'RESIDENT' 
+       WHERE u.role = 'RESIDENT'
        AND (SELECT MAX(year) FROM resident_years WHERE resident_id = u.id) = $1
        ORDER BY u.name`,
       [year]
@@ -399,13 +400,13 @@ router.get('/supervisor/residents', authenticate, async (req: AuthRequest, res) 
 
     res.json(residents);
   } catch (error) {
-    console.error(error);
+    console.error('Operation failed: analytics.ts:402');
     res.status(500).json({ error: 'Failed to fetch residents' });
   }
 });
 
 // Get specific resident analytics for supervisor
-router.get('/supervisor/resident/:residentId', authenticate, async (req: AuthRequest, res) => {
+router.get('/supervisor/resident/:residentId', authenticate, authorize('SUPERVISOR', 'MASTER', 'MANAGEMENT'), residentScope, async (req: AuthRequest, res) => {
   try {
     const { residentId } = req.params;
     const { year } = req.query;
@@ -465,7 +466,7 @@ router.get('/supervisor/resident/:residentId', authenticate, async (req: AuthReq
       ratedLogs: parseInt(ratedLogsResult.rows[0].count)
     });
   } catch (error) {
-    console.error(error);
+    console.error('Operation failed: analytics.ts:468');
     res.status(500).json({ error: 'Failed to fetch resident analytics' });
   }
 });

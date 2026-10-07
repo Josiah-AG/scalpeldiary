@@ -13,10 +13,10 @@ export default function LandingPage() {
             <div className="bg-white/10 backdrop-blur-sm rounded-2xl px-4 py-2 border border-white/20">
               <div className="flex items-center space-x-3">
                 <div className="bg-white rounded-xl p-2 shadow-lg">
-                  <img 
-                    src="/logo-sd.svg?v=2" 
-                    alt="ScalpelDiary Logo" 
-                    width="48" 
+                  <img
+                    src="/logo-sd.svg?v=2"
+                    alt="ScalpelDiary Logo"
+                    width="48"
                     height="48"
                     className="flex-shrink-0"
                   />
@@ -45,7 +45,7 @@ export default function LandingPage() {
           <div className="absolute bottom-1/4 -left-48 w-96 h-96 bg-indigo-400/20 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '1s' }}></div>
           <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-blue-300/10 rounded-full blur-3xl"></div>
         </div>
-        
+
         <div className="max-w-7xl mx-auto relative z-10 w-full">
           <div className="text-center space-y-8">
             {/* Badge */}
@@ -61,13 +61,13 @@ export default function LandingPage() {
                 Training Management
               </span>
             </h2>
-            
+
             {/* Subheading */}
             <p className="text-xl sm:text-2xl text-gray-600 max-w-3xl mx-auto leading-relaxed animate-fade-in-up" style={{ animationDelay: '0.1s' }}>
-              Empowering surgical residents and supervisors with a modern, efficient platform 
+              Empowering surgical residents and supervisors with a modern, efficient platform
               to track procedures, presentations, and professional development.
             </p>
-            
+
             {/* CTA Button */}
             <div className="animate-fade-in-up" style={{ animationDelay: '0.2s' }}>
               <button
@@ -114,10 +114,10 @@ export default function LandingPage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex flex-col md:flex-row justify-between items-center border-t border-gray-800 pt-8">
             <div className="flex items-center space-x-3 mb-4 md:mb-0">
-              <img 
-                src="/logo-sd.svg?v=2" 
-                alt="ScalpelDiary Logo" 
-                width="36" 
+              <img
+                src="/logo-sd.svg?v=2"
+                alt="ScalpelDiary Logo"
+                width="36"
                 height="36"
                 className="flex-shrink-0"
               />
@@ -127,7 +127,7 @@ export default function LandingPage() {
               </div>
             </div>
             <p className="text-gray-400 text-sm">
-              © 2025 ScalpelDiary. All rights reserved.
+              © 2026 ScalpelDiary. All rights reserved.
             </p>
           </div>
         </div>

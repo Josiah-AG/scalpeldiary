@@ -1,5 +1,7 @@
-import { Pool } from 'pg';
+import { Pool, types } from 'pg';
+types.setTypeParser(1082, value => value);
 import dotenv from 'dotenv';
+import { transactionContext } from './transaction';
 
 dotenv.config({ path: '../.env' });
 
@@ -8,6 +10,6 @@ const pool = new Pool({
   ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false
 });
 
-export const query = (text: string, params?: any[]) => pool.query(text, params);
+export const query = (text: string, params?: any[]) => (transactionContext.getStore() || pool).query(text, params);
 
 export default pool;

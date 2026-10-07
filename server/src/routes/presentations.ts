@@ -1,3 +1,5 @@
+import { transactional } from '../database/transaction';
+import { residentScope, ownedYear, validRating, supervisorAssignment } from '../security/policy';
 import { Router } from 'express';
 import { query } from '../database/db';
 import { authenticate, authorize, AuthRequest } from '../middleware/auth';
@@ -17,7 +19,7 @@ const router = Router();
 router.get('/my-presentations', authenticate, async (req: AuthRequest, res) => {
   try {
     const { yearId, startDate, endDate, presentationType, venue } = req.query;
-    
+
     let queryText = `
       SELECT p.*, u.name as supervisor_name
       FROM presentations p
@@ -53,13 +55,13 @@ router.get('/my-presentations', authenticate, async (req: AuthRequest, res) => {
     const result = await query(queryText, params);
     res.json(result.rows);
   } catch (error) {
-    console.error('Failed to fetch presentations:', error);
+    console.error('Operation failed: presentations.ts:57');
     res.status(500).json({ error: 'Failed to fetch presentations' });
   }
 });
 
 // Create presentation
-router.post('/', authenticate, async (req: AuthRequest, res) => {
+router.post('/', authenticate, ownedYear, supervisorAssignment, transactional(async (req: AuthRequest, res) => {
   try {
     const { yearId, date, title, venue, presentationType, description, supervisorId,
             isDetachment, detachmentType, externalSupervisorName } = req.body;
@@ -77,97 +79,51 @@ router.post('/', authenticate, async (req: AuthRequest, res) => {
       }
     }
 
-    console.log('=== CREATING PRESENTATION ===');
-    console.log('supervisorId:', supervisorId);
-    console.log('User creating:', req.user!.id);
+
+
+
 
     const result = await query(
       `INSERT INTO presentations (
         resident_id, year_id, date, title, venue, presentation_type, description, supervisor_id, status,
         is_detachment, detachment_type, external_supervisor_name
       ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, 'PENDING', $9, $10, $11) RETURNING *`,
-      [req.user!.id, yearId, date, title, venue, presentationType, description, 
+      [req.user!.id, yearId, date, title, venue, String(presentationType).toUpperCase().replace(/ /g, '_'), description,
        isDetachment ? null : (supervisorId || null),
        isDetachment || false, detachmentType || null, externalSupervisorName || null]
     );
 
-    console.log('Presentation created with ID:', result.rows[0].id);
+
 
     // Send notification to supervisor if assigned (not detachment)
     if (supervisorId && !isDetachment) {
-      console.log('Attempting to send notification to supervisor:', supervisorId);
+
       try {
         await sendNotification(
           supervisorId,
           `New presentation "${title}" assigned to you by ${await getUserName(req.user!)}`,
-          null,
+          String(result.rows[0].id),
           'presentation'
         );
-        console.log('✅ Notification sent successfully');
+
       } catch (notifError) {
-        console.error('❌ Failed to send notification:', notifError);
-        // Don't fail the request if notification fails
+        console.error('Operation failed: presentations.ts:109');
+        throw notifError; // Keep presentation and notification intent atomic.
       }
     } else {
-      console.log('No supervisorId provided, skipping notification');
+
     }
 
     res.status(201).json(result.rows[0]);
-    logActivity(req.user!.id, 'ADD_PRESENTATION');
+    await logActivity(req.user!.id, 'ADD_PRESENTATION');
   } catch (error) {
-    console.error('Failed to create presentation:', error);
+    console.error('Operation failed: presentations.ts:119');
     res.status(500).json({ error: 'Failed to create presentation' });
   }
-});
-
-// Update presentation
-router.put('/:id', authenticate, async (req: AuthRequest, res) => {
-  try {
-    const { id } = req.params;
-    const { date, title, venue, presentationType, description } = req.body;
-
-    const result = await query(
-      `UPDATE presentations 
-       SET date = $1, title = $2, venue = $3, presentation_type = $4, description = $5, updated_at = NOW()
-       WHERE id = $6 AND resident_id = $7
-       RETURNING *`,
-      [date, title, venue, presentationType, description, id, req.user!.id]
-    );
-
-    if (result.rows.length === 0) {
-      return res.status(404).json({ error: 'Presentation not found' });
-    }
-
-    res.json(result.rows[0]);
-  } catch (error) {
-    console.error('Failed to update presentation:', error);
-    res.status(500).json({ error: 'Failed to update presentation' });
-  }
-});
-
-// Delete presentation
-router.delete('/:id', authenticate, async (req: AuthRequest, res) => {
-  try {
-    const { id } = req.params;
-
-    const result = await query(
-      'DELETE FROM presentations WHERE id = $1 AND resident_id = $2 RETURNING id',
-      [id, req.user!.id]
-    );
-
-    if (result.rows.length === 0) {
-      return res.status(404).json({ error: 'Presentation not found' });
-    }
-
-    res.json({ message: 'Presentation deleted successfully' });
-  } catch (error) {
-    console.error('Failed to delete presentation:', error);
-    res.status(500).json({ error: 'Failed to delete presentation' });
-  }
-});
+}));
 
 // Get presentation statistics
-router.get('/stats', authenticate, async (req: AuthRequest, res) => {
+router.get('/stats', authenticate, residentScope, async (req: AuthRequest, res) => {
   try {
     const { yearId, residentId } = req.query;
     const targetResidentId = residentId || req.user!.id;
@@ -186,8 +142,8 @@ router.get('/stats', authenticate, async (req: AuthRequest, res) => {
 
     // Average rating (exclude NOT_WITNESSED)
     const ratingResult = await query(
-      `SELECT AVG(rating) as avg_rating 
-       FROM presentations 
+      `SELECT AVG(rating) as avg_rating
+       FROM presentations
        WHERE resident_id = $1 AND year_id = $2 AND rating IS NOT NULL AND status != 'NOT_WITNESSED'`,
       [targetResidentId, yearId]
     );
@@ -201,13 +157,13 @@ router.get('/stats', authenticate, async (req: AuthRequest, res) => {
       }, {}),
     });
   } catch (error) {
-    console.error('Failed to fetch presentation stats:', error);
+    console.error('Operation failed: presentations.ts:159');
     res.status(500).json({ error: 'Failed to fetch presentation stats' });
   }
 });
 
 // Get presentations for a specific resident (for supervisors)
-router.get('/resident/:residentId', authenticate, async (req: AuthRequest, res) => {
+router.get('/resident/:residentId', authenticate, residentScope, async (req: AuthRequest, res) => {
   try {
     const { residentId } = req.params;
     const { year } = req.query;
@@ -235,7 +191,7 @@ router.get('/resident/:residentId', authenticate, async (req: AuthRequest, res) 
 
     res.json(result.rows);
   } catch (error) {
-    console.error(error);
+    console.error('Operation failed: presentations.ts:193');
     res.status(500).json({ error: 'Failed to fetch resident presentations' });
   }
 });
@@ -258,7 +214,7 @@ router.get('/rated', authenticate, async (req: AuthRequest, res) => {
     );
     res.json(result.rows);
   } catch (error) {
-    console.error(error);
+    console.error('Operation failed: presentations.ts:216');
     res.status(500).json({ error: 'Failed to fetch rated presentations' });
   }
 });
@@ -277,19 +233,20 @@ router.get('/to-rate', authenticate, async (req: AuthRequest, res) => {
     );
     res.json(result.rows);
   } catch (error) {
-    console.error('Failed to fetch presentations to rate:', error);
+    console.error('Operation failed: presentations.ts:235');
     res.status(500).json({ error: 'Failed to fetch presentations to rate' });
   }
 });
 
 // Rate presentation
-router.post('/:presentationId/rate', authenticate, async (req: AuthRequest, res) => {
+router.post('/:presentationId/rate', authenticate, transactional(async (req: AuthRequest, res) => {
   try {
     const { presentationId } = req.params;
     const { rating, comment, anonymousComment } = req.body;
+    if (rating != null && !validRating(rating)) return res.status(400).json({error:'Rating must be a number between 0 and 100'});
 
     // Rating is mandatory for presentations
-    if (!rating || rating === null || rating === undefined) {
+    if (rating === null || rating === undefined) {
       return res.status(400).json({ error: 'Rating is required for presentations' });
     }
 
@@ -302,9 +259,9 @@ router.post('/:presentationId/rate', authenticate, async (req: AuthRequest, res)
     if (req.user!.role === 'RESIDENT') {
       return res.status(403).json({ error: 'Only supervisors can rate presentations' });
     }
-    
+
     const result = await query(
-      `UPDATE presentations 
+      `UPDATE presentations
        SET rating = $1, comment = $2, status = 'RATED', rated_at = NOW(), updated_at = NOW(), anonymous_comment = $5
        WHERE id = $3 AND supervisor_id = $4
        RETURNING *`,
@@ -318,15 +275,15 @@ router.post('/:presentationId/rate', authenticate, async (req: AuthRequest, res)
     // Send notification to the resident
     const presentation = result.rows[0];
     const supervisorName = await getUserName(req.user!);
-    
+
     let ratingLabel = '';
     if (rating >= 90) ratingLabel = 'Excellent';
     else if (rating >= 71) ratingLabel = 'Good';
     else if (rating >= 50) ratingLabel = 'Satisfactory';
     else ratingLabel = 'Poor';
-    
+
     const notificationMessage = `Your presentation "${presentation.title}" has been rated as ${ratingLabel} by ${supervisorName}`;
-    
+
     await sendNotification(
       presentation.resident_id,
       notificationMessage,
@@ -341,19 +298,19 @@ router.post('/:presentationId/rate', authenticate, async (req: AuthRequest, res)
     );
 
     res.json(result.rows[0]);
-    logActivity(req.user!.id, 'RATE_PRESENTATION');
+    await logActivity(req.user!.id, 'RATE_PRESENTATION');
   } catch (error) {
-    console.error('Failed to rate presentation:', error);
+    console.error('Operation failed: presentations.ts:302');
     res.status(500).json({ error: 'Failed to rate presentation' });
   }
-});
+}));
 
 // Get supervisor's rated presentations (Master and Management with access)
 router.get('/supervisor/:supervisorId/rated', authenticate, async (req: AuthRequest, res) => {
   try {
     // Check if user has management access
     const userRole = req.user!.role;
-    
+
     // Allow MASTER, MANAGEMENT, or SUPERVISOR with management access
     if (userRole === 'MASTER' || userRole === 'MANAGEMENT') {
       // Allowed
@@ -369,7 +326,7 @@ router.get('/supervisor/:supervisorId/rated', authenticate, async (req: AuthRequ
     } else {
       return res.status(403).json({ error: 'Forbidden' });
     }
-    
+
     const { supervisorId } = req.params;
 
     const result = await query(
@@ -387,19 +344,19 @@ router.get('/supervisor/:supervisorId/rated', authenticate, async (req: AuthRequ
 
     res.json(result.rows);
   } catch (error) {
-    console.error('Error fetching supervisor rated presentations:', error);
+    console.error('Operation failed: presentations.ts:346');
     res.status(500).json({ error: 'Failed to fetch supervisor rated presentations' });
   }
 });
 
 // Update presentation (only if PENDING)
-router.put('/:presId', authenticate, async (req: AuthRequest, res) => {
+router.put('/:presId', authenticate, supervisorAssignment, transactional(async (req: AuthRequest, res) => {
   try {
     const { presId } = req.params;
-    const { date, title, venue, presentationType, description, supervisorId } = req.body;
+    const { date, title, venue, presentationType, description, supervisorId, isDetachment, detachmentType, externalSupervisorName } = req.body;
 
     const checkResult = await query(
-      'SELECT status, resident_id FROM presentations WHERE id = $1',
+      'SELECT status, resident_id, year_id FROM presentations WHERE id = $1 FOR UPDATE',
       [presId]
     );
 
@@ -409,32 +366,34 @@ router.put('/:presId', authenticate, async (req: AuthRequest, res) => {
     if (checkResult.rows[0].resident_id !== req.user!.id) {
       return res.status(403).json({ error: 'Unauthorized' });
     }
+    const currentYear = await query('SELECT id FROM resident_years WHERE resident_id=$1 ORDER BY year DESC LIMIT 1',[req.user!.id]);
+    if (currentYear.rows[0]?.id !== checkResult.rows[0].year_id) return res.status(400).json({error:'Only current-year records can be changed'});
     if (checkResult.rows[0].status !== 'PENDING') {
       return res.status(400).json({ error: 'Cannot edit a rated or confirmed presentation' });
     }
 
     const result = await query(
-      `UPDATE presentations 
-       SET date = $1, title = $2, venue = $3, presentation_type = $4, description = $5, supervisor_id = $6, updated_at = NOW()
-       WHERE id = $7
+      `UPDATE presentations
+       SET date = $1, title = $2, venue = $3, presentation_type = $4, description = $5, supervisor_id = $6, is_detachment = COALESCE($9, is_detachment), detachment_type = CASE WHEN $9::boolean IS NULL THEN detachment_type ELSE $10 END, external_supervisor_name = CASE WHEN $9::boolean IS NULL THEN external_supervisor_name ELSE $11 END, updated_at = NOW()
+       WHERE id = $7 AND resident_id = $8 AND status = 'PENDING'
        RETURNING *`,
-      [date, title, venue, presentationType, description, supervisorId || null, presId]
+      [date, title, venue, String(presentationType).toUpperCase().replace(/ /g, '_'), description, isDetachment ? null : (supervisorId || null), presId, req.user!.id, isDetachment ?? null, detachmentType || null, externalSupervisorName || null]
     );
 
     res.json(result.rows[0]);
   } catch (error) {
-    console.error('Error updating presentation:', error);
+    console.error('Operation failed: presentations.ts:382');
     res.status(500).json({ error: 'Failed to update presentation' });
   }
-});
+}));
 
 // Delete presentation (only if PENDING)
-router.delete('/:presId', authenticate, async (req: AuthRequest, res) => {
+router.delete('/:presId', authenticate, transactional(async (req: AuthRequest, res) => {
   try {
     const { presId } = req.params;
 
     const checkResult = await query(
-      'SELECT status, resident_id FROM presentations WHERE id = $1',
+      'SELECT status, resident_id, year_id FROM presentations WHERE id = $1 FOR UPDATE',
       [presId]
     );
 
@@ -444,40 +403,42 @@ router.delete('/:presId', authenticate, async (req: AuthRequest, res) => {
     if (checkResult.rows[0].resident_id !== req.user!.id) {
       return res.status(403).json({ error: 'Unauthorized' });
     }
+    const currentYear = await query('SELECT id FROM resident_years WHERE resident_id=$1 ORDER BY year DESC LIMIT 1',[req.user!.id]);
+    if (currentYear.rows[0]?.id !== checkResult.rows[0].year_id) return res.status(400).json({error:'Only current-year records can be changed'});
     if (checkResult.rows[0].status !== 'PENDING') {
       return res.status(400).json({ error: 'Cannot delete a rated or confirmed presentation' });
     }
 
-    await query('DELETE FROM presentations WHERE id = $1', [presId]);
+    await query("DELETE FROM presentations WHERE id = $1 AND resident_id = $2 AND status = 'PENDING'", [presId, req.user!.id]);
     res.json({ message: 'Presentation deleted successfully' });
   } catch (error) {
-    console.error('Error deleting presentation:', error);
+    console.error('Operation failed: presentations.ts:410');
     res.status(500).json({ error: 'Failed to delete presentation' });
   }
-});
+}));
 
 // Master delete presentation (can delete any presentation including rated ones)
-router.delete('/master/:presId', authenticate, authorize('MASTER'), async (req: AuthRequest, res) => {
+router.delete('/master/:presId', authenticate, authorize('MASTER'), transactional(async (req: AuthRequest, res) => {
   try {
     const { presId } = req.params;
-    
+
     // Delete associated notifications
     await query("DELETE FROM notifications WHERE log_id = $1", [presId.toString()]);
-    
+
     // Delete linked presentation assignments (not just unlink)
     await query("DELETE FROM presentation_assignments WHERE presentation_id = $1", [presId]);
-    
+
     const result = await query('DELETE FROM presentations WHERE id = $1 RETURNING id, title', [presId]);
-    
+
     if (result.rows.length === 0) {
       return res.status(404).json({ error: 'Presentation not found' });
     }
-    
+
     res.json({ message: 'Presentation deleted by master: ' + result.rows[0].title });
   } catch (error) {
-    console.error('Master delete presentation error:', error);
+    console.error('Operation failed: presentations.ts:434');
     res.status(500).json({ error: 'Failed to delete presentation' });
   }
-});
+}));
 
 export default router;

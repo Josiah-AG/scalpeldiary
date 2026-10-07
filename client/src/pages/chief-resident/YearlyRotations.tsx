@@ -193,7 +193,7 @@ export default function YearlyRotations() {
       const lineH = 5.5;
       const bodyH = cardH - 10;
       const maxPerCol = Math.floor(bodyH / lineH);
-      
+
       if (cat.residents.length === 0) {
         doc.setTextColor(180, 180, 180);
         doc.setFontSize(9);
@@ -203,7 +203,7 @@ export default function YearlyRotations() {
         // Determine columns needed: 1, 2, or 3
         const innerCols = cat.residents.length > maxPerCol * 2 ? 3 : cat.residents.length > maxPerCol ? 2 : 1;
         const colW = (cardW - 4) / innerCols;
-        
+
         cat.residents.forEach((name, idx) => {
           const ic = Math.floor(idx / maxPerCol) % innerCols;
           const ir = idx % maxPerCol;
@@ -233,7 +233,7 @@ export default function YearlyRotations() {
     } else {
       monthNumber = calendarMonth;
     }
-    
+
     return rotations.filter(r => r.month_number === monthNumber && r.rotation_category_id === categoryId);
   };
 
@@ -255,7 +255,7 @@ export default function YearlyRotations() {
     } else {
       monthNumber = selectedMonth;
     }
-    
+
     try {
       await api.post('/rotations/assign', {
         academic_year_id: selectedYear.id,
@@ -263,7 +263,7 @@ export default function YearlyRotations() {
         month_number: monthNumber,
         rotation_category_id: categoryId
       });
-      
+
       fetchRotations();
     } catch (error: any) {
       console.error('Failed to assign rotation:', error);
@@ -413,7 +413,7 @@ export default function YearlyRotations() {
               </>
             )}
           </div>
-          
+
           <div className="flex items-center space-x-3">
             {/* View Mode Toggle */}
             <div className="flex bg-gray-100 rounded-lg p-1">
@@ -479,7 +479,7 @@ export default function YearlyRotations() {
               <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
                 {categories.map(category => {
                   const categoryRotations = getRotationsForMonthAndCategory(selectedMonth, category.id);
-                  
+
                   // Convert hex to RGB for better opacity control
                   const hexToRgb = (hex: string) => {
                     const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
@@ -489,49 +489,49 @@ export default function YearlyRotations() {
                       b: parseInt(result[3], 16)
                     } : { r: 59, g: 130, b: 246 };
                   };
-                  
+
                   const rgb = hexToRgb(category.color);
-                  
+
                   return (
-                    <div 
-                      key={category.id} 
+                    <div
+                      key={category.id}
                       className="rounded-lg overflow-hidden hover:shadow-xl transition-all border border-gray-200 bg-white"
                       style={{
                         boxShadow: `0 1px 3px rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, 0.1)`
                       }}
                     >
                       {/* Category Header */}
-                      <div 
+                      <div
                         className="p-4 border-l-4"
-                        style={{ 
+                        style={{
                           borderLeftColor: category.color,
                           background: `linear-gradient(90deg, rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, 0.03) 0%, rgba(255, 255, 255, 1) 100%)`
                         }}
                       >
                         <div className="flex items-center justify-between">
                           <div className="flex items-center space-x-3">
-                            <div 
+                            <div
                               className="w-1.5 h-12 rounded-full"
                               style={{ backgroundColor: category.color }}
                             />
                             <div>
-                              <h4 
+                              <h4
                                 className="font-bold text-lg text-gray-900"
                               >
                                 {category.name}
                               </h4>
                               <p className="text-xs text-gray-500 mt-0.5">
-                                {categoryRotations.length === 0 
-                                  ? 'No assignments' 
+                                {categoryRotations.length === 0
+                                  ? 'No assignments'
                                   : `${categoryRotations.length} ${categoryRotations.length === 1 ? 'resident' : 'residents'}`
                                 }
                               </p>
                             </div>
                           </div>
                           {categoryRotations.length > 0 && (
-                            <div 
+                            <div
                               className="w-10 h-10 rounded-full flex items-center justify-center font-bold text-sm"
-                              style={{ 
+                              style={{
                                 backgroundColor: `rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, 0.1)`,
                                 color: category.color
                               }}
@@ -555,7 +555,7 @@ export default function YearlyRotations() {
                                   className="flex items-center justify-between px-3 py-2 rounded hover:bg-gray-50 transition-colors group"
                                 >
                                   <div className="flex items-center space-x-2">
-                                    <div 
+                                    <div
                                       className="w-1 h-6 rounded-full"
                                       style={{ backgroundColor: category.color }}
                                     />
@@ -615,7 +615,7 @@ export default function YearlyRotations() {
             <h3 className="text-xl font-bold">Full Year Rotation Schedule</h3>
             <p className="text-sm text-amber-100 mt-1">Overview of all rotations for the academic year</p>
           </div>
-          
+
           {categories.length === 0 ? (
             <div className="p-12 text-center">
               <div className="text-gray-400 mb-4">
@@ -647,8 +647,8 @@ export default function YearlyRotations() {
                   </thead>
                   <tbody>
                     {categories.map((category, catIdx) => (
-                      <tr 
-                        key={category.id} 
+                      <tr
+                        key={category.id}
                         className={`border-b border-gray-100 hover:bg-gray-50 transition-colors ${
                           catIdx % 2 === 0 ? 'bg-white' : 'bg-gray-50'
                         }`}
@@ -669,10 +669,10 @@ export default function YearlyRotations() {
                             const resident = residents.find(res => res.id === r.resident_id);
                             return resident?.name || 'Unknown';
                           });
-                          
+
                           return (
-                            <td 
-                              key={monthIdx} 
+                            <td
+                              key={monthIdx}
                               className="px-2 py-3 text-center cursor-pointer hover:bg-opacity-80 transition-all"
                               onClick={() => {
                                 setSelectedMonth(monthIdx + 1);
@@ -683,7 +683,7 @@ export default function YearlyRotations() {
                             >
                               {residentCount > 0 ? (
                                 <div className="flex flex-col items-center space-y-1">
-                                  <div 
+                                  <div
                                     className="px-3 py-2 rounded-lg font-bold text-sm shadow-sm hover:shadow-md transition-shadow min-w-[60px]"
                                     style={{
                                       backgroundColor: category.color,
@@ -711,7 +711,7 @@ export default function YearlyRotations() {
                   </tbody>
                 </table>
               </div>
-              
+
               <div className="p-5 bg-gradient-to-r from-amber-50 to-orange-50 border-t-2 border-amber-200">
                 <div className="flex items-start space-x-3">
                   <div className="text-amber-600 mt-0.5">
@@ -736,10 +736,10 @@ export default function YearlyRotations() {
 
       {/* Category Management Modal */}
       {showCategoryModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
           <div className="bg-white rounded-lg p-6 max-w-3xl w-full max-h-[90vh] overflow-y-auto">
             <h3 className="text-xl font-semibold mb-6">Manage Rotation Categories</h3>
-            
+
             {/* Add/Edit Form */}
             <div className="bg-amber-50 p-4 rounded-lg mb-6">
               <h4 className="font-semibold mb-3">
@@ -753,7 +753,7 @@ export default function YearlyRotations() {
                   placeholder="Category name (e.g., ICU, OPD)"
                   className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-amber-500"
                 />
-                
+
                 {/* Color Palette Selector */}
                 <div>
                   <label className="text-sm font-medium text-gray-700 mb-2 block">Select Color:</label>
@@ -764,8 +764,8 @@ export default function YearlyRotations() {
                         type="button"
                         onClick={() => setCategoryFormData({ ...categoryFormData, color })}
                         className={`w-full h-12 rounded-lg transition-all hover:scale-110 ${
-                          categoryFormData.color === color 
-                            ? 'ring-4 ring-amber-500 ring-offset-2 scale-105' 
+                          categoryFormData.color === color
+                            ? 'ring-4 ring-amber-500 ring-offset-2 scale-105'
                             : 'hover:ring-2 hover:ring-gray-300'
                         }`}
                         style={{ backgroundColor: color }}

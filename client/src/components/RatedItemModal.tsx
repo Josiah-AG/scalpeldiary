@@ -48,7 +48,7 @@ export default function RatedItemModal({ item: providedItem, itemId, itemType, o
 
   if (loading) {
     return (
-      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+      <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
         <div className="bg-white rounded-lg p-6">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
         </div>
@@ -58,7 +58,7 @@ export default function RatedItemModal({ item: providedItem, itemId, itemType, o
 
   if (!item) {
     return (
-      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+      <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
         <div className="bg-white rounded-lg p-6 max-w-md">
           <p className="text-gray-600">Item not found</p>
           <button
@@ -73,11 +73,11 @@ export default function RatedItemModal({ item: providedItem, itemId, itemType, o
   }
 
   return (
-    <div 
-      className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50"
+    <div
+      className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50"
       onClick={onClose}
     >
-      <div 
+      <div
         className="bg-white rounded-lg p-6 max-w-2xl w-full max-h-[90vh] overflow-y-auto"
         onClick={(e) => e.stopPropagation()}
       >
@@ -104,7 +104,7 @@ export default function RatedItemModal({ item: providedItem, itemId, itemType, o
             <p><strong>Role:</strong> {item.surgery_role?.replace(/_/g, ' ')}</p>
             <p><strong>Place:</strong> {item.place_of_practice}</p>
             {item.remark && <p><strong>Remark:</strong> {item.remark}</p>}
-            
+
             {item.rating && (
               <div className="border-t pt-3 mt-3">
                 <p><strong>Rating:</strong> <span className={`text-2xl font-bold ${getRatingTextColor(item.rating)}`}>{showExact ? item.rating + '/100' : getRatingLabel(item.rating)}</span></p>
@@ -121,7 +121,7 @@ export default function RatedItemModal({ item: providedItem, itemId, itemType, o
             <p><strong>Venue:</strong> {item.venue}</p>
             {item.description && <p><strong>Description:</strong> {item.description}</p>}
             <p><strong>Rated by:</strong> {item.supervisor_name || item.external_supervisor_name || 'Not assigned'}</p>
-            
+
             {item.rating && (
               <div className="border-t pt-3 mt-3">
                 <p><strong>Rating:</strong> <span className={`text-2xl font-bold ${getRatingTextColor(item.rating)}`}>{showExact ? item.rating + '/100' : getRatingLabel(item.rating)}</span></p>

@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import Layout from '../../components/Layout';
 import api from '../../api/axios';
 import { getAllCategories, getAllProceduresForCategory } from '@shared/procedureUtils';
@@ -13,6 +13,7 @@ interface ProcedureEntry {
 }
 
 export default function AddLog() {
+  const submissionKey = useRef<string | null>(null);
   const [years, setYears] = useState<any[]>([]);
   const [diagnosisSuggestions, setDiagnosisSuggestions] = useState<string[]>([]);
   const [categories, setCategories] = useState<string[]>([]);
@@ -68,7 +69,7 @@ export default function AddLog() {
     const venue = patientData.placeOfPractice;
     const hasOrtho = procedures.some(p => p.procedureCategory === 'Orthopedic Surgery');
     const hasPlastic = procedures.some(p => p.procedureCategory === 'Plastic Surgery');
-    
+
     if (venue !== 'Y12HMC' || hasOrtho || hasPlastic) {
       setIsDetachment(true);
       fetchDetachmentSupervisors(venue, hasOrtho || hasPlastic);
@@ -93,7 +94,7 @@ export default function AddLog() {
       const response = await api.get('/users/detachment-supervisors', { params });
       setDetachmentSupervisors(response.data.residents || []);
       setDetachmentExternalLabel(response.data.externalLabel || 'External Supervisor');
-      
+
       // For venues with no resident options (TASH, Abebech Gobena), auto-select external
       if ((response.data.residents || []).length === 0) {
         setUseExternalSupervisor(true);
@@ -167,14 +168,15 @@ export default function AddLog() {
 
     try {
       // Submit each procedure as a separate log with shared supervisor
-      await Promise.all(
+      submissionKey.current ||= crypto.randomUUID();
+      await api.post('/logs/batch', {requestKey: submissionKey.current, records:
         procedures.map((proc) => {
           const detachmentType = proc.procedureCategory === 'Orthopedic Surgery' ? 'ORTHOPEDICS'
             : proc.procedureCategory === 'Plastic Surgery' ? 'PLASTIC_SURGERY'
             : patientData.placeOfPractice !== 'Y12HMC' ? patientData.placeOfPractice
             : null;
-          
-          return api.post('/logs', {
+
+          return {
             ...patientData,
             procedure: proc.procedure,
             procedureCategory: proc.procedureCategory,
@@ -184,10 +186,11 @@ export default function AddLog() {
             isDetachment: isDetachment,
             detachmentType: isDetachment ? detachmentType : null,
             externalSupervisorName: useExternalSupervisor ? externalSupervisorName : null,
-          });
+          };
         })
-      );
-      
+      });
+      submissionKey.current = null;
+
       setSuccess(true);
       // Reset form
       setPatientData({
@@ -208,7 +211,7 @@ export default function AddLog() {
           remark: '',
         },
       ]);
-      
+
       // Scroll to top to show success message
       window.scrollTo({ top: 0, behavior: 'smooth' });
     } catch (error) {

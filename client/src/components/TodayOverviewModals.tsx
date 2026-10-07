@@ -25,12 +25,12 @@ export function RotationModal({ isOpen, onClose, rotations }: RotationModalProps
 
   const allMonthNames = ['January', 'February', 'March', 'April', 'May', 'June',
     'July', 'August', 'September', 'October', 'November', 'December'];
-  
+
   // Batch start month (calendar month 1-12, e.g. 4=April)
   const batchStartMonth = rotations[0]?.residency_start_month || 7;
   // Academic year start month (hardcoded as 7=July since that's what the DB uses)
-  const academicStartMonth = 7;
-  
+  const academicStartMonth = rotations[0]?.academic_start_month || 7;
+
   // Generate 12 display months starting from batch start month
   const months = Array.from({ length: 12 }, (_, i) => {
     const calMonth = ((batchStartMonth - 1 + i) % 12) + 1; // 1-12 calendar month
@@ -47,7 +47,7 @@ export function RotationModal({ isOpen, onClose, rotations }: RotationModalProps
   };
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-0 sm:p-4" onClick={onClose}>
+    <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-0 sm:p-4" onClick={onClose}>
       <div className="bg-white w-full h-full sm:h-auto sm:rounded-xl shadow-2xl sm:max-w-4xl sm:max-h-[90vh] overflow-hidden" onClick={e => e.stopPropagation()}>
         <div className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white p-4 flex justify-between items-center">
           <h2 className="text-lg font-bold flex items-center">
@@ -121,7 +121,7 @@ export function DutyModal({ isOpen, onClose, duties }: DutyModalProps) {
   const sortedDates = Array.from(dutyByDate.keys()).sort();
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-0 sm:p-4" onClick={onClose}>
+    <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-0 sm:p-4" onClick={onClose}>
       <div className="bg-white w-full h-full sm:h-auto sm:rounded-xl shadow-2xl sm:max-w-4xl sm:max-h-[90vh] overflow-hidden" onClick={e => e.stopPropagation()}>
         <div className="bg-gradient-to-r from-amber-600 to-orange-600 text-white p-4 flex justify-between items-center">
           <h2 className="text-lg font-bold flex items-center">
@@ -206,7 +206,7 @@ export function ActivityModal({ isOpen, onClose, activities }: ActivityModalProp
   const sortedDates = Array.from(actByDate.keys()).sort();
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-0 sm:p-4" onClick={onClose}>
+    <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-0 sm:p-4" onClick={onClose}>
       <div className="bg-white w-full h-full sm:h-auto sm:rounded-xl shadow-2xl sm:max-w-4xl sm:max-h-[90vh] overflow-hidden" onClick={e => e.stopPropagation()}>
         <div className="bg-gradient-to-r from-purple-600 to-pink-600 text-white p-4 flex justify-between items-center">
           <h2 className="text-lg font-bold flex items-center">

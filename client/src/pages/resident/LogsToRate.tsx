@@ -39,39 +39,32 @@ export default function LogsToRate() {
     if (log.resident_id === log.supervisor_id) {
       return false;
     }
-    
-    const category = log.procedure_category || 'MINOR_SURGERY';
-    
-    if (currentYear === 2) {
-      return category === 'MINOR_SURGERY';
-    }
-    
-    return currentYear >= 3;
+
+    if (currentYear === 2 && !['Minor Surgery','MINOR_SURGERY'].includes(log.procedure_category)) return false;
+    return currentYear > Number(log.resident_current_year ?? log.resident_year);
+
   };
 
   const handleSelectLog = (log: any) => {
     setError('');
-    
+
     // Check if trying to rate themselves
     if (log.resident_id === log.supervisor_id) {
       setError('You cannot rate your own procedures.');
       return;
     }
-    
+
     if (!canRateProcedure(log)) {
-      const category = log.procedure_category || 'MINOR_SURGERY';
-      if (category !== 'MINOR_SURGERY') {
-        setError('Only Minor Surgery procedures can be rated by Year 2. Other categories require Year 3 and above.');
-        return;
-      }
+      setError('You can only rate procedures assigned to you by junior residents.');
+      return;
     }
-    
+
     setSelectedLog(log);
   };
 
   const handleRate = async () => {
     if (!selectedLog) return;
-    
+
     if (!canRateProcedure(selectedLog)) {
       setError('You do not have permission to rate this procedure.');
       return;
@@ -194,7 +187,7 @@ export default function LogsToRate() {
       </div>
 
       {selectedLog && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
           <div className="bg-white rounded-xl shadow-2xl max-w-2xl w-full">
             <div className="bg-gradient-to-r from-blue-600 to-blue-700 text-white px-6 py-4 flex justify-between items-center">
               <h3 className="text-xl font-bold">Rate Procedure</h3>

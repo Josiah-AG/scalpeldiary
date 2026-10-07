@@ -149,7 +149,7 @@ export default function Layout({ children, title }: LayoutProps) {
   const getNavLinks = (): Array<{ to: string; label: string; icon: any; count?: number }> => {
     // Check if in read-only mode
     const isReadOnly = sessionStorage.getItem('isReadOnlyMode') === 'true';
-    
+
     if (user?.role === 'RESIDENT') {
       const links: Array<{ to: string; label: string; icon: any; count?: number }> = [
         { to: '/', label: 'Dashboard', icon: Calendar },
@@ -158,13 +158,13 @@ export default function Layout({ children, title }: LayoutProps) {
         { to: '/analytics', label: 'Analytics', icon: BarChart3 },
         { to: '/settings', label: 'Settings', icon: Settings },
       ];
-      
+
       // Only show "Logs to Rate" and "Rated Logs" for Year 2+
       if (currentYear && currentYear >= 2) {
         links.splice(4, 0, { to: '/logs-to-rate', label: 'Logs to Rate', icon: ClipboardList, count: logsToRateCount });
         links.splice(5, 0, { to: '/rated-logs', label: 'Rated Logs', icon: Star });
       }
-      
+
       return links;
     } else if (user?.role === 'SUPERVISOR') {
       // If viewing a resident in read-only mode, show resident navigation
@@ -177,7 +177,7 @@ export default function Layout({ children, title }: LayoutProps) {
           { to: '/resident-view/rated-logs', label: 'Rated Logs', icon: Star },
         ];
       }
-      
+
       const links = [
         { to: '/', label: 'Dashboard', icon: Calendar },
         { to: '/unresponded-logs', label: 'Unresponded Logs', icon: ClipboardList, count: unrespondedCount },
@@ -201,7 +201,7 @@ export default function Layout({ children, title }: LayoutProps) {
           { to: '/resident-view/rated-logs', label: 'Rated Logs', icon: Star },
         ];
       }
-      
+
       return [
         { to: '/', label: 'Dashboard', icon: Calendar },
         { to: '/accounts', label: 'Account Management', icon: Settings },
@@ -219,7 +219,7 @@ export default function Layout({ children, title }: LayoutProps) {
           { to: '/resident-view/rated-logs', label: 'Rated Logs', icon: Star },
         ];
       }
-      
+
       return [
         { to: '/management', label: 'Dashboard', icon: Calendar },
         { to: '/detachment-logs', label: 'Detachment Logs', icon: FileText },
@@ -245,7 +245,7 @@ export default function Layout({ children, title }: LayoutProps) {
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-blue-50">
       {/* Notification Popup */}
       <NotificationPopup />
-      
+
       {/* Modern Header */}
       <nav className="bg-gradient-to-r from-blue-600 to-blue-700 text-white shadow-xl sticky top-0 z-50">
         <div className="max-w-7xl mx-auto px-2 sm:px-4 lg:px-8">
@@ -260,13 +260,13 @@ export default function Layout({ children, title }: LayoutProps) {
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
                 </svg>
               </button>
-              
+
               <div className="bg-white/10 backdrop-blur-sm rounded-lg sm:rounded-xl px-2 py-1 sm:px-3 sm:py-1.5 border border-white/20 flex-shrink-0">
                 <div className="flex items-center space-x-1.5 sm:space-x-2">
                   <div className="bg-white rounded-md sm:rounded-lg p-1 sm:p-1.5 shadow-md flex-shrink-0">
-                    <img 
-                      src="/logo-sd.svg?v=2" 
-                      alt="SD" 
+                    <img
+                      src="/logo-sd.svg?v=2"
+                      alt="SD"
                       className="w-5 h-5 sm:w-6 sm:h-6 md:w-7 md:h-7"
                     />
                   </div>
@@ -293,7 +293,7 @@ export default function Layout({ children, title }: LayoutProps) {
                   <span className="hidden sm:inline">Back to Dashboard</span>
                 </button>
               )}
-              
+
               {/* Notification Bell */}
               {(user?.role === 'RESIDENT' || user?.role === 'SUPERVISOR') && (
                 <div className="relative">
@@ -309,14 +309,14 @@ export default function Layout({ children, title }: LayoutProps) {
                       </span>
                     )}
                   </button>
-                  <NotificationBell 
-                    show={showNotifications} 
+                  <NotificationBell
+                    show={showNotifications}
                     onClose={() => setShowNotifications(false)}
                     onCountChange={setUnreadNotificationsCount}
                   />
                 </div>
               )}
-              
+
               {/* Profile Picture - Always visible */}
               {profilePicture ? (
                 <img
@@ -331,7 +331,7 @@ export default function Layout({ children, title }: LayoutProps) {
                   </span>
                 </div>
               )}
-              
+
               {/* User Info - Always visible but responsive */}
               <div className="text-right">
                 <p className="text-xs sm:text-sm font-semibold truncate max-w-[100px] sm:max-w-none">
@@ -356,7 +356,7 @@ export default function Layout({ children, title }: LayoutProps) {
                   </>
                 )}
               </div>
-              
+
               {/* Logout Button */}
               <button
                 onClick={handleLogout}
@@ -378,21 +378,21 @@ export default function Layout({ children, title }: LayoutProps) {
         {showMobileSidebar && (
           <>
             {/* Backdrop */}
-            <div 
-              className="fixed inset-0 bg-black bg-opacity-50 z-40 md:hidden"
+            <div
+              className="fixed inset-0 bg-black/50 z-40 md:hidden"
               onClick={() => setShowMobileSidebar(false)}
             />
-            
+
             {/* Sidebar */}
             <aside className="fixed top-0 left-0 h-full w-64 bg-white shadow-2xl z-50 md:hidden overflow-y-auto">
               {/* Close Button */}
               <div className="flex justify-between items-center p-4 border-b border-gray-200">
                 <div className="flex items-center space-x-2">
                   <div className="bg-blue-600 rounded-lg p-1.5 shadow-md">
-                    <img 
-                      src="/logo-sd.svg?v=2" 
-                      alt="ScalpelDiary Logo" 
-                      width="28" 
+                    <img
+                      src="/logo-sd.svg?v=2"
+                      alt="ScalpelDiary Logo"
+                      width="28"
                       height="28"
                       className="flex-shrink-0"
                     />
@@ -412,7 +412,7 @@ export default function Layout({ children, title }: LayoutProps) {
                   </svg>
                 </button>
               </div>
-              
+
               <nav className="mt-6 px-3 pb-6">
                 {getNavLinks().map((link) => {
                   const Icon = link.icon;
@@ -442,7 +442,7 @@ export default function Layout({ children, title }: LayoutProps) {
                     </Link>
                   );
                 })}
-                
+
                 {/* Chief Resident Section */}
                 {getChiefResidentLinks().length > 0 && (
                   <>
@@ -478,7 +478,7 @@ export default function Layout({ children, title }: LayoutProps) {
             </aside>
           </>
         )}
-        
+
         {/* Desktop Sidebar - Hidden on mobile, shown on md+ */}
         <aside className="hidden md:block md:w-64 bg-white shadow-lg min-h-screen border-r border-gray-200">
           <nav className="mt-6 px-3">
@@ -509,7 +509,7 @@ export default function Layout({ children, title }: LayoutProps) {
                 </Link>
               );
             })}
-            
+
             {/* Chief Resident Section */}
             {getChiefResidentLinks().length > 0 && (
               <>

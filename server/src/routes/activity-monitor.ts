@@ -1,5 +1,16 @@
 import { Router } from 'express';
-import { query } from '../database/db';
+import pool, { query } from '../database/db';
+import { transactionContext } from '../database/transaction';
+
+// Optional telemetry shares the request connection, with a savepoint so failure
+// cannot abort the business transaction or exhaust the pool under concurrent logins.
+async function telemetryQuery(sql: string, params: any[]) {
+ const client=transactionContext.getStore();
+ if (!client) return pool.query(sql,params);
+ await client.query('SAVEPOINT optional_telemetry');
+ try { const result=await client.query(sql,params); await client.query('RELEASE SAVEPOINT optional_telemetry'); return result; }
+ catch(error) { await client.query('ROLLBACK TO SAVEPOINT optional_telemetry'); await client.query('RELEASE SAVEPOINT optional_telemetry'); throw error; }
+}
 import { authenticate, AuthRequest } from '../middleware/auth';
 
 const router = Router();
@@ -7,32 +18,32 @@ const router = Router();
 // Helper: silently log activity (never throws — won't break existing flows)
 export async function logActivity(userId: number | string, actionType: string, metadata?: string) {
   try {
-    await query(
+    await telemetryQuery(
       'INSERT INTO user_activity (user_id, action_type, metadata, created_at) VALUES ($1, $2, $3, NOW())',
       [userId, actionType, metadata || null]
     );
   } catch (e) {
-    // Silent — never disrupt existing functionality
+    console.warn('Activity tracking write failed');
   }
 }
 
 // Helper: silently log login session
 export async function logLoginSession(userId: number | string, deviceFingerprint: string, deviceInfo: string, ipAddress: string, isPWA: boolean = false) {
   try {
-    await query(
+    await telemetryQuery(
       'INSERT INTO login_sessions (user_id, device_fingerprint, device_info, ip_address, is_pwa, login_time) VALUES ($1, $2, $3, $4, $5, NOW())',
       [userId, deviceFingerprint, deviceInfo, ipAddress, isPWA]
     );
   } catch (e) {
-    // Silent — never disrupt login
+    console.warn('Login tracking write failed');
   }
 }
 
 // Helper: silently update last_seen
 export async function updateLastSeen(userId: number | string) {
   try {
-    await query('UPDATE users SET last_seen = NOW() WHERE id = $1', [userId]);
-  } catch (e) { /* silent */ }
+    await telemetryQuery('UPDATE users SET last_seen = NOW() WHERE id = $1', [userId]);
+  } catch (e) { console.warn('Last-seen tracking failed'); }
 }
 
 // POST /activity-monitor/heartbeat — Silent "last seen" ping (any authenticated user)

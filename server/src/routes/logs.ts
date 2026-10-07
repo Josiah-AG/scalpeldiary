@@ -1,3 +1,6 @@
+import { createHash } from 'crypto';
+import { transactional } from '../database/transaction';
+import { residentScope, ownedYear, validRating, supervisorAssignment } from '../security/policy';
 import { Router } from 'express';
 import { query } from '../database/db';
 import { authenticate, authorize, AuthRequest } from '../middleware/auth';
@@ -18,9 +21,9 @@ const router = Router();
 router.get('/my-logs', authenticate, async (req: AuthRequest, res) => {
   try {
     const { yearId, startDate, endDate, procedureCategory, placeOfPractice, supervisorId } = req.query;
-    
+
     let queryText = `
-      SELECT sl.*, u.name as supervisor_name 
+      SELECT sl.*, u.name as supervisor_name
       FROM surgical_logs sl
       LEFT JOIN users u ON sl.supervisor_id = u.id
       WHERE sl.resident_id = $1
@@ -69,7 +72,7 @@ router.get('/my-logs', authenticate, async (req: AuthRequest, res) => {
 });
 
 // Create log
-router.post('/', authenticate, async (req: AuthRequest, res) => {
+const createLog = async (req: AuthRequest, res: any) => {
   try {
     const {
       yearId, date, mrn, age, sex, diagnosis, procedure,
@@ -106,8 +109,8 @@ router.post('/', authenticate, async (req: AuthRequest, res) => {
         is_detachment, detachment_type, external_supervisor_name
       ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17) RETURNING *`,
       [req.user!.id, yearId, date, mrn, age, sex, diagnosis, procedure,
-       procedureType, procedureCategory || 'MINOR', placeOfPractice, surgeryRole, 
-       isDetachment && !supervisorId ? null : supervisorId, 
+       procedureType, procedureCategory || 'MINOR', placeOfPractice, surgeryRole,
+       isDetachment && !supervisorId ? null : supervisorId,
        remark || null,
        isDetachment || false, detachmentType || null, externalSupervisorName || null]
     );
@@ -131,17 +134,48 @@ router.post('/', authenticate, async (req: AuthRequest, res) => {
     }
 
     res.status(201).json(result.rows[0]);
-    logActivity(req.user!.id, 'ADD_PROCEDURE');
+    await logActivity(req.user!.id, 'ADD_PROCEDURE');
   } catch (error) {
     res.status(500).json({ error: 'Failed to create log' });
   }
-});
+};
+router.post('/', authenticate, ownedYear, supervisorAssignment, transactional(createLog));
+
+
+router.post('/batch', authenticate, transactional(async (req: AuthRequest, res) => {
+  const { records, requestKey } = req.body;
+  if (req.user!.role !== 'RESIDENT') return res.status(403).json({error:'Forbidden'});
+  if (!Array.isArray(records) || records.length < 1 || records.length > 30 || !/^[0-9a-f-]{36}$/i.test(requestKey || '')) return res.status(400).json({error:'Invalid batch'});
+  const hash = createHash('sha256').update(JSON.stringify(records)).digest('hex');
+  await query('SELECT pg_advisory_xact_lock(hashtext($1))', [req.user!.id + requestKey]);
+  const existing = await query('SELECT request_hash, response FROM request_idempotency WHERE user_id=$1 AND request_key=$2', [req.user!.id,requestKey]);
+  if (existing.rowCount) {
+    if (existing.rows[0].request_hash !== hash) return res.status(409).json({error:'Request key already used for different records'});
+    return res.status(201).json(existing.rows[0].response);
+  }
+  const saved = [];
+  for (const record of records) {
+    const nested = Object.assign(Object.create(req), {body:record}) as AuthRequest;
+    let status = 200; let output: any; let valid = false;
+    const response: any = {status(code: number) {status=code;return this;},json(data: any) {output=data;return this;}};
+    await ownedYear(nested, response, () => {valid=true;});
+    if (!valid) return res.status(status).json(output);
+    valid=false; await supervisorAssignment(nested,response,()=>{valid=true;});
+    if(!valid) return res.status(status).json(output);
+    await createLog(nested, response);
+    if (status >= 400) return res.status(status).json(output);
+    saved.push(output);
+  }
+  await query('INSERT INTO request_idempotency(user_id,request_key,request_hash,response) VALUES($1,$2,$3,$4)',[req.user!.id,requestKey,hash,JSON.stringify(saved)]);
+  res.status(201).json(saved);
+}));
 
 // Get logs to rate (for supervisors)
 router.get('/to-rate', authenticate, async (req: AuthRequest, res) => {
   try {
     const result = await query(
-      `SELECT sl.*, u.name as resident_name, ry.year as resident_year
+      `SELECT sl.*, u.name as resident_name, ry.year as resident_year,
+              (SELECT MAX(year) FROM resident_years current_year WHERE current_year.resident_id=sl.resident_id) AS resident_current_year
        FROM surgical_logs sl
        JOIN users u ON sl.resident_id = u.id
        JOIN resident_years ry ON sl.year_id = ry.id
@@ -169,14 +203,15 @@ router.get('/to-rate/count', authenticate, async (req: AuthRequest, res) => {
 });
 
 // Rate log
-router.post('/:logId/rate', authenticate, async (req: AuthRequest, res) => {
+router.post('/:logId/rate', authenticate, transactional(async (req: AuthRequest, res) => {
   try {
     const { logId } = req.params;
     const { rating, comment, anonymousComment } = req.body;
+    if (rating != null && !validRating(rating)) return res.status(400).json({error:'Rating must be a number between 0 and 100'});
 
     // Check if trying to rate own procedure
     const selfCheck = await query(
-      'SELECT resident_id FROM surgical_logs WHERE id = $1',
+      'SELECT resident_id, procedure_category FROM surgical_logs WHERE id = $1',
       [logId]
     );
     if (selfCheck.rows.length > 0 && selfCheck.rows[0].resident_id === req.user!.id) {
@@ -191,15 +226,16 @@ router.post('/:logId/rate', authenticate, async (req: AuthRequest, res) => {
       ]);
       const myYear = myYearRes.rows[0]?.y || 0;
       const resYear = resYearRes.rows[0]?.y || 0;
+      if (myYear === 2 && !['Minor Surgery','MINOR_SURGERY'].includes(selfCheck.rows[0].procedure_category)) return res.status(403).json({error:'Year 2 residents can rate only Minor Surgery'});
       if (myYear <= resYear) {
         return res.status(403).json({ error: 'You can only rate junior residents (lower year than yours)' });
       }
     }
 
-    const status = rating ? 'RATED' : 'NOT_WITNESSED';
-    
+    const status = rating != null ? 'RATED' : 'NOT_WITNESSED';
+
     const result = await query(
-      `UPDATE surgical_logs 
+      `UPDATE surgical_logs
        SET rating = $1, comment = $2, status = $3, rated_at = NOW(), updated_at = NOW(), anonymous_comment = $6
        WHERE id = $4 AND supervisor_id = $5
        RETURNING *`,
@@ -212,20 +248,20 @@ router.post('/:logId/rate', authenticate, async (req: AuthRequest, res) => {
 
     const log = result.rows[0];
     const supervisorName = await getUserName(req.user!);
-    
+
     // Convert rating to label for notification
     let ratingLabel = '';
-    if (rating) {
+    if (rating != null) {
       if (rating >= 90) ratingLabel = 'Excellent';
       else if (rating >= 71) ratingLabel = 'Good';
       else if (rating >= 50) ratingLabel = 'Satisfactory';
       else ratingLabel = 'Poor';
     }
-    
-    const notificationMessage = rating 
+
+    const notificationMessage = rating != null
       ? `Your surgical log has been rated as ${ratingLabel} by ${supervisorName}`
       : `Your surgical log was marked as not witnessed by ${supervisorName}`;
-    
+
     await sendNotification(
       log.resident_id,
       notificationMessage,
@@ -240,17 +276,17 @@ router.post('/:logId/rate', authenticate, async (req: AuthRequest, res) => {
     );
 
     res.json(result.rows[0]);
-    logActivity(req.user!.id, 'RATE_PROCEDURE');
+    await logActivity(req.user!.id, 'RATE_PROCEDURE');
   } catch (error) {
     res.status(500).json({ error: 'Failed to rate log' });
   }
-});
+}));
 
 // Get rated logs (with resident info for supervisors)
 router.get('/rated', authenticate, async (req: AuthRequest, res) => {
   try {
     const result = await query(
-      `SELECT sl.*, 
+      `SELECT sl.*,
               u.name as supervisor_name,
               res.name as resident_name,
               ry.year as resident_year
@@ -272,7 +308,7 @@ router.get('/rated', authenticate, async (req: AuthRequest, res) => {
 router.get('/suggestions', authenticate, async (req: AuthRequest, res) => {
   try {
     const { field } = req.query;
-    
+
     if (field === 'diagnosis') {
       const result = await query(
         'SELECT DISTINCT diagnosis FROM surgical_logs WHERE resident_id = $1 ORDER BY diagnosis',
@@ -294,14 +330,14 @@ router.get('/suggestions', authenticate, async (req: AuthRequest, res) => {
 });
 
 // Get logs for a specific resident (for supervisors)
-router.get('/resident/:residentId', authenticate, async (req: AuthRequest, res) => {
+router.get('/resident/:residentId', authenticate, residentScope, async (req: AuthRequest, res) => {
   try {
     const { residentId } = req.params;
     const { year } = req.query;
 
     if (!year) {
       const result = await query(
-        `SELECT sl.*, u.name as supervisor_name 
+        `SELECT sl.*, u.name as supervisor_name
          FROM surgical_logs sl
          LEFT JOIN users u ON sl.supervisor_id = u.id
          WHERE sl.resident_id = $1
@@ -323,7 +359,7 @@ router.get('/resident/:residentId', authenticate, async (req: AuthRequest, res) 
     const yearId = yearResult.rows[0].id;
 
     const result = await query(
-      `SELECT sl.*, u.name as supervisor_name 
+      `SELECT sl.*, u.name as supervisor_name
        FROM surgical_logs sl
        LEFT JOIN users u ON sl.supervisor_id = u.id
        WHERE sl.resident_id = $1 AND sl.year_id = $2
@@ -333,7 +369,7 @@ router.get('/resident/:residentId', authenticate, async (req: AuthRequest, res) 
 
     res.json(result.rows);
   } catch (error) {
-    console.error(error);
+    console.error('Operation failed: logs.ts:367');
     res.status(500).json({ error: 'Failed to fetch resident logs' });
   }
 });
@@ -342,7 +378,7 @@ router.get('/resident/:residentId', authenticate, async (req: AuthRequest, res) 
 router.get('/supervisor/:supervisorId/rated', authenticate, async (req: AuthRequest, res) => {
   try {
     const userRole = req.user!.role;
-    
+
     if (userRole === 'MASTER' || userRole === 'MANAGEMENT') {
       // Allowed
     } else if (userRole === 'SUPERVISOR') {
@@ -356,11 +392,11 @@ router.get('/supervisor/:supervisorId/rated', authenticate, async (req: AuthRequ
     } else {
       return res.status(403).json({ error: 'Forbidden' });
     }
-    
+
     const { supervisorId } = req.params;
 
     const result = await query(
-      `SELECT sl.*, 
+      `SELECT sl.*,
               res.name as resident_name,
               res.profile_picture as resident_profile_picture,
               ry.year as resident_year
@@ -374,13 +410,13 @@ router.get('/supervisor/:supervisorId/rated', authenticate, async (req: AuthRequ
 
     res.json(result.rows);
   } catch (error) {
-    console.error('Error fetching supervisor rated procedures:', error);
+    console.error('Operation failed: logs.ts:408');
     res.status(500).json({ error: 'Failed to fetch supervisor rated procedures' });
   }
 });
 
 // Add post-op follow-up comment (supervisor only, after rating)
-router.post('/:logId/postop-followup', authenticate, async (req: AuthRequest, res) => {
+router.post('/:logId/postop-followup', authenticate, transactional(async (req: AuthRequest, res) => {
   try {
     const { logId } = req.params;
     const { comment } = req.body;
@@ -390,7 +426,7 @@ router.post('/:logId/postop-followup', authenticate, async (req: AuthRequest, re
     }
 
     const checkResult = await query(
-      `SELECT sl.*, res.name as resident_name 
+      `SELECT sl.*, res.name as resident_name
        FROM surgical_logs sl
        JOIN users res ON sl.resident_id = res.id
        WHERE sl.id = $1 AND sl.supervisor_id = $2 AND sl.status IN ('RATED', 'COMMENTED', 'NOT_WITNESSED')`,
@@ -402,7 +438,7 @@ router.post('/:logId/postop-followup', authenticate, async (req: AuthRequest, re
     }
 
     const result = await query(
-      `UPDATE surgical_logs 
+      `UPDATE surgical_logs
        SET postop_followup_comment = $1, postop_followup_at = NOW(), updated_at = NOW()
        WHERE id = $2
        RETURNING *`,
@@ -420,13 +456,13 @@ router.post('/:logId/postop-followup', authenticate, async (req: AuthRequest, re
 
     res.json(result.rows[0]);
   } catch (error) {
-    console.error('Failed to add post-op follow-up:', error);
+    console.error('Operation failed: logs.ts:454');
     res.status(500).json({ error: 'Failed to add post-op follow-up comment' });
   }
-});
+}));
 
 // Update log (only if not rated)
-router.put('/:logId', authenticate, async (req: AuthRequest, res) => {
+router.put('/:logId', authenticate, supervisorAssignment, transactional(async (req: AuthRequest, res) => {
   try {
     const { logId } = req.params;
     const {
@@ -435,7 +471,7 @@ router.put('/:logId', authenticate, async (req: AuthRequest, res) => {
     } = req.body;
 
     const checkResult = await query(
-      'SELECT rating, status, resident_id FROM surgical_logs WHERE id = $1',
+      'SELECT rating, status, resident_id, year_id FROM surgical_logs WHERE id = $1 FOR UPDATE',
       [logId]
     );
 
@@ -447,14 +483,16 @@ router.put('/:logId', authenticate, async (req: AuthRequest, res) => {
       return res.status(403).json({ error: 'Unauthorized' });
     }
 
+    const currentYear = await query('SELECT id FROM resident_years WHERE resident_id=$1 ORDER BY year DESC LIMIT 1',[req.user!.id]);
+    if (currentYear.rows[0]?.id !== checkResult.rows[0].year_id) return res.status(400).json({error:'Only current-year records can be changed'});
     if (checkResult.rows[0].status !== 'PENDING') {
       return res.status(400).json({ error: 'Cannot edit a rated or confirmed procedure' });
     }
 
     const result = await query(
-      `UPDATE surgical_logs 
+      `UPDATE surgical_logs
        SET date = $1, mrn = $2, age = $3, sex = $4, diagnosis = $5, procedure = $6,
-           procedure_type = $7, procedure_category = $8, place_of_practice = $9, 
+           procedure_type = $7, procedure_category = $8, place_of_practice = $9,
            surgery_role = $10, supervisor_id = $11, remark = $12, updated_at = NOW()
        WHERE id = $13
        RETURNING *`,
@@ -464,18 +502,18 @@ router.put('/:logId', authenticate, async (req: AuthRequest, res) => {
 
     res.json(result.rows[0]);
   } catch (error) {
-    console.error('Error updating log:', error);
+    console.error('Operation failed: logs.ts:498');
     res.status(500).json({ error: 'Failed to update log' });
   }
-});
+}));
 
 // Delete log (only if not rated)
-router.delete('/:logId', authenticate, async (req: AuthRequest, res) => {
+router.delete('/:logId', authenticate, transactional(async (req: AuthRequest, res) => {
   try {
     const { logId } = req.params;
 
     const checkResult = await query(
-      'SELECT status, resident_id FROM surgical_logs WHERE id = $1',
+      'SELECT status, resident_id, year_id FROM surgical_logs WHERE id = $1 FOR UPDATE',
       [logId]
     );
 
@@ -487,6 +525,8 @@ router.delete('/:logId', authenticate, async (req: AuthRequest, res) => {
       return res.status(403).json({ error: 'Unauthorized' });
     }
 
+    const currentYear = await query('SELECT id FROM resident_years WHERE resident_id=$1 ORDER BY year DESC LIMIT 1',[req.user!.id]);
+    if (currentYear.rows[0]?.id !== checkResult.rows[0].year_id) return res.status(400).json({error:'Only current-year records can be changed'});
     if (checkResult.rows[0].status !== 'PENDING') {
       return res.status(400).json({ error: 'Cannot delete a rated or confirmed procedure' });
     }
@@ -495,31 +535,31 @@ router.delete('/:logId', authenticate, async (req: AuthRequest, res) => {
 
     res.json({ message: 'Log deleted successfully' });
   } catch (error) {
-    console.error('Error deleting log:', error);
+    console.error('Operation failed: logs.ts:529');
     res.status(500).json({ error: 'Failed to delete log' });
   }
-});
+}));
 
 // Master delete procedure (can delete any procedure including rated ones)
-router.delete('/master/:logId', authenticate, authorize('MASTER'), async (req: AuthRequest, res) => {
+router.delete('/master/:logId', authenticate, authorize('MASTER'), transactional(async (req: AuthRequest, res) => {
   try {
     const { logId } = req.params;
-    
+
     // Delete associated notifications first
     await query("DELETE FROM notifications WHERE log_id = $1", [logId]);
-    
+
     const result = await query('DELETE FROM surgical_logs WHERE id = $1 RETURNING id, procedure', [logId]);
-    
+
     if (result.rows.length === 0) {
       return res.status(404).json({ error: 'Procedure not found' });
     }
-    
+
     res.json({ message: 'Procedure deleted by master: ' + result.rows[0].procedure });
   } catch (error) {
-    console.error('Master delete procedure error:', error);
+    console.error('Operation failed: logs.ts:550');
     res.status(500).json({ error: 'Failed to delete procedure' });
   }
-});
+}));
 
 // Get detachment logs summary (for management/master) - includes procedures and presentations, grouped by month
 router.get('/detachment-summary', authenticate, async (req: AuthRequest, res) => {
@@ -536,7 +576,7 @@ router.get('/detachment-summary', authenticate, async (req: AuthRequest, res) =>
 
     // Procedures grouped by resident + detachment_type + month
     const procResult = await query(
-      `SELECT 
+      `SELECT
         u.id as resident_id, u.name as resident_name,
         (SELECT MAX(year) FROM resident_years WHERE resident_id = u.id) as year,
         sl.detachment_type,
@@ -554,7 +594,7 @@ router.get('/detachment-summary', authenticate, async (req: AuthRequest, res) =>
 
     // Presentations grouped by resident + detachment_type + month
     const presResult = await query(
-      `SELECT 
+      `SELECT
         u.id as resident_id, u.name as resident_name,
         (SELECT MAX(year) FROM resident_years WHERE resident_id = u.id) as year,
         p.detachment_type,
@@ -573,7 +613,7 @@ router.get('/detachment-summary', authenticate, async (req: AuthRequest, res) =>
     const merged = new Map<string, any>();
     for (const row of procResult.rows) {
       const key = `${row.resident_id}-${row.detachment_type}-${row.detachment_month}`;
-      merged.set(key, { ...row, procedure_count: parseInt(row.procedure_count), presentation_count: 0, 
+      merged.set(key, { ...row, procedure_count: parseInt(row.procedure_count), presentation_count: 0,
         unverified_count: parseInt(row.unverified_count || 0) });
     }
     for (const row of presResult.rows) {
@@ -600,13 +640,13 @@ router.get('/detachment-summary', authenticate, async (req: AuthRequest, res) =>
     });
     res.json(result);
   } catch (error) {
-    console.error('Error fetching detachment summary:', error);
+    console.error('Operation failed: logs.ts:634');
     res.status(500).json({ error: 'Failed to fetch detachment summary' });
   }
 });
 
 // Get detachment logs for a specific resident + detachment type + optional month
-router.get('/detachment/:residentId/:detachmentType', authenticate, async (req: AuthRequest, res) => {
+router.get('/detachment/:residentId/:detachmentType', authenticate, residentScope, async (req: AuthRequest, res) => {
   try {
     const { residentId, detachmentType } = req.params;
     const { month } = req.query;
@@ -643,19 +683,19 @@ router.get('/detachment/:residentId/:detachmentType', authenticate, async (req: 
       presParams
     );
 
-    const combined = [...procResult.rows, ...presResult.rows].sort((a, b) => 
+    const combined = [...procResult.rows, ...presResult.rows].sort((a, b) =>
       new Date(b.date).getTime() - new Date(a.date).getTime()
     );
 
     res.json(combined);
   } catch (error) {
-    console.error('Error fetching detachment logs:', error);
+    console.error('Operation failed: logs.ts:683');
     res.status(500).json({ error: 'Failed to fetch detachment logs' });
   }
 });
 
 // Verify detachment logs batch (management/master)
-router.post('/detachment-verify', authenticate, async (req: AuthRequest, res) => {
+router.post('/detachment-verify', authenticate, transactional(async (req: AuthRequest, res) => {
   try {
     const userRole = req.user!.role;
     if (userRole === 'MASTER' || userRole === 'MANAGEMENT') {
@@ -669,65 +709,25 @@ router.post('/detachment-verify', authenticate, async (req: AuthRequest, res) =>
 
     const { residentId, detachmentType, rating, comment, month, overrideAll } = req.body;
 
-    // Build month filter
-    const monthFilterProc = month ? ` AND TO_CHAR(date, 'YYYY-MM') = '${month}'` : '';
-    const monthFilterPres = month ? ` AND TO_CHAR(date, 'YYYY-MM') = '${month}'` : '';
-
+    if (month && !/^\d{4}-(0[1-9]|1[0-2])$/.test(month)) return res.status(400).json({error:'Invalid month'});
+    if (rating != null && !validRating(rating)) return res.status(400).json({error:'Rating must be between 0 and 100'});
     let totalVerified = 0;
-
-    if (overrideAll && rating) {
-      // Override ALL items with new rating/comment
-      const procResult = await query(
-        `UPDATE surgical_logs 
-         SET detachment_verified = true, detachment_rating = $1, detachment_comment = $2,
-             detachment_verified_by = $3, detachment_verified_at = NOW(),
-             status = CASE WHEN status = 'PENDING' THEN 'RATED' ELSE status END, updated_at = NOW()
-         WHERE resident_id = $4 AND is_detachment = true AND detachment_type = $5${monthFilterProc}
-         RETURNING id`,
-        [rating, comment, req.user!.id, residentId, detachmentType]
-      );
-      const presResult = await query(
-        `UPDATE presentations 
-         SET detachment_verified = true, detachment_rating = $1, detachment_comment = $2,
-             detachment_verified_by = $3, detachment_verified_at = NOW(),
-             status = CASE WHEN status = 'PENDING' THEN 'RATED' ELSE status END, updated_at = NOW()
-         WHERE resident_id = $4 AND is_detachment = true AND detachment_type = $5${monthFilterPres}
-         RETURNING id`,
-        [rating, comment, req.user!.id, residentId, detachmentType]
-      );
-      totalVerified = (procResult.rowCount || 0) + (presResult.rowCount || 0);
-    } else {
-      // Only verify unverified items — rating/comment optional
-      const setRating = rating ? `, detachment_rating = ${parseInt(rating)}` : '';
-      const setComment = comment ? `, detachment_comment = '${comment.replace(/'/g, "''")}'` : '';
-
-      const procResult = await query(
-        `UPDATE surgical_logs 
-         SET detachment_verified = true${setRating}${setComment},
-             detachment_verified_by = $1, detachment_verified_at = NOW(),
-             status = CASE WHEN status = 'PENDING' THEN 'RATED' ELSE status END, updated_at = NOW()
-         WHERE resident_id = $2 AND is_detachment = true AND detachment_type = $3
-           AND detachment_verified = false${monthFilterProc}
-         RETURNING id`,
-        [req.user!.id, residentId, detachmentType]
-      );
-      const presResult = await query(
-        `UPDATE presentations 
-         SET detachment_verified = true${setRating}${setComment},
-             detachment_verified_by = $1, detachment_verified_at = NOW(),
-             status = CASE WHEN status = 'PENDING' THEN 'RATED' ELSE status END, updated_at = NOW()
-         WHERE resident_id = $2 AND is_detachment = true AND detachment_type = $3
-           AND detachment_verified = false${monthFilterPres}
-         RETURNING id`,
-        [req.user!.id, residentId, detachmentType]
-      );
-      totalVerified = (procResult.rowCount || 0) + (presResult.rowCount || 0);
+    for (const table of ['surgical_logs', 'presentations']) {
+      const result = await query(`UPDATE ${table}
+        SET detachment_verified = true, detachment_rating = COALESCE($1, detachment_rating),
+            detachment_comment = COALESCE($2, detachment_comment), detachment_verified_by = $3,
+            detachment_verified_at = NOW(), updated_at = NOW()
+        WHERE resident_id = $4 AND is_detachment = true AND detachment_type = $5
+          AND ($6::text IS NULL OR TO_CHAR(date, 'YYYY-MM') = $6)
+          AND ($7::boolean OR NOT COALESCE(detachment_verified, false)) RETURNING id`,
+        [rating ?? null, comment || null, req.user!.id, residentId, detachmentType, month || null, !!overrideAll]);
+      totalVerified += result.rowCount || 0;
     }
 
     // Send notification to resident
     const residentResult = await query('SELECT name FROM users WHERE id = $1', [residentId]);
     const verifierName = await getUserName(req.user!);
-    
+
     await sendNotification(
       residentId,
       `Your ${detachmentType.replace(/_/g, ' ')} detachment logs have been verified by ${verifierName}`,
@@ -735,15 +735,15 @@ router.post('/detachment-verify', authenticate, async (req: AuthRequest, res) =>
       'rated'
     );
 
-    res.json({ 
-      success: true, 
+    res.json({
+      success: true,
       message: `Verified ${totalVerified} detachment items`,
       count: totalVerified
     });
   } catch (error) {
-    console.error('Error verifying detachment logs:', error);
+    console.error('Operation failed: logs.ts:735');
     res.status(500).json({ error: 'Failed to verify detachment logs' });
   }
-});
+}));
 
 export default router;

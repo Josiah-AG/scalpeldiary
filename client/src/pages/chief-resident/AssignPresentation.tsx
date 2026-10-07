@@ -19,7 +19,7 @@ export default function AssignPresentation() {
   const [assignments, setAssignments] = useState<any[]>([]);
   const [showAssignModal, setShowAssignModal] = useState(false);
   const [editingAssignment, setEditingAssignment] = useState<any>(null);
-  
+
   const [formData, setFormData] = useState({
     title: '',
     type: 'Short Presentation',
@@ -66,20 +66,20 @@ export default function AssignPresentation() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     console.log('=== FORM SUBMISSION DEBUG ===');
     console.log('Form data:', formData);
     console.log('Presenter ID type:', typeof formData.presenter_id, 'Value:', formData.presenter_id);
     console.log('Moderator ID type:', typeof formData.moderator_id, 'Value:', formData.moderator_id);
     console.log('All residents:', residents);
     console.log('All supervisors:', supervisors);
-    
+
     // Validate required fields
     if (!formData.title || !formData.type || !formData.presenter_id || !formData.moderator_id) {
       alert('Please fill in all required fields');
       return;
     }
-    
+
     try {
       if (editingAssignment) {
         await api.put(`/presentation-assignments/${editingAssignment.id}`, formData);
@@ -183,7 +183,7 @@ export default function AssignPresentation() {
               <tbody className="bg-white divide-y divide-gray-200">
                 {assignments.map((assignment) => (
                   <tr key={assignment.id} className="hover:bg-gray-50">
-                    <td className="px-6 py-4 text-sm font-medium">{assignment.title}</td>
+                    <td className="px-6 py-4 text-sm font-medium">{assignment.title}{(assignment as any).linked_record_unavailable && <p className="text-xs text-amber-700">Completed history — linked presentation unavailable</p>}</td>
                     <td className="px-6 py-4 text-sm">{assignment.presentation_type || assignment.type}</td>
                     <td className="px-6 py-4 text-sm">{assignment.presenter_name}</td>
                     <td className="px-6 py-4 text-sm">{assignment.moderator_name}</td>
@@ -224,12 +224,12 @@ export default function AssignPresentation() {
 
       {/* Assign Modal */}
       {showAssignModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
           <div className="bg-white rounded-lg p-6 max-w-2xl w-full max-h-[90vh] overflow-y-auto">
             <h3 className="text-xl font-semibold mb-6">
               {editingAssignment ? 'Edit Assignment' : 'Assign Presentation'}
             </h3>
-            
+
             <form onSubmit={handleSubmit} className="space-y-4">
               {/* Title */}
               <div>

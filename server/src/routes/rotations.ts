@@ -1,3 +1,4 @@
+import { transactional } from '../database/transaction';
 import { Router } from 'express';
 import { query } from '../database/db';
 import { authenticate, authorize, AuthRequest } from '../middleware/auth';
@@ -17,20 +18,20 @@ router.get('/categories', authenticate, async (req: AuthRequest, res) => {
     );
     res.json(result.rows);
   } catch (error) {
-    console.error('Error fetching rotation categories:', error);
+    console.error('Operation failed: rotations.ts:20');
     res.status(500).json({ error: 'Failed to fetch rotation categories' });
   }
 });
 
 // Create rotation category (Chief Resident or Master only)
-router.post('/categories', authenticate, async (req: AuthRequest, res) => {
+router.post('/categories', authenticate, transactional(async (req: AuthRequest, res) => {
   try {
     // Check if user is Chief Resident or Master
     const userCheck = await query(
       'SELECT role, is_chief_resident FROM users WHERE id = $1',
       [req.user!.id]
     );
-    
+
     if (userCheck.rows.length === 0) {
       return res.status(403).json({ error: 'Unauthorized' });
     }
@@ -40,38 +41,39 @@ router.post('/categories', authenticate, async (req: AuthRequest, res) => {
       return res.status(403).json({ error: 'Only Chief Residents and Masters can manage categories' });
     }
 
-    const { name, display_order } = req.body;
+    const { name, display_order, color } = req.body;
 
+    if (color != null && !/^#[0-9a-f]{6}$/i.test(color)) return res.status(400).json({error:'Invalid color'});
     if (!name) {
       return res.status(400).json({ error: 'Category name is required' });
     }
 
     const result = await query(
-      `INSERT INTO rotation_categories (name, display_order)
-       VALUES ($1, $2)
+      `INSERT INTO rotation_categories (name, display_order, color)
+       VALUES ($1, $2, $3)
        RETURNING *`,
-      [name, display_order || 0]
+      [name, display_order || 0, color || '#3b82f6']
     );
 
     res.status(201).json(result.rows[0]);
   } catch (error: any) {
-    console.error('Error creating rotation category:', error);
+    console.error('Operation failed: rotations.ts:59');
     if (error.code === '23505') {
       return res.status(400).json({ error: 'Category name already exists' });
     }
     res.status(500).json({ error: 'Failed to create rotation category' });
   }
-});
+}));
 
 // Update rotation category
-router.put('/categories/:id', authenticate, async (req: AuthRequest, res) => {
+router.put('/categories/:id', authenticate, transactional(async (req: AuthRequest, res) => {
   try {
     // Check if user is Chief Resident or Master
     const userCheck = await query(
       'SELECT role, is_chief_resident FROM users WHERE id = $1',
       [req.user!.id]
     );
-    
+
     if (userCheck.rows.length === 0) {
       return res.status(403).json({ error: 'Unauthorized' });
     }
@@ -82,17 +84,19 @@ router.put('/categories/:id', authenticate, async (req: AuthRequest, res) => {
     }
 
     const { id } = req.params;
-    const { name, display_order, is_active } = req.body;
+    const { name, display_order, is_active, color } = req.body;
+    if (color != null && !/^#[0-9a-f]{6}$/i.test(color)) return res.status(400).json({error:'Invalid color'});
 
     const result = await query(
       `UPDATE rotation_categories
        SET name = COALESCE($1, name),
            display_order = COALESCE($2, display_order),
            is_active = COALESCE($3, is_active),
+           color = COALESCE($5, color),
            updated_at = NOW()
        WHERE id = $4
        RETURNING *`,
-      [name, display_order, is_active, id]
+      [name, display_order, is_active, id, color]
     );
 
     if (result.rows.length === 0) {
@@ -101,23 +105,23 @@ router.put('/categories/:id', authenticate, async (req: AuthRequest, res) => {
 
     res.json(result.rows[0]);
   } catch (error: any) {
-    console.error('Error updating rotation category:', error);
+    console.error('Operation failed: rotations.ts:106');
     if (error.code === '23505') {
       return res.status(400).json({ error: 'Category name already exists' });
     }
     res.status(500).json({ error: 'Failed to update rotation category' });
   }
-});
+}));
 
 // Delete rotation category (soft delete)
-router.delete('/categories/:id', authenticate, async (req: AuthRequest, res) => {
+router.delete('/categories/:id', authenticate, transactional(async (req: AuthRequest, res) => {
   try {
     // Check if user is Chief Resident or Master
     const userCheck = await query(
       'SELECT role, is_chief_resident FROM users WHERE id = $1',
       [req.user!.id]
     );
-    
+
     if (userCheck.rows.length === 0) {
       return res.status(403).json({ error: 'Unauthorized' });
     }
@@ -143,10 +147,10 @@ router.delete('/categories/:id', authenticate, async (req: AuthRequest, res) => 
 
     res.json({ message: 'Category deleted successfully' });
   } catch (error) {
-    console.error('Error deleting rotation category:', error);
+    console.error('Operation failed: rotations.ts:148');
     res.status(500).json({ error: 'Failed to delete rotation category' });
   }
-});
+}));
 
 // ============================================
 // ACADEMIC YEARS
@@ -161,7 +165,7 @@ router.get('/academic-years', authenticate, async (req: AuthRequest, res) => {
     );
     res.json(result.rows);
   } catch (error) {
-    console.error('Error fetching academic years:', error);
+    console.error('Operation failed: rotations.ts:166');
     res.status(500).json({ error: 'Failed to fetch academic years' });
   }
 });
@@ -173,20 +177,20 @@ router.get('/academic-years/active', authenticate, async (req: AuthRequest, res)
       'SELECT * FROM academic_years WHERE is_active = true LIMIT 1',
       []
     );
-    
+
     if (result.rows.length === 0) {
       return res.status(404).json({ error: 'No active academic year found' });
     }
 
     res.json(result.rows[0]);
   } catch (error) {
-    console.error('Error fetching active academic year:', error);
+    console.error('Operation failed: rotations.ts:185');
     res.status(500).json({ error: 'Failed to fetch active academic year' });
   }
 });
 
 // Create academic year (Master only)
-router.post('/academic-years', authenticate, authorize('MASTER'), async (req: AuthRequest, res) => {
+router.post('/academic-years', authenticate, authorize('MASTER'), transactional(async (req: AuthRequest, res) => {
   try {
     const { year_name, start_month, start_year, is_active } = req.body;
 
@@ -198,6 +202,7 @@ router.post('/academic-years', authenticate, authorize('MASTER'), async (req: Au
       return res.status(400).json({ error: 'Start month must be between 1 and 12' });
     }
 
+    await query('SELECT pg_advisory_xact_lock(872134)');
     // If setting as active, deactivate other years
     if (is_active) {
       await query('UPDATE academic_years SET is_active = false', []);
@@ -212,13 +217,13 @@ router.post('/academic-years', authenticate, authorize('MASTER'), async (req: Au
 
     res.status(201).json(result.rows[0]);
   } catch (error) {
-    console.error('Error creating academic year:', error);
+    console.error('Operation failed: rotations.ts:218');
     res.status(500).json({ error: 'Failed to create academic year' });
   }
-});
+}));
 
 // Update academic year (Master only)
-router.put('/academic-years/:id', authenticate, authorize('MASTER'), async (req: AuthRequest, res) => {
+router.put('/academic-years/:id', authenticate, authorize('MASTER'), transactional(async (req: AuthRequest, res) => {
   try {
     const { id } = req.params;
     const { year_name, start_month, start_year, is_active } = req.body;
@@ -227,6 +232,7 @@ router.put('/academic-years/:id', authenticate, authorize('MASTER'), async (req:
       return res.status(400).json({ error: 'Start month must be between 1 and 12' });
     }
 
+    await query('SELECT pg_advisory_xact_lock(872134)');
     // If setting as active, deactivate other years
     if (is_active) {
       await query('UPDATE academic_years SET is_active = false WHERE id != $1', [id]);
@@ -250,10 +256,10 @@ router.put('/academic-years/:id', authenticate, authorize('MASTER'), async (req:
 
     res.json(result.rows[0]);
   } catch (error) {
-    console.error('Error updating academic year:', error);
+    console.error('Operation failed: rotations.ts:257');
     res.status(500).json({ error: 'Failed to update academic year' });
   }
-});
+}));
 
 // ============================================
 // YEARLY ROTATIONS
@@ -265,7 +271,7 @@ router.get('/yearly/:yearId', authenticate, async (req: AuthRequest, res) => {
     const { yearId } = req.params;
 
     const result = await query(
-      `SELECT yr.*, 
+      `SELECT yr.*,
               rc.name as rotation_category_name,
               u.name as resident_name
        FROM yearly_rotations yr
@@ -278,7 +284,7 @@ router.get('/yearly/:yearId', authenticate, async (req: AuthRequest, res) => {
 
     res.json(result.rows);
   } catch (error) {
-    console.error('Error fetching yearly rotations:', error);
+    console.error('Operation failed: rotations.ts:285');
     res.status(500).json({ error: 'Failed to fetch yearly rotations' });
   }
 });
@@ -287,14 +293,14 @@ router.get('/yearly/:yearId', authenticate, async (req: AuthRequest, res) => {
 router.get('/current/:residentId', authenticate, async (req: AuthRequest, res) => {
   try {
     let { residentId } = req.params;
-    
+
     // Support 'me' as residentId
     if (residentId === 'me') {
       residentId = req.user!.id.toString();
     }
 
-    console.log('=== Fetching Current Rotation ===');
-    console.log('Resident ID:', residentId);
+
+
 
     // Get active academic year
     const yearResult = await query(
@@ -303,18 +309,18 @@ router.get('/current/:residentId', authenticate, async (req: AuthRequest, res) =
     );
 
     if (yearResult.rows.length === 0) {
-      console.log('❌ No active academic year found');
+
       return res.json(null);
     }
 
     const academicYear = yearResult.rows[0];
-    console.log('Active academic year:', academicYear);
-    
+
+
     const now = new Date();
     const currentYear = now.getFullYear();
     const currentMonth = now.getMonth() + 1; // 1-12
 
-    console.log('Current date:', { currentYear, currentMonth });
+
 
     // Calculate which month of the academic year we're in
     let monthNumber;
@@ -324,24 +330,24 @@ router.get('/current/:residentId', authenticate, async (req: AuthRequest, res) =
       monthNumber = 12 - academicYear.start_month + currentMonth + 1;
     }
 
-    console.log('Calculated month number:', monthNumber);
+
 
     const result = await query(
       `SELECT yr.*, rc.name as category_name, rc.color, ay.year_name as academic_year
        FROM yearly_rotations yr
        LEFT JOIN rotation_categories rc ON yr.rotation_category_id = rc.id
        LEFT JOIN academic_years ay ON yr.academic_year_id = ay.id
-       WHERE yr.academic_year_id = $1 
-         AND yr.resident_id = $2 
+       WHERE yr.academic_year_id = $1
+         AND yr.resident_id = $2
          AND yr.month_number = $3`,
       [academicYear.id, residentId, monthNumber]
     );
 
-    console.log('Query result rows:', result.rows.length);
+
     if (result.rows.length > 0) {
-      console.log('✅ Found rotation:', result.rows[0]);
+
     } else {
-      console.log('❌ No rotation found for:', { academicYearId: academicYear.id, residentId, monthNumber });
+
     }
 
     if (result.rows.length === 0) {
@@ -350,7 +356,7 @@ router.get('/current/:residentId', authenticate, async (req: AuthRequest, res) =
 
     res.json(result.rows[0]);
   } catch (error) {
-    console.error('Error fetching current rotation:', error);
+    console.error('Operation failed: rotations.ts:357');
     res.status(500).json({ error: 'Failed to fetch current rotation' });
   }
 });
@@ -377,15 +383,15 @@ router.get('/my-rotations', authenticate, async (req: AuthRequest, res) => {
               (SELECT ry.residency_start_month FROM resident_years ry WHERE ry.resident_id = $2 ORDER BY ry.year DESC LIMIT 1) as residency_start_month
        FROM yearly_rotations yr
        LEFT JOIN rotation_categories rc ON yr.rotation_category_id = rc.id
-       WHERE yr.academic_year_id = $1 
+       WHERE yr.academic_year_id = $1
          AND yr.resident_id = $2
        ORDER BY yr.month_number`,
       [academicYear.id, residentId]
     );
 
-    res.json(result.rows);
+    res.json(result.rows.map(row => ({...row, academic_start_month:academicYear.start_month})));
   } catch (error) {
-    console.error('Error fetching my rotations:', error);
+    console.error('Operation failed: rotations.ts:392');
     res.status(500).json({ error: 'Failed to fetch rotations' });
   }
 });
@@ -398,14 +404,14 @@ router.get('/', authenticate, async (req: AuthRequest, res) => {
       'SELECT role, is_chief_resident FROM users WHERE id = $1',
       [req.user!.id]
     );
-    
+
     if (userCheck.rows.length === 0) {
       return res.status(403).json({ error: 'Unauthorized' });
     }
 
     const user = userCheck.rows[0];
     const isAuthorized = user.role === 'MASTER' || user.role === 'SUPERVISOR' || user.is_chief_resident;
-    
+
     if (!isAuthorized) {
       return res.status(403).json({ error: 'Only Supervisors, Masters, and Chief Residents can view all rotations' });
     }
@@ -423,10 +429,10 @@ router.get('/', authenticate, async (req: AuthRequest, res) => {
     const academicYear = yearResult.rows[0];
 
     const result = await query(
-      `SELECT yr.month_number as month, 
+      `SELECT yr.month_number as month,
               yr.resident_id,
               u.name as resident_name,
-              rc.name as category_name, 
+              rc.name as category_name,
               rc.color,
               (SELECT MAX(ry.year) FROM resident_years ry WHERE ry.resident_id = yr.resident_id) as resident_year,
               (SELECT ry.residency_start_month FROM resident_years ry WHERE ry.resident_id = yr.resident_id ORDER BY ry.year DESC LIMIT 1) as residency_start_month
@@ -438,22 +444,22 @@ router.get('/', authenticate, async (req: AuthRequest, res) => {
       [academicYear.id]
     );
 
-    res.json(result.rows);
+    res.json(result.rows.map(row => ({...row, academic_start_month:academicYear.start_month})));
   } catch (error) {
-    console.error('Error fetching all rotations:', error);
+    console.error('Operation failed: rotations.ts:447');
     res.status(500).json({ error: 'Failed to fetch rotations' });
   }
 });
 
 // Assign rotation (Chief Resident or Master only)
-router.post('/assign', authenticate, async (req: AuthRequest, res) => {
+router.post('/assign', authenticate, transactional(async (req: AuthRequest, res) => {
   try {
     // Check if user is Chief Resident or Master
     const userCheck = await query(
       'SELECT role, is_chief_resident FROM users WHERE id = $1',
       [req.user!.id]
     );
-    
+
     if (userCheck.rows.length === 0) {
       return res.status(403).json({ error: 'Unauthorized' });
     }
@@ -480,20 +486,20 @@ router.post('/assign', authenticate, async (req: AuthRequest, res) => {
 
     res.status(201).json(result.rows[0]);
   } catch (error) {
-    console.error('Error assigning rotation:', error);
+    console.error('Operation failed: rotations.ts:487');
     res.status(500).json({ error: 'Failed to assign rotation' });
   }
-});
+}));
 
 // Update rotation
-router.put('/:id', authenticate, async (req: AuthRequest, res) => {
+router.put('/:id', authenticate, transactional(async (req: AuthRequest, res) => {
   try {
     // Check if user is Chief Resident or Master
     const userCheck = await query(
       'SELECT role, is_chief_resident FROM users WHERE id = $1',
       [req.user!.id]
     );
-    
+
     if (userCheck.rows.length === 0) {
       return res.status(403).json({ error: 'Unauthorized' });
     }
@@ -522,20 +528,20 @@ router.put('/:id', authenticate, async (req: AuthRequest, res) => {
 
     res.json(result.rows[0]);
   } catch (error) {
-    console.error('Error updating rotation:', error);
+    console.error('Operation failed: rotations.ts:529');
     res.status(500).json({ error: 'Failed to update rotation' });
   }
-});
+}));
 
 // Delete rotation
-router.delete('/:id', authenticate, async (req: AuthRequest, res) => {
+router.delete('/:id', authenticate, transactional(async (req: AuthRequest, res) => {
   try {
     // Check if user is Chief Resident or Master
     const userCheck = await query(
       'SELECT role, is_chief_resident FROM users WHERE id = $1',
       [req.user!.id]
     );
-    
+
     if (userCheck.rows.length === 0) {
       return res.status(403).json({ error: 'Unauthorized' });
     }
@@ -558,9 +564,9 @@ router.delete('/:id', authenticate, async (req: AuthRequest, res) => {
 
     res.json({ message: 'Rotation deleted successfully' });
   } catch (error) {
-    console.error('Error deleting rotation:', error);
+    console.error('Operation failed: rotations.ts:565');
     res.status(500).json({ error: 'Failed to delete rotation' });
   }
-});
+}));
 
 export default router;

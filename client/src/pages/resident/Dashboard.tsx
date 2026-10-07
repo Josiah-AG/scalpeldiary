@@ -1,3 +1,5 @@
+import { ratingRank } from '../../utils/ratingUtils';
+import { setModalContent } from '../../utils/safeModal';
 import { useEffect, useState } from 'react';
 import Layout from '../../components/Layout';
 import api from '../../api/axios';
@@ -66,13 +68,15 @@ export default function Dashboard() {
         fetchRatedLogsCount();
       }
     } else if (selectedYear && isReadOnlyMode && years.length > 0) {
-      // For read-only mode when month changes
+      fetchMetrics();
+      // Refresh all metrics with the selected year
       fetchCalendarDataWithYears(selectedYear, years);
       fetchYearProgress();
     }
   }, [selectedYear, currentMonth]);
 
   const fetchYears = async () => {
+    try {
     if (isReadOnlyMode && viewingResidentId) {
       const response = await api.get(`/users/resident-years/${viewingResidentId}`);
       const yearsData = response.data;
@@ -81,7 +85,7 @@ export default function Dashboard() {
         const latest = yearsData[yearsData.length - 1];
         setSelectedYear(latest.id);
         setCurrentYearNum(latest.year);
-        
+
         // Immediately fetch data with the years data
         await fetchMetricsWithYearId(latest.id, yearsData);
         await fetchCalendarDataWithYears(latest.id, yearsData);
@@ -95,6 +99,7 @@ export default function Dashboard() {
         setCurrentYearNum(latest.year);
       }
     }
+    } catch { console.error('Unable to load resident years'); } finally { setLoading(false); }
   };
 
   const fetchMetricsWithYearId = async (yearId: any, yearsData: any[]) => {
@@ -104,7 +109,7 @@ export default function Dashboard() {
         api.get(`/analytics/dashboard?yearId=${yearId}&residentId=${viewingResidentId}`),
         api.get(`/presentations/stats?yearId=${yearId}&residentId=${viewingResidentId}`)
       ]);
-      
+
       setMetrics({
         ...dashboardRes.data,
         totalPresentations: presentationsRes.data.totalPresentations || 0,
@@ -160,7 +165,7 @@ export default function Dashboard() {
     setLoading(true);
     try {
       let dashboardRes, presentationsRes;
-      
+
       if (isReadOnlyMode && viewingResidentId) {
         [dashboardRes, presentationsRes] = await Promise.all([
           api.get(`/analytics/dashboard?yearId=${selectedYear}&residentId=${viewingResidentId}`),
@@ -172,7 +177,7 @@ export default function Dashboard() {
           api.get(`/presentations/stats?yearId=${selectedYear}`)
         ]);
       }
-      
+
       setMetrics({
         ...dashboardRes.data,
         totalPresentations: presentationsRes.data.totalPresentations || 0,
@@ -237,8 +242,8 @@ export default function Dashboard() {
   const fetchYearlyRotations = async () => {
     try {
       const residentId = isReadOnlyMode && viewingResidentId ? viewingResidentId : undefined;
-      const response = await api.get('/rotations/my-rotations', { 
-        params: residentId ? { residentId } : {} 
+      const response = await api.get('/rotations/my-rotations', {
+        params: residentId ? { residentId } : {}
       });
       setYearlyRotations(response.data);
     } catch (error) {
@@ -289,11 +294,11 @@ export default function Dashboard() {
     try {
       const start = format(startOfMonth(currentMonth), 'yyyy-MM-dd');
       const end = format(endOfMonth(currentMonth), 'yyyy-MM-dd');
-      
+
       let logsRes, presentationsRes;
-      
+
       if (isReadOnlyMode && viewingResidentId) {
-        const yearData = years.find(y => y.id === parseInt(selectedYear));
+        const yearData = years.find(y => String(y.id) === selectedYear);
         if (yearData) {
           [logsRes, presentationsRes] = await Promise.all([
             api.get(`/logs/resident/${viewingResidentId}?year=${yearData.year}`),
@@ -404,7 +409,7 @@ export default function Dashboard() {
               <span className="sm:hidden">{day}</span>
             </div>
           ))}
-          
+
           {days.map(day => {
             const dateStr = format(day, 'yyyy-MM-dd');
             const dayData = calendarData[dateStr];
@@ -418,9 +423,9 @@ export default function Dashboard() {
                   if (hasActivity) {
                     // Show detail modal
                     const modal = document.createElement('div');
-                    modal.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50 animate-fadeIn';
+                    modal.className = 'fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50 animate-fadeIn';
                     modal.onclick = () => modal.remove();
-                    modal.innerHTML = `
+                    setModalContent(modal, `
                       <div class="bg-white rounded-xl shadow-2xl max-w-sm w-full animate-slideUp" onclick="event.stopPropagation()">
                         <div class="bg-gradient-to-r from-blue-600 to-blue-700 px-6 py-4 rounded-t-xl">
                           <div class="flex justify-between items-center">
@@ -471,7 +476,7 @@ export default function Dashboard() {
                           </button>
                         </div>
                       </div>
-                    `;
+                    `);
                     document.body.appendChild(modal);
                   }
                 }}
@@ -611,12 +616,12 @@ export default function Dashboard() {
               </div>
             </div>
           </div>
-          
+
           {/* Content Grid - Mobile Optimized */}
           <div className="p-4 md:p-8">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6">
               {/* Current Rotation Card */}
-              <div 
+              <div
                 onClick={handleRotationCardClick}
                 className="group relative bg-gradient-to-br from-blue-50 to-indigo-50 rounded-lg md:rounded-xl p-4 md:p-6 border-2 border-blue-200 hover:border-blue-400 transition-all hover:shadow-lg cursor-pointer"
               >
@@ -632,9 +637,9 @@ export default function Dashboard() {
                   </div>
                   {todayOverview.rotation ? (
                     <div className="space-y-2">
-                      <div 
+                      <div
                         className="inline-block px-3 py-1.5 md:px-4 md:py-2 rounded-lg font-bold text-sm md:text-lg shadow-sm"
-                        style={{ 
+                        style={{
                           backgroundColor: todayOverview.rotation.color || '#3B82F6',
                           color: 'white'
                         }}
@@ -655,7 +660,7 @@ export default function Dashboard() {
               </div>
 
               {/* Today's Duty Card - Always show */}
-              <div 
+              <div
                 onClick={handleDutyCardClick}
                 className="group relative bg-gradient-to-br from-amber-50 to-orange-50 rounded-lg md:rounded-xl p-4 md:p-6 border-2 border-amber-200 hover:border-amber-400 transition-all hover:shadow-lg cursor-pointer"
               >
@@ -669,13 +674,13 @@ export default function Dashboard() {
                     </div>
                     <h4 className="text-sm md:text-lg font-bold text-gray-800">Today's Duty</h4>
                   </div>
-                  
+
                   <div className="space-y-2">
                     {todayOverview.duties && todayOverview.duties.length > 0 ? (
                       <>
                         {todayOverview.duties.map((duty: any, idx: number) => (
-                          <div 
-                            key={`duty-${idx}`} 
+                          <div
+                            key={`duty-${idx}`}
                             className="bg-gradient-to-r from-amber-500 to-orange-500 text-white rounded-lg px-3 py-2 md:px-4 md:py-3 shadow-md"
                           >
                             <p className="font-bold text-xs md:text-base">You are on duty at</p>
@@ -697,7 +702,7 @@ export default function Dashboard() {
               </div>
 
               {/* Today's Activities Card */}
-              <div 
+              <div
                 onClick={handleActivityCardClick}
                 className="group relative bg-gradient-to-br from-purple-50 to-pink-50 rounded-lg md:rounded-xl p-4 md:p-6 border-2 border-purple-200 hover:border-purple-400 transition-all hover:shadow-lg cursor-pointer"
               >
@@ -709,13 +714,13 @@ export default function Dashboard() {
                     </div>
                     <h4 className="text-sm md:text-lg font-bold text-gray-800">Today's Activities</h4>
                   </div>
-                  
+
                   <div className="space-y-2">
                     {todayOverview.activities && todayOverview.activities.length > 0 ? (
                       <>
                         {todayOverview.activities.map((activity: any, idx: number) => (
-                          <div 
-                            key={`activity-${idx}`} 
+                          <div
+                            key={`activity-${idx}`}
                             className="bg-white border-2 border-purple-200 rounded-lg px-3 py-2 md:px-4 md:py-2.5 hover:border-purple-400 transition-colors"
                           >
                             <div className="flex items-center space-x-2">
@@ -778,7 +783,7 @@ export default function Dashboard() {
             <div>
               <p className="text-purple-100 text-xs md:text-sm font-medium">Avg Procedure Rating</p>
               <p className="text-3xl md:text-4xl font-bold mt-1 md:mt-2">
-                {!isReadOnlyMode && (metrics?.verifiedSurgeries || 0) < 10 ? '—' : (metrics?.averageRating?.toFixed(1) || 'N/A')}
+                {!isReadOnlyMode && (metrics?.verifiedSurgeries || 0) < 10 ? '—' : (isReadOnlyMode ? (metrics?.averageRating?.toFixed(1) || 'N/A') : (metrics?.averageRatingLabel || 'N/A'))}
               </p>
               {!isReadOnlyMode && (metrics?.verifiedSurgeries || 0) < 10 && (
                 <p className="text-purple-200 text-xs mt-1">Need 10+ verified</p>
@@ -793,7 +798,7 @@ export default function Dashboard() {
             <div>
               <p className="text-orange-100 text-xs md:text-sm font-medium">Avg Presentation Rating</p>
               <p className="text-3xl md:text-4xl font-bold mt-1 md:mt-2">
-                {!isReadOnlyMode && (metrics?.verifiedPresentations || 0) < 5 ? '—' : (metrics?.avgPresentationRating?.toFixed(1) || 'N/A')}
+                {!isReadOnlyMode && (metrics?.verifiedPresentations || 0) < 5 ? '—' : (isReadOnlyMode ? (metrics?.avgPresentationRating?.toFixed(1) || 'N/A') : (metrics?.avgPresentationRatingLabel || 'N/A'))}
               </p>
               {!isReadOnlyMode && (metrics?.verifiedPresentations || 0) < 5 && (
                 <p className="text-orange-200 text-xs mt-1">Need 5+ verified</p>
@@ -805,7 +810,7 @@ export default function Dashboard() {
 
         {/* Rated Logs Card - Only for Year 2+ */}
         {currentYearNum >= 2 && (
-          <div 
+          <div
             className="bg-gradient-to-br from-indigo-500 to-indigo-600 rounded-lg md:rounded-xl shadow-lg p-4 md:p-6 text-white cursor-pointer hover:shadow-xl transition-shadow"
             onClick={() => navigate('/rated-logs')}
           >
@@ -824,8 +829,8 @@ export default function Dashboard() {
       {/* Year Progress Bar */}
       {yearProgress && (
         <div className="mb-8">
-          <YearProgressBar 
-            progress={yearProgress} 
+          <YearProgressBar
+            progress={yearProgress}
             onClick={() => setShowProgressModal(true)}
           />
         </div>
@@ -871,21 +876,21 @@ export default function Dashboard() {
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
               {metrics?.recentSurgeries?.slice(0, 10).map((surgery: any) => {
-                const rowColor = !surgery.rating 
-                  ? 'bg-gray-100 hover:bg-gray-200' 
-                  : surgery.rating > 50 
-                  ? 'bg-green-50 hover:bg-green-100' 
+                const rowColor = !surgery.rating
+                  ? 'bg-gray-100 hover:bg-gray-200'
+                  : ratingRank(surgery.rating) >= 50
+                  ? 'bg-green-50 hover:bg-green-100'
                   : 'bg-red-50 hover:bg-red-100';
-                
+
                 return (
-                  <tr 
-                    key={surgery.id} 
+                  <tr
+                    key={surgery.id}
                     className={`cursor-pointer transition-colors ${rowColor}`}
                     onClick={() => {
                       // Show procedure detail modal
                       const modal = document.createElement('div');
-                      modal.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50';
-                      modal.innerHTML = `
+                      modal.className = 'fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50';
+                      setModalContent(modal, `
                         <div class="bg-white rounded-lg p-6 max-w-2xl w-full max-h-[90vh] overflow-y-auto">
                           <div class="flex justify-between items-start mb-4">
                             <h3 class="text-xl font-bold">Procedure Details</h3>
@@ -904,15 +909,15 @@ export default function Dashboard() {
                             <p><strong>Surgery Role:</strong> ${surgery.surgery_role?.replace(/_/g, ' ')}</p>
                             <p><strong>Supervisor:</strong> ${surgery.supervisor_name || surgery.external_supervisor_name || 'N/A'}</p>
                             ${surgery.remark ? `<p><strong>Remark:</strong> ${surgery.remark}</p>` : ''}
-                            ${surgery.rating ? `
+                            ${surgery.rating != null ? `
                               <div class="border-t pt-3 mt-3">
-                                <p><strong>Rating:</strong> <span class="text-2xl font-bold ${surgery.rating >= 90 ? 'text-green-600' : surgery.rating >= 71 ? 'text-blue-600' : surgery.rating >= 50 ? 'text-yellow-600' : 'text-red-600'}">${isReadOnlyMode ? surgery.rating + '/100' : (surgery.rating >= 90 ? 'Excellent' : surgery.rating >= 71 ? 'Good' : surgery.rating >= 50 ? 'Satisfactory' : 'Poor')}</span></p>
+                                <p><strong>Rating:</strong> <span class="text-2xl font-bold ${ratingRank(surgery.rating) >= 90 ? 'text-green-600' : ratingRank(surgery.rating) >= 71 ? 'text-blue-600' : ratingRank(surgery.rating) >= 50 ? 'text-yellow-600' : 'text-red-600'}">${isReadOnlyMode ? surgery.rating + '/100' : (ratingRank(surgery.rating) >= 90 ? 'Excellent' : ratingRank(surgery.rating) >= 71 ? 'Good' : ratingRank(surgery.rating) >= 50 ? 'Satisfactory' : 'Poor')}</span></p>
                                 ${surgery.comment ? `<p class="mt-2"><strong>Comment:</strong> ${surgery.comment}</p>` : ''}
                               </div>
                             ` : '<p class="text-gray-500 italic">Not yet rated</p>'}
                           </div>
                         </div>
-                      `;
+                      `);
                       document.body.appendChild(modal);
                     }}
                   >
@@ -929,10 +934,10 @@ export default function Dashboard() {
                         <span className="px-2 py-0.5 md:px-3 md:py-1 rounded-full bg-gray-400 text-white font-semibold text-xs">
                           {surgery.detachment_verified ? 'N/A' : 'Detachment'}
                         </span>
-                      ) : surgery.rating ? (
+                      ) : surgery.rating != null ? (
                         (() => {
                           const showExact = canSeeExactScores(user?.role, isReadOnlyMode);
-                          const badge = showExact 
+                          const badge = showExact
                             ? getSupervisorRatingBadge(surgery.rating, surgery.status)
                             : getResidentRatingBadge(surgery.rating, surgery.status);
                           return <span className={`px-2 py-0.5 md:px-3 md:py-1 rounded-full font-semibold text-xs ${badge.className}`}>{badge.text}</span>;
@@ -998,21 +1003,21 @@ export default function Dashboard() {
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
               {metrics?.recentPresentations?.slice(0, 5).map((pres: any) => {
-                const rowColor = !pres.rating 
-                  ? 'bg-gray-100 hover:bg-gray-200' 
-                  : pres.rating > 50 
-                  ? 'bg-green-50 hover:bg-green-100' 
+                const rowColor = !pres.rating
+                  ? 'bg-gray-100 hover:bg-gray-200'
+                  : ratingRank(pres.rating) >= 50
+                  ? 'bg-green-50 hover:bg-green-100'
                   : 'bg-red-50 hover:bg-red-100';
-                
+
                 return (
-                  <tr 
-                    key={pres.id} 
+                  <tr
+                    key={pres.id}
                     className={`cursor-pointer transition-colors ${rowColor}`}
                     onClick={() => {
                       // Show presentation detail modal
                       const modal = document.createElement('div');
-                      modal.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50';
-                      modal.innerHTML = `
+                      modal.className = 'fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50';
+                      setModalContent(modal, `
                         <div class="bg-white rounded-lg p-6 max-w-2xl w-full max-h-[90vh] overflow-y-auto">
                           <div class="flex justify-between items-start mb-4">
                             <h3 class="text-xl font-bold">Presentation Details</h3>
@@ -1024,16 +1029,16 @@ export default function Dashboard() {
                             <p><strong>Type:</strong> ${pres.presentation_type?.replace(/_/g, ' ')}</p>
                             <p><strong>Venue:</strong> ${pres.venue}</p>
                             ${pres.description ? `<p><strong>Description:</strong> ${pres.description}</p>` : ''}
-                            <p><strong>Rated by:</strong> ${pres.rating ? (pres.supervisor_name || 'Supervisor') : 'Not yet rated'}</p>
-                            ${pres.rating ? `
+                            <p><strong>Rated by:</strong> ${pres.rating != null ? (pres.supervisor_name || 'Supervisor') : 'Not yet rated'}</p>
+                            ${pres.rating != null ? `
                               <div class="border-t pt-3 mt-3">
-                                <p><strong>Rating:</strong> <span class="text-2xl font-bold ${pres.rating >= 90 ? 'text-green-600' : pres.rating >= 71 ? 'text-blue-600' : pres.rating >= 50 ? 'text-yellow-600' : 'text-red-600'}">${isReadOnlyMode ? pres.rating + '/100' : (pres.rating >= 90 ? 'Excellent' : pres.rating >= 71 ? 'Good' : pres.rating >= 50 ? 'Satisfactory' : 'Poor')}</span></p>
+                                <p><strong>Rating:</strong> <span class="text-2xl font-bold ${ratingRank(pres.rating) >= 90 ? 'text-green-600' : ratingRank(pres.rating) >= 71 ? 'text-blue-600' : ratingRank(pres.rating) >= 50 ? 'text-yellow-600' : 'text-red-600'}">${isReadOnlyMode ? pres.rating + '/100' : (ratingRank(pres.rating) >= 90 ? 'Excellent' : ratingRank(pres.rating) >= 71 ? 'Good' : ratingRank(pres.rating) >= 50 ? 'Satisfactory' : 'Poor')}</span></p>
                                 ${pres.comment ? `<p class="mt-2"><strong>Comment:</strong> ${pres.comment}</p>` : ''}
                               </div>
                             ` : '<p class="text-gray-500 italic">Not yet rated</p>'}
                           </div>
                         </div>
-                      `;
+                      `);
                       document.body.appendChild(modal);
                     }}
                   >
@@ -1046,10 +1051,10 @@ export default function Dashboard() {
                     <td className="px-3 py-3 md:px-6 md:py-4 whitespace-nowrap text-xs md:text-sm">
                       {pres.status === 'NOT_WITNESSED' ? (
                         <span className="px-2 py-0.5 md:px-3 md:py-1 rounded-full bg-gray-400 text-white font-semibold text-xs">N/A</span>
-                      ) : pres.rating ? (
+                      ) : pres.rating != null ? (
                         (() => {
                           const showExact = canSeeExactScores(user?.role, isReadOnlyMode);
-                          const badge = showExact 
+                          const badge = showExact
                             ? getSupervisorRatingBadge(pres.rating, pres.status)
                             : getResidentRatingBadge(pres.rating, pres.status);
                           return <span className={`px-2 py-0.5 md:px-3 md:py-1 rounded-full font-semibold text-xs ${badge.className}`}>{badge.text}</span>;
@@ -1114,7 +1119,7 @@ export default function Dashboard() {
 
       {/* Edit Procedure Modal */}
       {showEditModal && editingLog && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50 overflow-y-auto">
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50 overflow-y-auto">
           <div className="bg-white rounded-xl shadow-2xl max-w-4xl w-full my-8">
             <div className="bg-gradient-to-r from-green-600 to-green-700 text-white px-6 py-4 flex justify-between items-center rounded-t-xl">
               <h3 className="text-xl font-bold">Edit Procedure</h3>
@@ -1203,7 +1208,7 @@ export default function Dashboard() {
 
       {/* Edit Presentation Modal */}
       {showEditPresModal && editingPres && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50 overflow-y-auto">
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50 overflow-y-auto">
           <div className="bg-white rounded-xl shadow-2xl max-w-2xl w-full my-8">
             <div className="bg-gradient-to-r from-green-600 to-green-700 text-white px-6 py-4 flex justify-between items-center rounded-t-xl">
               <h3 className="text-xl font-bold">Edit Presentation</h3>

@@ -1,5 +1,7 @@
+import { transactional } from '../database/transaction';
 import { Router } from 'express';
 import bcrypt from 'bcryptjs';
+import { residentScope } from '../security/policy';
 import { query } from '../database/db';
 import { authenticate, authorize, AuthRequest } from '../middleware/auth';
 
@@ -8,12 +10,12 @@ const router = Router();
 // Get current user's resident years (must be before /:residentId route)
 router.get('/resident-years/me', authenticate, async (req: AuthRequest, res) => {
   try {
-    console.log('RESIDENT-YEARS/ME - User ID from JWT:', req.user!.id, 'Name:', req.user!.name);
+
     const result = await query(
       'SELECT * FROM resident_years WHERE resident_id = $1 ORDER BY year',
       [req.user!.id]
     );
-    console.log('RESIDENT-YEARS/ME - Found years:', result.rows.map(r => ({ id: r.id, year: r.year, resident_id: r.resident_id })));
+
     res.json(result.rows);
   } catch (error) {
     res.status(500).json({ error: 'Failed to fetch resident years' });
@@ -21,7 +23,7 @@ router.get('/resident-years/me', authenticate, async (req: AuthRequest, res) => 
 });
 
 // Get resident years
-router.get('/resident-years/:residentId', authenticate, async (req, res) => {
+router.get('/resident-years/:residentId', authenticate, residentScope, async (req, res) => {
   try {
     const { residentId } = req.params;
     const result = await query(
@@ -39,7 +41,7 @@ router.get('/management/stats', authenticate, async (req: AuthRequest, res) => {
   try {
     // Check if user has management access
     const userRole = req.user!.role;
-    
+
     // Allow MASTER, MANAGEMENT, or SUPERVISOR with management access
     if (userRole === 'MASTER' || userRole === 'MANAGEMENT') {
       // Allowed
@@ -55,14 +57,14 @@ router.get('/management/stats', authenticate, async (req: AuthRequest, res) => {
     } else {
       return res.status(403).json({ error: 'Forbidden' });
     }
-    
+
     const result = await query(
       'SELECT id, email, name, role, institution, specialty FROM users WHERE role IN ($1, $2) ORDER BY created_at DESC',
       ['RESIDENT', 'SUPERVISOR']
     );
     res.json(result.rows);
   } catch (error) {
-    console.error('Error fetching management stats:', error);
+    console.error('Operation failed: users.ts:66');
     res.status(500).json({ error: 'Failed to fetch stats' });
   }
 });
@@ -71,36 +73,36 @@ router.get('/management/stats', authenticate, async (req: AuthRequest, res) => {
 router.get('/', authenticate, async (req: AuthRequest, res) => {
   try {
     const { role } = req.query;
-    
+
     // Check authorization
     const userCheck = await query(
       'SELECT role, is_chief_resident FROM users WHERE id = $1',
       [req.user!.id]
     );
-    
+
     const currentUser = userCheck.rows[0];
     const isMaster = currentUser.role === 'MASTER';
     const isChiefResident = currentUser.is_chief_resident;
     const isSupervisor = currentUser.role === 'SUPERVISOR';
-    
+
     // Master can see all users
     // Chief Resident can only see residents
     // Supervisor can only see residents
     if (!isMaster && !(isChiefResident && role === 'RESIDENT') && !(isSupervisor && role === 'RESIDENT')) {
       return res.status(403).json({ error: 'Unauthorized' });
     }
-    
+
     // Build query based on role filter
     let queryStr = 'SELECT id, email, name, role, institution, specialty, created_at, COALESCE(is_suspended, false) as is_suspended, COALESCE(has_management_access, false) as has_management_access, COALESCE(is_chief_resident, false) as is_chief_resident FROM users';
     const params: any[] = [];
-    
+
     if (role) {
       queryStr += ' WHERE role = $1';
       params.push(role);
     }
-    
+
     queryStr += ' ORDER BY created_at DESC';
-    
+
     // Try with is_suspended column, fallback if it doesn't exist
     let result;
     try {
@@ -116,18 +118,19 @@ router.get('/', authenticate, async (req: AuthRequest, res) => {
     }
     res.json(result.rows);
   } catch (error) {
-    console.error('Error fetching users:', error);
+    console.error('Operation failed: users.ts:120');
     res.status(500).json({ error: 'Failed to fetch users' });
   }
 });
 
 // Create user (Master only)
-router.post('/', authenticate, authorize('MASTER'), async (req, res) => {
+router.post('/', authenticate, authorize('MASTER'), transactional(async (req, res) => {
   try {
     const { email, name, role, year, institution, specialty, password } = req.body;
-    
+
     // Use provided password or default
-    const passwordToHash = password || 'password123';
+    if (typeof password !== 'string' || password.length < 8 || Buffer.byteLength(password) > 72 || !['RESIDENT','SUPERVISOR','MASTER','MANAGEMENT'].includes(role) || typeof email !== 'string' || !email.includes('@') || !name || (role === 'RESIDENT' && (!Number.isInteger(year) || year < 1 || year > 4))) return res.status(400).json({error:'Valid name, email, role, resident year and an 8–72 byte password are required'});
+    const passwordToHash = password;
     const hashedPassword = await bcrypt.hash(passwordToHash, 10);
 
     const result = await query(
@@ -140,7 +143,7 @@ router.post('/', authenticate, authorize('MASTER'), async (req, res) => {
     // If resident, create year account
     if (role === 'RESIDENT' && year) {
       await query(
-        'INSERT INTO resident_years (resident_id, year) VALUES ($1, $2)',
+        'INSERT INTO resident_years (resident_id, year) VALUES ($1, $2) ON CONFLICT (resident_id, year) DO NOTHING',
         [user.id, year]
       );
     }
@@ -149,10 +152,10 @@ router.post('/', authenticate, authorize('MASTER'), async (req, res) => {
   } catch (error) {
     res.status(500).json({ error: 'Failed to create user' });
   }
-});
+}));
 
 // Create resident year (Master only)
-router.post('/resident-years', authenticate, authorize('MASTER'), async (req, res) => {
+router.post('/resident-years', authenticate, authorize('MASTER'), transactional(async (req, res) => {
   try {
     const { residentId, year } = req.body;
     const result = await query(
@@ -163,33 +166,33 @@ router.post('/resident-years', authenticate, authorize('MASTER'), async (req, re
   } catch (error) {
     res.status(500).json({ error: 'Failed to create resident year' });
   }
-});
+}));
 
 // Reset password (Master only)
-router.post('/reset-password/:userId', authenticate, authorize('MASTER'), async (req, res) => {
+router.post('/reset-password/:userId', authenticate, authorize('MASTER'), transactional(async (req, res) => {
   try {
     const { userId } = req.params;
     const { newPassword } = req.body;
-    
-    if (!newPassword || newPassword.length < 6) {
-      return res.status(400).json({ error: 'Password must be at least 6 characters' });
+
+    if (!newPassword || newPassword.length < 8 || Buffer.byteLength(newPassword) > 72) {
+      return res.status(400).json({ error: 'Password must be 8–72 bytes' });
     }
-    
+
     const hashedPassword = await bcrypt.hash(newPassword, 10);
-    
-    await query('UPDATE users SET password = $1, updated_at = NOW() WHERE id = $2', [hashedPassword, userId]);
+
+    await query('UPDATE users SET password = $1, token_version = token_version + 1, updated_at = NOW() WHERE id = $2', [hashedPassword, userId]);
     res.json({ message: 'Password reset successfully' });
   } catch (error) {
     res.status(500).json({ error: 'Failed to reset password' });
   }
-});
+}));
 
 // Get supervisors with statistics (Master and Management with access)
 router.get('/supervisors/stats', authenticate, async (req: AuthRequest, res) => {
   try {
     // Check if user has management access
     const userRole = req.user!.role;
-    
+
     // Allow MASTER, MANAGEMENT, or SUPERVISOR with management access
     if (userRole === 'MASTER' || userRole === 'MANAGEMENT') {
       // Allowed
@@ -205,12 +208,12 @@ router.get('/supervisors/stats', authenticate, async (req: AuthRequest, res) => 
     } else {
       return res.status(403).json({ error: 'Forbidden' });
     }
-    
+
     const result = await query(
-      `SELECT 
-        u.id, 
-        u.name, 
-        u.email, 
+      `SELECT
+        u.id,
+        u.name,
+        u.email,
         u.profile_picture,
         u.institution,
         u.specialty,
@@ -227,7 +230,7 @@ router.get('/supervisors/stats', authenticate, async (req: AuthRequest, res) => 
     );
     res.json(result.rows);
   } catch (error) {
-    console.error('Error fetching supervisor stats:', error);
+    console.error('Operation failed: users.ts:231');
     res.status(500).json({ error: 'Failed to fetch supervisor statistics' });
   }
 });
@@ -236,14 +239,14 @@ router.get('/supervisors/stats', authenticate, async (req: AuthRequest, res) => 
 router.get('/supervisors/only', authenticate, async (req: AuthRequest, res) => {
   try {
     const result = await query(
-      `SELECT u.id, u.name, u.email, u.institution, u.specialty, COALESCE(u.is_senior, false) as is_senior 
+      `SELECT u.id, u.name, u.email, u.institution, u.specialty, COALESCE(u.is_senior, false) as is_senior
        FROM users u
        WHERE u.role = 'SUPERVISOR'
        ORDER BY u.name`
     );
     res.json(result.rows);
   } catch (error) {
-    console.error('Error fetching supervisors:', error);
+    console.error('Operation failed: users.ts:247');
     res.status(500).json({ error: 'Failed to fetch supervisors' });
   }
 });
@@ -253,7 +256,7 @@ router.get('/supervisors', authenticate, async (req: AuthRequest, res) => {
   try {
     const { procedureCategory, residentId } = req.query;
     const currentUserId = residentId || req.user!.id;
-    
+
     // Get the requesting resident's current year
     let currentYear = 0;
     const yearResult = await query(
@@ -265,12 +268,12 @@ router.get('/supervisors', authenticate, async (req: AuthRequest, res) => {
     // Return all supervisors + residents who are strictly senior (higher year)
     // Exclude self
     const result = await query(
-      `SELECT u.id, u.name, u.email, u.institution, u.specialty, COALESCE(u.is_senior, false) as is_senior 
+      `SELECT u.id, u.name, u.email, u.institution, u.specialty, COALESCE(u.is_senior, false) as is_senior
        FROM users u
-       WHERE (u.role = 'SUPERVISOR' 
+       WHERE (u.role = 'SUPERVISOR'
          OR (u.role = 'RESIDENT' AND EXISTS (
-           SELECT 1 FROM resident_years ry 
-           WHERE ry.resident_id = u.id 
+           SELECT 1 FROM resident_years ry
+           WHERE ry.resident_id = u.id
            AND ry.year > $1
          )))
        AND u.id != $2
@@ -279,7 +282,7 @@ router.get('/supervisors', authenticate, async (req: AuthRequest, res) => {
     );
     res.json(result.rows);
   } catch (error) {
-    console.error('Error fetching supervisors:', error);
+    console.error('Operation failed: users.ts:283');
     res.status(500).json({ error: 'Failed to fetch supervisors' });
   }
 });
@@ -348,16 +351,16 @@ router.get('/detachment-supervisors', authenticate, async (req: AuthRequest, res
       : venue === 'ORTHOPEDICS' ? 'Orthopedics Supervisor'
       : venue === 'PLASTIC_SURGERY' ? 'Plastic Surgery Supervisor'
       : 'External Supervisor';
-    
+
     return res.json({ residents: [], externalLabel: detachmentLabel });
   } catch (error) {
-    console.error('Error fetching detachment supervisors:', error);
+    console.error('Operation failed: users.ts:355');
     res.status(500).json({ error: 'Failed to fetch detachment supervisors' });
   }
 });
 
 // Toggle senior supervisor status (Master only)
-router.post('/toggle-senior/:userId', authenticate, authorize('MASTER'), async (req, res) => {
+router.post('/toggle-senior/:userId', authenticate, authorize('MASTER'), transactional(async (req, res) => {
   try {
     const { userId } = req.params;
     const result = await query(
@@ -368,12 +371,13 @@ router.post('/toggle-senior/:userId', authenticate, authorize('MASTER'), async (
   } catch (error) {
     res.status(500).json({ error: 'Failed to toggle senior status' });
   }
-});
+}));
 
 // Update profile picture
-router.post('/profile-picture', authenticate, async (req: AuthRequest, res) => {
+router.post('/profile-picture', authenticate, transactional(async (req: AuthRequest, res) => {
   try {
     const { profilePicture } = req.body;
+    if (typeof profilePicture !== 'string' || !/^data:image\/(png|jpeg|webp);base64,[A-Za-z0-9+/=]+$/.test(profilePicture) || Buffer.from(profilePicture.split(',')[1], 'base64').length > 2 * 1024 * 1024) return res.status(400).json({error:'Choose a PNG, JPEG or WebP image up to 2 MB'});
     const result = await query(
       'UPDATE users SET profile_picture = $1 WHERE id = $2 RETURNING profile_picture',
       [profilePicture, req.user!.id]
@@ -382,7 +386,7 @@ router.post('/profile-picture', authenticate, async (req: AuthRequest, res) => {
   } catch (error) {
     res.status(500).json({ error: 'Failed to update profile picture' });
   }
-});
+}));
 
 // Get current user profile
 router.get('/me', authenticate, async (req: AuthRequest, res) => {
@@ -398,7 +402,7 @@ router.get('/me', authenticate, async (req: AuthRequest, res) => {
 });
 
 // Update specialty
-router.put('/specialty', authenticate, async (req: AuthRequest, res) => {
+router.put('/specialty', authenticate, transactional(async (req: AuthRequest, res) => {
   try {
     const { specialty } = req.body;
     const result = await query(
@@ -409,13 +413,14 @@ router.put('/specialty', authenticate, async (req: AuthRequest, res) => {
   } catch (error) {
     res.status(500).json({ error: 'Failed to update specialty' });
   }
-});
+}));
 
 // Change password
-router.post('/change-password', authenticate, async (req: AuthRequest, res) => {
+router.post('/change-password', authenticate, transactional(async (req: AuthRequest, res) => {
   try {
     const { currentPassword, newPassword } = req.body;
 
+    if (typeof newPassword !== 'string' || newPassword.length < 8 || Buffer.byteLength(newPassword) > 72) return res.status(400).json({error:'Password must be 8–72 bytes'});
     // Verify current password
     const userResult = await query('SELECT password FROM users WHERE id = $1', [req.user!.id]);
     const user = userResult.rows[0];
@@ -427,20 +432,20 @@ router.post('/change-password', authenticate, async (req: AuthRequest, res) => {
 
     // Update password
     const hashedPassword = await bcrypt.hash(newPassword, 10);
-    await query('UPDATE users SET password = $1, updated_at = NOW() WHERE id = $2', [hashedPassword, req.user!.id]);
+    await query('UPDATE users SET password = $1, token_version = token_version + 1, updated_at = NOW() WHERE id = $2', [hashedPassword, req.user!.id]);
 
     res.json({ message: 'Password changed successfully' });
   } catch (error) {
     res.status(500).json({ error: 'Failed to change password' });
   }
-});
+}));
 
 // Update user (Master only) - Name, institution, and specialty can be updated
-router.put('/:userId', authenticate, authorize('MASTER'), async (req, res) => {
+router.put('/:userId', authenticate, authorize('MASTER'), transactional(async (req, res) => {
   try {
     const { userId } = req.params;
     const { name, institution, specialty } = req.body;
-    
+
     const result = await query(
       'UPDATE users SET name = $1, institution = $2, specialty = $3, updated_at = NOW() WHERE id = $4 RETURNING id, email, name, role, institution, specialty',
       [name, institution || null, specialty || null, userId]
@@ -454,14 +459,14 @@ router.put('/:userId', authenticate, authorize('MASTER'), async (req, res) => {
   } catch (error) {
     res.status(500).json({ error: 'Failed to update user' });
   }
-});
+}));
 
 // Update resident year (Master only)
-router.put('/:userId/year', authenticate, authorize('MASTER'), async (req, res) => {
+router.put('/:userId/year', authenticate, authorize('MASTER'), transactional(async (req, res) => {
   try {
     const { userId } = req.params;
     const { newYear } = req.body;
-    
+
     // Check if user is a resident
     const userResult = await query('SELECT role FROM users WHERE id = $1', [userId]);
     if (userResult.rows.length === 0) {
@@ -470,52 +475,47 @@ router.put('/:userId/year', authenticate, authorize('MASTER'), async (req, res) 
     if (userResult.rows[0].role !== 'RESIDENT') {
       return res.status(400).json({ error: 'Only residents have years' });
     }
-    
-    // Remove all existing years and set the new one
-    await query('DELETE FROM resident_years WHERE resident_id = $1', [userId]);
+
+    if (!Number.isInteger(newYear) || newYear < 1 || newYear > 4) return res.status(400).json({error:'Year must be between 1 and 4'});
+    const current = await query('SELECT MAX(year) AS year FROM resident_years WHERE resident_id = $1', [userId]);
+    if (newYear < current.rows[0]?.year) return res.status(400).json({error:'Historical years are preserved. Cannot move below the current year.'});
     await query(
-      'INSERT INTO resident_years (resident_id, year) VALUES ($1, $2)',
+      'INSERT INTO resident_years (resident_id, year) VALUES ($1, $2) ON CONFLICT (resident_id, year) DO NOTHING',
       [userId, newYear]
     );
-    
+
     res.json({ message: `Year updated to Year ${newYear} successfully` });
   } catch (error) {
-    console.error(error);
+    console.error('Operation failed: users.ts:487');
     res.status(500).json({ error: 'Failed to update year' });
   }
-});
+}));
 
 // Delete user (Master only)
-router.delete('/:userId', authenticate, authorize('MASTER'), async (req, res) => {
+router.delete('/:userId', authenticate, authorize('MASTER'), transactional(async (req, res) => {
   try {
     const { userId } = req.params;
-    
-    // Delete related data first (cascade should handle this, but being explicit)
-    await query('DELETE FROM surgical_logs WHERE resident_id = $1 OR supervisor_id = $1', [userId]);
-    await query('DELETE FROM presentations WHERE resident_id = $1 OR supervisor_id = $1', [userId]);
-    await query('DELETE FROM resident_years WHERE resident_id = $1', [userId]);
-    await query('DELETE FROM notifications WHERE user_id = $1', [userId]);
-    
-    const result = await query('DELETE FROM users WHERE id = $1 RETURNING id', [userId]);
+
+    const result = await query('UPDATE users SET is_suspended = TRUE, token_version = token_version + 1, updated_at = NOW() WHERE id = $1 AND role != \'MASTER\' RETURNING id', [userId]);
 
     if (result.rows.length === 0) {
       return res.status(404).json({ error: 'User not found' });
     }
 
-    res.json({ message: 'User deleted successfully' });
+    res.json({ message: 'User deactivated; training history preserved' });
   } catch (error) {
     res.status(500).json({ error: 'Failed to delete user' });
   }
-});
+}));
 
 // Suspend user (Master only)
-router.put('/:userId/suspend', authenticate, authorize('MASTER'), async (req, res) => {
+router.put('/:userId/suspend', authenticate, authorize('MASTER'), transactional(async (req, res) => {
   try {
     const { userId } = req.params;
-    
+
     try {
       const result = await query(
-        'UPDATE users SET is_suspended = TRUE, updated_at = NOW() WHERE id = $1 RETURNING id',
+        'UPDATE users SET is_suspended = TRUE, token_version = token_version + 1, updated_at = NOW() WHERE id = $1 AND role != \'MASTER\' RETURNING id',
         [userId]
       );
 
@@ -531,14 +531,14 @@ router.put('/:userId/suspend', authenticate, authorize('MASTER'), async (req, re
   } catch (error) {
     res.status(500).json({ error: 'Failed to suspend user' });
   }
-});
+}));
 
 // Toggle management access (Master only)
-router.put('/:userId/management-access', authenticate, authorize('MASTER'), async (req, res) => {
+router.put('/:userId/management-access', authenticate, authorize('MASTER'), transactional(async (req, res) => {
   try {
     const { userId } = req.params;
     const { hasAccess } = req.body;
-    
+
     const result = await query(
       'UPDATE users SET has_management_access = $1, updated_at = NOW() WHERE id = $2 AND role = $3 RETURNING id',
       [hasAccess, userId, 'SUPERVISOR']
@@ -550,17 +550,17 @@ router.put('/:userId/management-access', authenticate, authorize('MASTER'), asyn
 
     res.json({ message: hasAccess ? 'Management access granted' : 'Management access revoked' });
   } catch (error) {
-    console.error('Error toggling management access:', error);
+    console.error('Operation failed: users.ts:551');
     res.status(500).json({ error: 'Failed to update management access' });
   }
-});
+}));
 
 // Toggle supervisor access for management users (Master only)
-router.put('/:userId/supervisor-access', authenticate, authorize('MASTER'), async (req, res) => {
+router.put('/:userId/supervisor-access', authenticate, authorize('MASTER'), transactional(async (req, res) => {
   try {
     const { userId } = req.params;
     const { hasAccess, institution, specialty } = req.body;
-    
+
     if (hasAccess && (!institution || !specialty)) {
       return res.status(400).json({ error: 'Institution and specialty are required for supervisor access' });
     }
@@ -576,16 +576,16 @@ router.put('/:userId/supervisor-access', authenticate, authorize('MASTER'), asyn
 
     res.json({ message: hasAccess ? 'Supervisor access granted' : 'Supervisor access revoked' });
   } catch (error) {
-    console.error('Error toggling supervisor access:', error);
+    console.error('Operation failed: users.ts:577');
     res.status(500).json({ error: 'Failed to update supervisor access' });
   }
-});
+}));
 
 // Activate user (Master only)
-router.put('/:userId/activate', authenticate, authorize('MASTER'), async (req, res) => {
+router.put('/:userId/activate', authenticate, authorize('MASTER'), transactional(async (req, res) => {
   try {
     const { userId } = req.params;
-    
+
     try {
       const result = await query(
         'UPDATE users SET is_suspended = FALSE, updated_at = NOW() WHERE id = $1 RETURNING id',
@@ -604,15 +604,15 @@ router.put('/:userId/activate', authenticate, authorize('MASTER'), async (req, r
   } catch (error) {
     res.status(500).json({ error: 'Failed to activate user' });
   }
-});
+}));
 
 // Get batch start months (for all year levels)
 router.get('/batch-start-months', authenticate, async (req: AuthRequest, res) => {
   try {
     const result = await query(
       `SELECT year, MAX(residency_start_month) as start_month, MAX(residency_start_year) as start_year
-       FROM resident_years 
-       GROUP BY year 
+       FROM resident_years
+       GROUP BY year
        ORDER BY year`
     );
     res.json(result.rows);
@@ -622,7 +622,7 @@ router.get('/batch-start-months', authenticate, async (req: AuthRequest, res) =>
 });
 
 // Set batch start month and year (Master only)
-router.post('/batch-start-month', authenticate, async (req: AuthRequest, res) => {
+router.post('/batch-start-month', authenticate, transactional(async (req: AuthRequest, res) => {
   if (req.user!.role !== 'MASTER') {
     return res.status(403).json({ error: 'Only Master accounts can set batch start months' });
   }
@@ -639,7 +639,7 @@ router.post('/batch-start-month', authenticate, async (req: AuthRequest, res) =>
   } catch (error) {
     res.status(500).json({ error: 'Failed to update batch start month' });
   }
-});
+}));
 
 // Get user by ID (for supervisors viewing residents)
 router.get('/:userId', authenticate, async (req: AuthRequest, res) => {
@@ -649,7 +649,7 @@ router.get('/:userId', authenticate, async (req: AuthRequest, res) => {
       'SELECT id, email, name, role, profile_picture FROM users WHERE id = $1',
       [userId]
     );
-    
+
     if (result.rows.length === 0) {
       return res.status(404).json({ error: 'User not found' });
     }
@@ -661,7 +661,7 @@ router.get('/:userId', authenticate, async (req: AuthRequest, res) => {
 });
 
 // Toggle Chief Resident status (Master only)
-router.put('/:userId/toggle-chief-resident', authenticate, authorize('MASTER'), async (req: AuthRequest, res) => {
+router.put('/:userId/toggle-chief-resident', authenticate, authorize('MASTER'), transactional(async (req: AuthRequest, res) => {
   try {
     const { userId } = req.params;
     const { is_chief_resident } = req.body;
@@ -687,9 +687,9 @@ router.put('/:userId/toggle-chief-resident', authenticate, authorize('MASTER'), 
 
     res.json(result.rows[0]);
   } catch (error) {
-    console.error('Error toggling chief resident status:', error);
+    console.error('Operation failed: users.ts:688');
     res.status(500).json({ error: 'Failed to update chief resident status' });
   }
-});
+}));
 
 export default router;

@@ -25,10 +25,10 @@ export default function ResidentView() {
       // Get year ID for the selected year
       const yearsRes = await api.get(`/users/resident-years/${residentId}`);
       const yearData = yearsRes.data.find((y: any) => y.year === selectedYear);
-      
+
       console.log('Supervisor ResidentView - Years:', yearsRes.data);
       console.log('Supervisor ResidentView - Selected year data:', yearData);
-      
+
       const [residentRes, analyticsRes, proceduresRes, presentationsRes, progressRes] = await Promise.all([
         api.get(`/users/${residentId}`),
         api.get(`/analytics/supervisor/resident/${residentId}?year=${selectedYear}`),
@@ -60,8 +60,8 @@ export default function ResidentView() {
         <div className="flex items-center space-x-4">
           <div className="w-20 h-20 rounded-full bg-gray-200 flex items-center justify-center overflow-hidden">
             {resident.profilePicture ? (
-              <img 
-                src={resident.profilePicture} 
+              <img
+                src={resident.profilePicture}
                 alt={resident.name}
                 className="w-full h-full object-cover"
               />
@@ -101,8 +101,8 @@ export default function ResidentView() {
       {/* Year Progress Bar */}
       {yearProgress && (
         <div className="mb-6">
-          <YearProgressBar 
-            progress={yearProgress} 
+          <YearProgressBar
+            progress={yearProgress}
             onClick={() => setShowProgressModal(true)}
           />
         </div>
@@ -227,7 +227,7 @@ export default function ResidentView() {
                   <td className="px-4 py-3 text-sm">{pres.presentation_type}</td>
                   <td className="px-4 py-3 text-sm">{pres.venue}</td>
                   <td className="px-4 py-3 text-sm">
-                    {pres.rating ? (
+                    {pres.rating != null ? (
                       <span className="px-2 py-1 bg-green-100 text-green-800 rounded">
                         {pres.rating}
                       </span>

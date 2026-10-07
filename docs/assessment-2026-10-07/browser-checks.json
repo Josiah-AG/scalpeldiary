@@ -1,0 +1,16 @@
+{
+  "yearSelectorTested": true,
+  "logRequestsBefore": 2,
+  "logRequestsAfter": 2,
+  "yearSpecificFetchSent": false,
+  "pageErrors": [],
+  "mobile": {
+    "viewport": 390,
+    "documentWidth": 390
+  },
+  "publicWebsite": {
+    "status": 200,
+    "title": "ScalpelDiary - Shaping Tomorrow's Surgeons",
+    "text": "ScalpelDiary\n\nShaping Tomorrow's Surgeons\n\nSign In\nModern Surgical Training Platform\nComprehensive Surgical\nTraining Management\n\nEmpowering surgical residents and supervisors with a modern, efficient platform to track procedures, presentations, and professional development.\n\nGet Started\nProcedure Tr"
+  }
+}

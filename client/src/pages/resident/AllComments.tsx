@@ -1,3 +1,4 @@
+import { ratingRank } from '../../utils/ratingUtils';
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Layout from '../../components/Layout';
@@ -43,9 +44,9 @@ export default function AllComments() {
 
   const filteredComments = analytics?.comments?.filter((comment: any) => {
     if (commentFilter === 'all') return true;
-    if (commentFilter === 'excellent') return comment.rating >= 90;
-    if (commentFilter === 'good') return comment.rating >= 71 && comment.rating < 90;
-    if (commentFilter === 'bad') return comment.rating < 50;
+    if (commentFilter === 'excellent') return ratingRank(comment.rating) >= 90;
+    if (commentFilter === 'good') return ratingRank(comment.rating) >= 71 && ratingRank(comment.rating) < 90;
+    if (commentFilter === 'bad') return ratingRank(comment.rating) < 50;
     return true;
   }) || [];
 
@@ -57,9 +58,9 @@ export default function AllComments() {
   });
   (analytics?.presentationComments || []).forEach((c: any) => {
     if (commentFilter === 'all' ||
-        (commentFilter === 'excellent' && c.rating >= 90) ||
-        (commentFilter === 'good' && c.rating >= 71 && c.rating < 90) ||
-        (commentFilter === 'bad' && c.rating < 50)) {
+        (commentFilter === 'excellent' && ratingRank(c.rating) >= 90) ||
+        (commentFilter === 'good' && ratingRank(c.rating) >= 71 && ratingRank(c.rating) < 90) ||
+        (commentFilter === 'bad' && ratingRank(c.rating) < 50)) {
       allComments.push({ ...c, type: 'presentation', sortDate: c.date, procedure: c.title });
     }
   });
@@ -140,9 +141,9 @@ export default function AllComments() {
                     </span>
                     {item.rating && (
                       <span className={`inline-block px-2 py-0.5 rounded-full text-xs font-bold ${
-                        item.rating >= 90 ? 'bg-green-500 text-white' : item.rating >= 71 ? 'bg-blue-500 text-white' : item.rating >= 50 ? 'bg-yellow-500 text-white' : 'bg-red-500 text-white'
+                        ratingRank(item.rating) >= 90 ? 'bg-green-500 text-white' : ratingRank(item.rating) >= 71 ? 'bg-blue-500 text-white' : ratingRank(item.rating) >= 50 ? 'bg-yellow-500 text-white' : 'bg-red-500 text-white'
                       }`}>
-                        {item.rating >= 90 ? 'Excellent' : item.rating >= 71 ? 'Good' : item.rating >= 50 ? 'Satisfactory' : 'Poor'}
+                        {ratingRank(item.rating) >= 90 ? 'Excellent' : ratingRank(item.rating) >= 71 ? 'Good' : ratingRank(item.rating) >= 50 ? 'Satisfactory' : 'Poor'}
                       </span>
                     )}
                   </div>

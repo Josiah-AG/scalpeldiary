@@ -1,0 +1,65 @@
+[
+  {
+    "name": "rated-presentation-edit",
+    "status": 200,
+    "returnedToken": false,
+    "queryCount": 1,
+    "sql": [
+      "UPDATE presentations SET date = $1, title = $2, venue = $3, presentation_type = $4, description = $5, updated_at = NOW() WHERE id = $6 AND resident_id = $7 RETURNING *"
+    ]
+  },
+  {
+    "name": "rated-presentation-delete",
+    "status": 200,
+    "returnedToken": false,
+    "queryCount": 1,
+    "sql": [
+      "DELETE FROM presentations WHERE id = $1 AND resident_id = $2 RETURNING id"
+    ]
+  },
+  {
+    "name": "resident-writes-supervisor-comment",
+    "status": 201,
+    "returnedToken": false,
+    "queryCount": 1,
+    "sql": [
+      "INSERT INTO general_comments (supervisor_id, resident_id, comment, is_anonymous) VALUES ($1, $2, $3, $4) RETURNING *"
+    ]
+  },
+  {
+    "name": "resident-reads-other-comments",
+    "status": 200,
+    "returnedToken": false,
+    "queryCount": 1,
+    "sql": [
+      "SELECT gc.*, u.name as supervisor_name FROM general_comments gc JOIN users u ON gc.supervisor_id = u.id WHERE gc.resident_id = $1 ORDER BY gc.created_at DESC"
+    ]
+  },
+  {
+    "name": "suspended-login",
+    "status": 200,
+    "returnedToken": true,
+    "queryCount": 1,
+    "sql": [
+      "SELECT * FROM users WHERE LOWER(email) = LOWER($1)"
+    ]
+  },
+  {
+    "name": "year-change",
+    "status": 200,
+    "returnedToken": false,
+    "queryCount": 3,
+    "sql": [
+      "SELECT role FROM users WHERE id = $1",
+      "DELETE FROM resident_years WHERE resident_id = $1",
+      "INSERT INTO resident_years (resident_id, year) VALUES ($1, $2)"
+    ]
+  },
+  {
+    "name": "permitted-ui-image-exceeds-body-limit",
+    "status": 413,
+    "returnedToken": false,
+    "queryCount": 0,
+    "sql": []
+  }
+]

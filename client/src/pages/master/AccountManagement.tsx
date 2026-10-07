@@ -25,7 +25,7 @@ export default function AccountManagement() {
   const [filterRole, setFilterRole] = useState('ALL');
   const [filterYear, setFilterYear] = useState('ALL');
   const [sortAlpha, setSortAlpha] = useState(false);
-  
+
   const [formData, setFormData] = useState({
     email: '',
     name: '',
@@ -47,7 +47,7 @@ export default function AccountManagement() {
   const fetchUsers = async () => {
     const response = await api.get('/users');
     setUsers(response.data);
-    
+
     // Fetch years for residents
     const residents = response.data.filter((u: User) => u.role === 'RESIDENT');
     for (const resident of residents) {
@@ -65,30 +65,30 @@ export default function AccountManagement() {
 
   const handleCreate = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     // Validate password
     if (formData.password !== formData.confirmPassword) {
       alert('Passwords do not match');
       return;
     }
-    
-    if (formData.password.length < 6) {
-      alert('Password must be at least 6 characters long');
+
+    if (formData.password.length < 8) {
+      alert('Password must be at least 8 characters long');
       return;
     }
-    
+
     try {
       await api.post('/users', formData);
       alert('User created successfully!');
       setShowCreateModal(false);
-      setFormData({ 
-        email: '', 
-        name: '', 
-        role: 'RESIDENT', 
-        year: '1', 
-        institution: '', 
-        specialty: '', 
-        password: '', 
+      setFormData({
+        email: '',
+        name: '',
+        role: 'RESIDENT',
+        year: '1',
+        institution: '',
+        specialty: '',
+        password: '',
         confirmPassword: '',
         hasManagementAccess: false,
         hasSupervisorAccess: false,
@@ -104,7 +104,7 @@ export default function AccountManagement() {
     setEditingUser(user);
     const years = residentYears[user.id] || [];
     const currentYear = years.length > 0 ? years[years.length - 1].year : 1;
-    
+
     setFormData({
       email: user.email,
       name: user.name,
@@ -124,7 +124,7 @@ export default function AccountManagement() {
   const handleUpdate = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!editingUser) return;
-    
+
     try {
       // Update name, institution, and specialty
       await api.put(`/users/${editingUser.id}`, {
@@ -132,19 +132,19 @@ export default function AccountManagement() {
         institution: formData.institution || null,
         specialty: formData.specialty || null,
       });
-      
+
       // If resident and year changed, update year
       if (editingUser.role === 'RESIDENT') {
         const years = residentYears[editingUser.id] || [];
         const currentYear = years.length > 0 ? years[years.length - 1].year : 1;
         const newYear = parseInt(formData.year);
-        
+
         if (newYear !== currentYear) {
           await api.put(`/users/${editingUser.id}/year`, {
             newYear: newYear
           });
         }
-        
+
         // Update Chief Resident status if changed (for Year 2+ residents)
         if (formData.isChiefResident !== editingUser.is_chief_resident) {
           await api.put(`/users/${editingUser.id}/toggle-chief-resident`, {
@@ -152,14 +152,14 @@ export default function AccountManagement() {
           });
         }
       }
-      
+
       // Update management access for supervisors
       if (editingUser.role === 'SUPERVISOR') {
         await api.put(`/users/${editingUser.id}/management-access`, {
           hasAccess: formData.hasManagementAccess
         });
       }
-      
+
       // Update supervisor access for management users
       if (editingUser.role === 'MANAGEMENT') {
         await api.put(`/users/${editingUser.id}/supervisor-access`, {
@@ -168,7 +168,7 @@ export default function AccountManagement() {
           specialty: formData.specialty
         });
       }
-      
+
       alert('User updated successfully! User should refresh their page (F5) to see access changes.');
       setShowEditModal(false);
       setEditingUser(null);
@@ -184,11 +184,11 @@ export default function AccountManagement() {
       alert('Cannot delete Master accounts for security reasons');
       return;
     }
-    
-    if (confirm(`Are you sure you want to DELETE ${userName}? This action cannot be undone!`)) {
+
+    if (confirm(`Are you sure you want to deactivate ${userName}? Training history will be preserved.`)) {
       try {
         await api.delete(`/users/${userId}`);
-        alert('User deleted successfully');
+        alert('User deactivated; training history preserved');
         fetchUsers();
       } catch (error: any) {
         alert(error.response?.data?.error || 'Failed to delete user');
@@ -202,7 +202,7 @@ export default function AccountManagement() {
       alert('Cannot suspend Master accounts for security reasons');
       return;
     }
-    
+
     const action = isSuspended ? 'activate' : 'suspend';
     if (confirm(`Are you sure you want to ${action.toUpperCase()} ${userName}?`)) {
       try {
@@ -231,8 +231,8 @@ export default function AccountManagement() {
   const handleResetPassword = async (userId: number, userName: string) => {
     const newPassword = prompt(`Set new password for ${userName}:\n(minimum 6 characters)`);
     if (!newPassword) return;
-    if (newPassword.length < 6) {
-      alert('Password must be at least 6 characters');
+    if (newPassword.length < 8) {
+      alert('Password must be at least 8 characters');
       return;
     }
     try {
@@ -260,14 +260,14 @@ export default function AccountManagement() {
       <div className="mb-6 flex justify-between items-center">
         <button
           onClick={() => {
-            setFormData({ 
-              email: '', 
-              name: '', 
-              role: 'RESIDENT', 
-              year: '1', 
-              institution: '', 
-              specialty: '', 
-              password: '', 
+            setFormData({
+              email: '',
+              name: '',
+              role: 'RESIDENT',
+              year: '1',
+              institution: '',
+              specialty: '',
+              password: '',
               confirmPassword: '',
               hasManagementAccess: false,
               hasSupervisorAccess: false,
@@ -411,7 +411,7 @@ export default function AccountManagement() {
                             <button
                               onClick={() => handleDelete(user.id, user.name, user.role)}
                               className="text-red-600 hover:text-red-900"
-                              title="Delete user"
+                              title="Deactivate user"
                             >
                               <Trash2 size={16} />
                             </button>
@@ -436,7 +436,7 @@ export default function AccountManagement() {
 
       {/* Create Modal */}
       {showCreateModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
           <div className="bg-white rounded-lg p-6 max-w-md w-full">
             <h3 className="text-lg font-semibold mb-4">Create New User</h3>
             <form onSubmit={handleCreate} className="space-y-4">
@@ -569,7 +569,7 @@ export default function AccountManagement() {
 
       {/* Edit Modal */}
       {showEditModal && editingUser && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
           <div className="bg-white rounded-lg p-6 max-w-md w-full">
             <h3 className="text-lg font-semibold mb-4">Edit User</h3>
             <form onSubmit={handleUpdate} className="space-y-4">

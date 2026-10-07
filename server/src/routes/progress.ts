@@ -1,3 +1,4 @@
+import { residentScope, ownedYear, validRating } from '../security/policy';
 import express from 'express';
 import { calculateYearProgress } from '../shared/procedureUtils';
 import db from '../database/db';
@@ -6,7 +7,7 @@ import { authenticate, AuthRequest } from '../middleware/auth';
 const router = express.Router();
 
 // Get progress for a resident's year
-router.get('/year/:yearId', authenticate, async (req: AuthRequest, res) => {
+router.get('/year/:yearId', authenticate, residentScope, async (req: AuthRequest, res) => {
   try {
     const { yearId } = req.params;
     const residentId = req.query.residentId || req.user!.id;
@@ -29,24 +30,24 @@ router.get('/year/:yearId', authenticate, async (req: AuthRequest, res) => {
 
     // Get only rated/confirmed procedures for this year (not PENDING)
     const proceduresResult = await db.query(
-      `SELECT 
-        procedure, 
-        surgery_role, 
-        procedure_category 
-      FROM surgical_logs 
-      WHERE year_id = $1 AND resident_id = $2 AND status != 'PENDING'`,
+      `SELECT
+        procedure,
+        surgery_role,
+        procedure_category
+      FROM surgical_logs
+      WHERE year_id = $1 AND resident_id = $2 AND (status = 'RATED' OR detachment_verified = true)`,
       [yearId, residentId]
     );
 
-    console.log(`Progress: Year ${yearNumber}, ${proceduresResult.rows.length} procedures found for resident ${residentId}`);
+
     // Log unique procedure names and roles for debugging
     const uniqueProcs = [...new Set(proceduresResult.rows.map((r: any) => r.procedure))];
     const uniqueRoles = [...new Set(proceduresResult.rows.map((r: any) => r.surgery_role))];
-    console.log('Unique procedures:', uniqueProcs);
-    console.log('Unique roles:', uniqueRoles);
+
+
 
     const progress = calculateYearProgress(yearNumber, proceduresResult.rows);
-    
+
     // Log unmatched procedures for debugging
     const allRequiredProcs = new Set<string>();
     const yearReqsDebug = progress.categories;
@@ -55,16 +56,15 @@ router.get('/year/:yearId', authenticate, async (req: AuthRequest, res) => {
         p.procedureGroup.forEach((name: string) => allRequiredProcs.add(name.toLowerCase().trim()));
       });
     });
-    const unmatchedLogs = proceduresResult.rows.filter((log: any) => 
+    const unmatchedLogs = proceduresResult.rows.filter((log: any) =>
       !allRequiredProcs.has(log.procedure.toLowerCase().trim())
     );
     if (unmatchedLogs.length > 0) {
-      console.log('⚠️ UNMATCHED procedures (not in Year requirements):', 
-        unmatchedLogs.map((l: any) => `"${l.procedure}" (role: ${l.surgery_role})`));
+
     }
     res.json(progress);
   } catch (error) {
-    console.error('Error fetching progress:', error);
+    console.error('Operation failed: progress.ts:67');
     res.status(500).json({ error: 'Failed to fetch progress' });
   }
 });

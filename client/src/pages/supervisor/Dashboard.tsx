@@ -83,7 +83,7 @@ export default function SupervisorDashboard() {
   const fetchResidentsByYear = async (year: number) => {
     const response = await api.get(`/analytics/supervisor/residents?year=${year}`);
     const residentsData = response.data;
-    
+
     // Fetch progress for each resident
     const residentsWithProgress = await Promise.all(
       residentsData.map(async (resident: ResidentSummary) => {
@@ -92,7 +92,7 @@ export default function SupervisorDashboard() {
           const yearsResponse = await api.get(`/users/resident-years/${resident.id}`);
           const residentYears = yearsResponse.data;
           const currentYear = residentYears.find((y: any) => y.year === year);
-          
+
           if (currentYear) {
             const progressResponse = await api.get(`/progress/year/${currentYear.id}?residentId=${resident.id}`);
             return {
@@ -106,7 +106,7 @@ export default function SupervisorDashboard() {
         return resident;
       })
     );
-    
+
     setResidents(residentsWithProgress);
     setSelectedYear(year);
   };
@@ -196,7 +196,7 @@ export default function SupervisorDashboard() {
       </div>
 
       {/* Today's Duty Residents */}
-      <div 
+      <div
         className="bg-white rounded-xl shadow-lg p-6 mb-8 border-l-4 border-indigo-500 cursor-pointer hover:shadow-xl transition-shadow"
         onClick={() => setShowDutyModal(true)}
       >
@@ -246,7 +246,7 @@ export default function SupervisorDashboard() {
           ];
           const colors = yearColors[year - 1];
           const isSelected = selectedYear === year;
-          
+
           return (
             <button
               key={year}
@@ -286,7 +286,7 @@ export default function SupervisorDashboard() {
               {residents.length} resident{residents.length !== 1 ? 's' : ''} found
             </p>
           </div>
-          
+
           <div className="p-6">
             {residents.length === 0 ? (
               <div className="text-center py-12">
@@ -304,8 +304,8 @@ export default function SupervisorDashboard() {
                     {/* Profile Header */}
                     <div className="flex items-center space-x-4 mb-4">
                       {resident.profilePicture ? (
-                        <img 
-                          src={resident.profilePicture} 
+                        <img
+                          src={resident.profilePicture}
                           alt={resident.name}
                           className="w-16 h-16 rounded-full object-cover border-4 border-white shadow-md"
                         />
@@ -364,7 +364,7 @@ export default function SupervisorDashboard() {
                           </span>
                         </div>
                         <div className="w-full bg-gray-200 rounded-full h-3 overflow-hidden">
-                          <div 
+                          <div
                             className="bg-gradient-to-r from-purple-500 to-purple-600 h-full rounded-full transition-all duration-500"
                             style={{ width: `${Math.min(resident.yearProgress.overallProgress, 100)}%` }}
                           />
@@ -391,11 +391,11 @@ export default function SupervisorDashboard() {
 
       {/* Rotations Modal - Monthly view */}
       {showRotationsModal && (
-        <RotationMonthModal 
-          rotations={rotations} 
+        <RotationMonthModal
+          rotations={rotations}
           currentMonth={rotationMonth}
           onMonthChange={setRotationMonth}
-          onClose={() => setShowRotationsModal(false)} 
+          onClose={() => setShowRotationsModal(false)}
           onOpen={fetchRotations}
         />
       )}
@@ -420,18 +420,13 @@ export default function SupervisorDashboard() {
 }
 
 // Rotation Month Modal - shows all residents' rotations for a selected month
-function RotationMonthModal({ rotations, currentMonth, onMonthChange, onClose, onOpen }: { 
+function RotationMonthModal({ rotations, currentMonth, onMonthChange, onClose, onOpen }: {
   rotations: any[]; currentMonth: Date; onMonthChange: (d: Date) => void; onClose: () => void; onOpen: () => void;
 }) {
   useEffect(() => { onOpen(); }, []);
 
   // Academic year months: July=1, Aug=2, ..., June=12
-  const academicMonths = [
-    { name: 'July', num: 1 }, { name: 'August', num: 2 }, { name: 'September', num: 3 },
-    { name: 'October', num: 4 }, { name: 'November', num: 5 }, { name: 'December', num: 6 },
-    { name: 'January', num: 7 }, { name: 'February', num: 8 }, { name: 'March', num: 9 },
-    { name: 'April', num: 10 }, { name: 'May', num: 11 }, { name: 'June', num: 12 }
-  ];
+  const academicMonths = Array.from({length:12},(_,i) => ({name:new Date(2026, ((rotations[0]?.academic_start_month || 7)-1+i)%12,1).toLocaleString('en',{month:'long'}),num:i+1}));
 
   // Determine current academic month number
   const jsMonth = currentMonth.getMonth(); // 0-11
@@ -469,7 +464,7 @@ function RotationMonthModal({ rotations, currentMonth, onMonthChange, onClose, o
   const nextMonth = () => onMonthChange(new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1));
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-0 sm:p-4" onClick={onClose}>
+    <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-0 sm:p-4" onClick={onClose}>
       <div className="bg-white w-full h-full sm:h-auto sm:rounded-xl shadow-2xl sm:max-w-2xl sm:max-h-[90vh] overflow-hidden" onClick={e => e.stopPropagation()}>
         <div className="bg-gradient-to-r from-purple-600 to-indigo-600 text-white p-4 flex justify-between items-center">
           <h2 className="text-lg font-bold flex items-center">

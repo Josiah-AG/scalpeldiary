@@ -1,3 +1,5 @@
+import { ratingRank } from '../../utils/ratingUtils';
+import { setModalContent } from '../../utils/safeModal';
 import { useEffect, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import Layout from '../../components/Layout';
@@ -110,7 +112,7 @@ export default function Presentations() {
             const presResponse = await api.get(`/presentations/resident/${viewingResidentId}?year=${yearData.year}`);
             console.log('Presentations fetched in fetchYears:', presResponse.data);
             setPresentations(presResponse.data);
-            
+
             // Fetch stats
             const statsResponse = await api.get(`/analytics/supervisor/resident/${viewingResidentId}?year=${yearData.year}`);
             setStats({
@@ -178,7 +180,7 @@ export default function Presentations() {
   const fetchStats = async () => {
     if (isReadOnlyMode && viewingResidentId) {
       // Fetch stats for the resident being viewed
-      const response = await api.get(`/analytics/supervisor/resident/${viewingResidentId}?year=${years.find(y => y.id === parseInt(selectedYear))?.year}`);
+      const response = await api.get(`/analytics/supervisor/resident/${viewingResidentId}?year=${years.find(y => String(y.id) === selectedYear)?.year}`);
       setStats({
         totalPresentations: response.data.totalPresentations,
         avgRating: response.data.avgPresentationRating,
@@ -213,7 +215,7 @@ export default function Presentations() {
         presented_date: presentedDate,
         yearId: selectedYear
       });
-      
+
       setShowMarkPresentedModal(false);
       setSelectedAssignment(null);
       fetchAssignedPresentations();
@@ -257,7 +259,7 @@ export default function Presentations() {
       alert('You can only edit presentations from your current year');
       return;
     }
-    if (presentation.rating) {
+    if (presentation.rating != null) {
       alert('Cannot edit a presentation that has been rated');
       return;
     }
@@ -291,7 +293,7 @@ export default function Presentations() {
       alert('You can only delete presentations from your current year');
       return;
     }
-    if (presentation.rating) {
+    if (presentation.rating != null) {
       alert('Cannot delete a presentation that has been rated');
       return;
     }
@@ -551,24 +553,24 @@ export default function Presentations() {
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
               {presentations.map((presentation) => {
-                const rowColor = !presentation.rating 
-                  ? 'bg-gray-100 hover:bg-gray-200' 
-                  : presentation.rating > 50 
-                  ? 'bg-green-50 hover:bg-green-100' 
+                const rowColor = !presentation.rating
+                  ? 'bg-gray-100 hover:bg-gray-200'
+                  : ratingRank(presentation.rating) >= 50
+                  ? 'bg-green-50 hover:bg-green-100'
                   : 'bg-red-50 hover:bg-red-100';
-                
+
                 return (
-                  <tr 
-                    key={presentation.id} 
+                  <tr
+                    key={presentation.id}
                     className={`cursor-pointer transition-colors ${rowColor}`}
                     onClick={(e) => {
                       // Don't open modal if clicking on action buttons
                       if ((e.target as HTMLElement).closest('button')) return;
-                      
+
                       // Show presentation detail modal
                       const modal = document.createElement('div');
-                      modal.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50';
-                      modal.innerHTML = `
+                      modal.className = 'fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50';
+                      setModalContent(modal, `
                         <div class="bg-white rounded-lg p-6 max-w-2xl w-full max-h-[90vh] overflow-y-auto">
                           <div class="flex justify-between items-start mb-4">
                             <h3 class="text-xl font-bold">Presentation Details</h3>
@@ -580,16 +582,16 @@ export default function Presentations() {
                             <p><strong>Type:</strong> ${getPresentationTypeLabel(presentation.presentation_type)}</p>
                             <p><strong>Venue:</strong> ${presentation.venue}</p>
                             ${presentation.description ? `<p><strong>Description:</strong> ${presentation.description}</p>` : ''}
-                            <p><strong>Rated by:</strong> ${presentation.rating ? (presentation.supervisor_name || 'Supervisor') : 'Not yet rated'}</p>
-                            ${presentation.rating ? `
+                            <p><strong>Rated by:</strong> ${presentation.rating != null ? (presentation.supervisor_name || 'Supervisor') : 'Not yet rated'}</p>
+                            ${presentation.rating != null ? `
                               <div class="border-t pt-3 mt-3">
-                                <p><strong>Rating:</strong> <span class="text-2xl font-bold ${presentation.rating >= 90 ? 'text-green-600' : presentation.rating >= 71 ? 'text-blue-600' : presentation.rating >= 50 ? 'text-yellow-600' : 'text-red-600'}">${isReadOnlyMode ? presentation.rating + '/100' : (presentation.rating >= 90 ? 'Excellent' : presentation.rating >= 71 ? 'Good' : presentation.rating >= 50 ? 'Satisfactory' : 'Poor')}</span></p>
+                                <p><strong>Rating:</strong> <span class="text-2xl font-bold ${ratingRank(presentation.rating) >= 90 ? 'text-green-600' : ratingRank(presentation.rating) >= 71 ? 'text-blue-600' : ratingRank(presentation.rating) >= 50 ? 'text-yellow-600' : 'text-red-600'}">${isReadOnlyMode ? presentation.rating + '/100' : (ratingRank(presentation.rating) >= 90 ? 'Excellent' : ratingRank(presentation.rating) >= 71 ? 'Good' : ratingRank(presentation.rating) >= 50 ? 'Satisfactory' : 'Poor')}</span></p>
                                 ${presentation.comment ? `<p class="mt-2"><strong>Comment:</strong> ${presentation.comment}</p>` : ''}
                               </div>
                             ` : '<p class="text-gray-500 italic">Not yet rated</p>'}
                           </div>
                         </div>
-                      `;
+                      `);
                       document.body.appendChild(modal);
                     }}
                   >
@@ -722,7 +724,7 @@ export default function Presentations() {
 
       {/* Mark as Presented Modal */}
       {showMarkPresentedModal && selectedAssignment && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
           <div className="bg-white rounded-lg p-6 max-w-md w-full">
             <h3 className="text-xl font-semibold mb-4">Mark as Presented</h3>
             <p className="text-gray-600 mb-4">
@@ -762,7 +764,7 @@ export default function Presentations() {
       )}
 
       {showModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
           <div className="bg-white rounded-xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
             <div className="bg-gradient-to-r from-blue-600 to-blue-700 text-white px-6 py-4 flex justify-between items-center">
               <h3 className="text-xl font-bold">
@@ -865,9 +867,9 @@ export default function Presentations() {
                       {supervisors.map((supervisor: any) => (
                         <option key={supervisor.id} value={supervisor.id}>
                           {supervisor.name}
-                          {supervisor.institution && supervisor.specialty 
+                          {supervisor.institution && supervisor.specialty
                             ? ` (${supervisor.institution} - ${supervisor.specialty})`
-                            : supervisor.institution 
+                            : supervisor.institution
                             ? ` (${supervisor.institution})`
                             : supervisor.specialty
                             ? ` (${supervisor.specialty})`

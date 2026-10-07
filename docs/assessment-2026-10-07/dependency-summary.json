@@ -1,0 +1,62 @@
+{
+  "client": {
+    "vulnerabilities": {
+      "info": 0,
+      "low": 1,
+      "moderate": 6,
+      "high": 19,
+      "critical": 1,
+      "total": 27
+    },
+    "directAffectedPackages": [
+      {
+        "name": "axios",
+        "severity": "high"
+      },
+      {
+        "name": "jspdf",
+        "severity": "critical"
+      },
+      {
+        "name": "jspdf-autotable",
+        "severity": "high"
+      },
+      {
+        "name": "postcss",
+        "severity": "high"
+      },
+      {
+        "name": "react-router-dom",
+        "severity": "high"
+      },
+      {
+        "name": "tailwindcss",
+        "severity": "high"
+      },
+      {
+        "name": "vite",
+        "severity": "high"
+      }
+    ]
+  },
+  "server": {
+    "vulnerabilities": {
+      "info": 0,
+      "low": 0,
+      "moderate": 18,
+      "high": 4,
+      "critical": 2,
+      "total": 24
+    },
+    "directAffectedPackages": [
+      {
+        "name": "express",
+        "severity": "high"
+      },
+      {
+        "name": "nodemailer",
+        "severity": "high"
+      }
+    ]
+  }
+}

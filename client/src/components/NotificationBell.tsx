@@ -97,7 +97,7 @@ export default function NotificationBell({ show, onClose, onCountChange }: Notif
       await fetchAndShowRatedItem(notification.log_id);
       return;
     }
-    
+
     // For actionable notifications
     onClose();
     if (notification.notification_type === 'procedure') {
@@ -121,7 +121,7 @@ export default function NotificationBell({ show, onClose, onCountChange }: Notif
     try {
       setLoadingItem(true);
       const isProcedure = logId.includes('-');
-      
+
       if (isProcedure) {
         const response = await api.get('/logs/my-logs?yearId=all');
         const procedure = response.data.find((p: any) => p.id === logId);
@@ -223,7 +223,7 @@ export default function NotificationBell({ show, onClose, onCountChange }: Notif
                   const isActionable = (notification.notification_type === 'procedure' || notification.notification_type === 'presentation') && !notification.message?.includes('cancelled');
                   const isRated = notification.notification_type === 'rated';
                   const isClickable = isActionable || isRated;
-                  
+
                   return (
                     <div
                       key={notification.id}
@@ -241,7 +241,7 @@ export default function NotificationBell({ show, onClose, onCountChange }: Notif
                           <p className="text-xs text-gray-500 mt-1">
                             {format(new Date(notification.created_at), 'MMM dd, h:mm a')}
                           </p>
-                          
+
                           <div className="flex items-center space-x-2 mt-2">
                             {isActionable && (
                               <button
@@ -251,7 +251,7 @@ export default function NotificationBell({ show, onClose, onCountChange }: Notif
                                 }}
                                 className={`${colorScheme.buttonBg} text-white px-2 py-1 rounded text-xs font-semibold transition-colors`}
                               >
-                                {notification.notification_type === 'procedure' ? 'Rate Procedure' 
+                                {notification.notification_type === 'procedure' ? 'Rate Procedure'
                                   : notification.message?.includes('assigned to present') ? 'View Assignment'
                                   : notification.message?.includes('ready for rating') ? 'Rate Presentation'
                                   : 'View'}
@@ -302,7 +302,7 @@ export default function NotificationBell({ show, onClose, onCountChange }: Notif
 
       {/* Loading Overlay */}
       {loadingItem && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
           <div className="bg-white rounded-lg p-6">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
           </div>
@@ -311,7 +311,7 @@ export default function NotificationBell({ show, onClose, onCountChange }: Notif
 
       {/* Detail Modal - EXACT COPY from RatedLogs.tsx */}
       {selectedLog && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
           <div className="bg-white rounded-xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
             <div className="bg-gradient-to-r from-blue-600 to-blue-700 text-white px-4 sm:px-6 py-4 flex justify-between items-center sticky top-0">
               <h3 className="text-lg sm:text-xl font-bold">
@@ -371,7 +371,7 @@ export default function NotificationBell({ show, onClose, onCountChange }: Notif
                       <p className="text-gray-900">{selectedLog.supervisor_name}</p>
                     </div>
                   )}
-                  {selectedLog.rating && (
+                  {selectedLog.rating != null && (
                     <>
                       <div>
                         <label className="text-sm font-semibold text-gray-600">Rating</label>
@@ -437,7 +437,7 @@ export default function NotificationBell({ show, onClose, onCountChange }: Notif
                       <p className="text-gray-900">{selectedLog.supervisor_name}</p>
                     </div>
                   )}
-                  {selectedLog.rating && (
+                  {selectedLog.rating != null && (
                     <>
                       <div>
                         <label className="text-sm font-semibold text-gray-600">Rating</label>

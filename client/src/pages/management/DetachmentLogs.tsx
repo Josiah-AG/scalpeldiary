@@ -231,7 +231,7 @@ export default function DetachmentLogs() {
 
       {/* Verify Modal */}
       {showVerifyModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
           <div className="bg-white rounded-xl shadow-2xl max-w-lg w-full">
             <div className="bg-gradient-to-r from-green-600 to-green-700 text-white px-6 py-4 flex justify-between items-center rounded-t-xl">
               <h3 className="text-lg font-bold">{selectedGroup.batch_verified ? 'Verify New Items' : 'Verify Detachment Logs'}</h3>
@@ -239,7 +239,7 @@ export default function DetachmentLogs() {
             </div>
             <div className="p-6 space-y-4">
               <p className="text-sm text-gray-600">
-                {selectedGroup.batch_verified 
+                {selectedGroup.batch_verified
                   ? `Verifying ${selectedGroup.unverified_count} new unverified items for ${selectedGroup.resident_name}.`
                   : `Verifying all ${getDetachmentLabel(selectedGroup.detachment_type)} logs for ${selectedGroup.resident_name}. Enter the rating and comment from the paper form.`}
               </p>

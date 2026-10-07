@@ -1,4 +1,4 @@
-const CACHE_NAME = 'scalpeldiary-v1';
+const CACHE_NAME = 'scalpeldiary-v2';
 const urlsToCache = [
   '/',
   '/index.html',
@@ -39,7 +39,7 @@ self.addEventListener('fetch', (event) => {
   }
 
   // Skip caching API requests
-  if (event.request.url.includes('/api/')) {
+  if (event.request.url.includes('/api/') || new URL(event.request.url).origin !== self.location.origin) {
     event.respondWith(fetch(event.request));
     return;
   }
@@ -47,10 +47,12 @@ self.addEventListener('fetch', (event) => {
   event.respondWith(
     fetch(event.request)
       .then((response) => {
+        if (!response.ok) return response;
         const responseToCache = response.clone();
         caches.open(CACHE_NAME)
           .then((cache) => {
             cache.put(event.request, responseToCache);
+            cache.keys().then(keys => { for(const key of keys.slice(0, Math.max(0, keys.length-100))) cache.delete(key); });
           });
         return response;
       })
@@ -101,7 +103,8 @@ self.addEventListener('notificationclick', (event) => {
     return;
   }
 
-  const urlToOpen = event.notification.data.url || '/';
+  const urlToOpen = new URL(event.notification.data.url || '/', self.location.origin).href;
+  if (new URL(urlToOpen).origin !== self.location.origin) return;
 
   event.waitUntil(
     clients.matchAll({ type: 'window', includeUncontrolled: true })

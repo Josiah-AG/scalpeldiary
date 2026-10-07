@@ -1,3 +1,4 @@
+import { summarizeReport } from '../../utils/reportSummary';
 import { useState, useEffect } from 'react';
 import Layout from '../../components/Layout';
 import api from '../../api/axios';
@@ -83,7 +84,7 @@ export default function Settings() {
     }
 
     // Check file type
-    if (!file.type.startsWith('image/')) {
+    if (!['image/png','image/jpeg','image/webp'].includes(file.type)) {
       alert('Please upload an image file');
       return;
     }
@@ -94,13 +95,13 @@ export default function Settings() {
       try {
         await api.post('/users/profile-picture', { profilePicture: base64String });
         setProfilePicture(base64String);
-        
+
         // Update auth store with new profile picture
         if (user) {
           const updatedUser = { ...user, profile_picture: base64String };
           setAuth(updatedUser, useAuthStore.getState().token!);
         }
-        
+
         alert('Profile picture updated successfully');
       } catch (error) {
         alert('Failed to upload profile picture');
@@ -149,8 +150,8 @@ export default function Settings() {
         logs = logs.filter((l: any) => l.date?.startsWith(exportMonth));
         pres = pres.filter((p: any) => p.date?.startsWith(exportMonth));
       } else if (exportDateMode === 'range' && exportStartDate && exportEndDate) {
-        logs = logs.filter((l: any) => l.date >= exportStartDate && l.date <= exportEndDate);
-        pres = pres.filter((p: any) => p.date >= exportStartDate && p.date <= exportEndDate);
+        logs = logs.filter((l: any) => l.date.slice(0, 10) >= exportStartDate && l.date.slice(0, 10) <= exportEndDate);
+        pres = pres.filter((p: any) => p.date.slice(0, 10) >= exportStartDate && p.date.slice(0, 10) <= exportEndDate);
       }
       if (exportCategory) logs = logs.filter((l: any) => l.procedure_category === exportCategory);
       if (exportInstitution) {
@@ -160,8 +161,7 @@ export default function Settings() {
 
       let analytics: any = null;
       if (exportIncludeAnalytics) {
-        const r = await api.get(`/analytics/resident?yearId=${exportYear}`);
-        analytics = r.data;
+        analytics = summarizeReport(logs, pres);
       }
 
       const reportLabel = getReportLabel();
@@ -210,7 +210,7 @@ export default function Settings() {
             (l.surgery_role || '').replace(/_/g, ' '),
             l.place_of_practice || '',
             l.supervisor_name || l.external_supervisor_name || '',
-            l.rating ? getRatingLabel(l.rating) : l.status === 'NOT_WITNESSED' ? 'N/A' : l.is_detachment ? 'N/A' : 'Pending',
+            l.rating != null ? getRatingLabel(l.rating) : l.status === 'NOT_WITNESSED' ? 'N/A' : l.is_detachment ? 'N/A' : 'Pending',
           ]),
           theme: 'grid',
           headStyles: { fillColor: [30, 58, 138], fontSize: 6.5, cellPadding: 1.8, lineColor: [30, 58, 138], lineWidth: 0.3 },
@@ -253,7 +253,7 @@ export default function Settings() {
             i + 1, fmtDate(p.date), p.title || '',
             (p.presentation_type || '').replace(/_/g, ' '), p.venue || '',
             p.supervisor_name || p.external_supervisor_name || '',
-            p.rating ? getRatingLabel(p.rating) : p.is_detachment ? 'N/A' : 'Pending',
+            p.rating != null ? getRatingLabel(p.rating) : p.is_detachment ? 'N/A' : 'Pending',
           ]),
           theme: 'grid',
           headStyles: { fillColor: [5, 102, 68], fontSize: 7, cellPadding: 2, lineColor: [5, 102, 68], lineWidth: 0.3 },
@@ -412,7 +412,7 @@ export default function Settings() {
                 <input
                   id="profile-upload"
                   type="file"
-                  accept="image/*"
+                  accept="image/jpeg,image/png,image/webp"
                   onChange={handleImageUpload}
                   className="hidden"
                 />
@@ -425,7 +425,7 @@ export default function Settings() {
                 Click the camera icon to upload a new profile picture
               </p>
               <p className="text-xs text-gray-400 mt-1">
-                Max size: 2MB • Formats: JPG, PNG, GIF
+                Max size: 2MB • Formats: JPG, PNG, WebP
               </p>
             </div>
           </div>
@@ -493,7 +493,7 @@ export default function Settings() {
 
         {/* Export Filter Modal */}
         {showExportModal && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+          <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
             <div className="bg-white rounded-xl shadow-2xl max-w-lg w-full max-h-[90vh] overflow-y-auto">
               <div className="bg-gradient-to-r from-green-600 to-green-700 text-white px-6 py-4 flex justify-between items-center rounded-t-xl">
                 <h3 className="text-lg font-bold flex items-center"><FileText className="mr-2" size={20} />Export PDF Report</h3>

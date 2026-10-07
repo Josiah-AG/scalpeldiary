@@ -10,13 +10,13 @@ export default function ResidentDashboardWrapper() {
   useEffect(() => {
     const residentId = sessionStorage.getItem('viewingResidentId');
     const isReadOnly = sessionStorage.getItem('isReadOnlyMode');
-    
+
     if (!residentId || !isReadOnly) {
       navigate('/');
       return;
     }
 
-    setReadOnlyMode(parseInt(residentId));
+    setReadOnlyMode(residentId);
 
     return () => {
       // Don't clear on unmount, only when explicitly leaving

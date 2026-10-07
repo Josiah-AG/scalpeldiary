@@ -57,7 +57,7 @@ export default function UnrespondedLogs() {
 
   const handleRate = async () => {
     if (isSubmitting) return; // Prevent double submission
-    
+
     setIsSubmitting(true);
     try {
       await api.post(`/logs/${selectedLog.id}/rate`, {
@@ -65,18 +65,18 @@ export default function UnrespondedLogs() {
         comment,
         anonymousComment: anonymousComment || null,
       });
-      
+
       // Close modal and clear form
       setSelectedLog(null);
       setRating('');
       setComment('');
       setAnonymousComment('');
       setShowAnonymousField(false);
-      
+
       // Refresh list to show updated logs
       const response = await api.get('/logs/to-rate');
       setLogs(response.data);
-      
+
       // Don't auto-open next log - let user choose
     } catch (error) {
       alert('Failed to rate log');
@@ -90,9 +90,9 @@ export default function UnrespondedLogs() {
       alert('Rating is required for presentations');
       return;
     }
-    
+
     if (isSubmitting) return; // Prevent double submission
-    
+
     setIsSubmitting(true);
     try {
       await api.post(`/presentations/${selectedPresentation.id}/rate`, {
@@ -100,18 +100,18 @@ export default function UnrespondedLogs() {
         comment,
         anonymousComment: anonymousComment || null,
       });
-      
+
       // Close modal and clear form
       setSelectedPresentation(null);
       setRating('');
       setComment('');
       setAnonymousComment('');
       setShowAnonymousField(false);
-      
+
       // Refresh list to show updated presentations
       const response = await api.get('/presentations/to-rate');
       setPresentations(response.data);
-      
+
       // Don't auto-open next presentation - let user choose
     } catch (error) {
       alert('Failed to rate presentation');
@@ -166,7 +166,7 @@ export default function UnrespondedLogs() {
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
                 {logs.map((log) => (
-                  <tr 
+                  <tr
                     key={log.id}
                     onClick={() => setSelectedLog(log)}
                     className="cursor-pointer hover:bg-blue-50 transition-colors"
@@ -258,7 +258,7 @@ export default function UnrespondedLogs() {
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
                 {presentations.map((pres) => (
-                  <tr 
+                  <tr
                     key={pres.id}
                     onClick={() => setSelectedPresentation(pres)}
                     className="cursor-pointer hover:bg-green-50 transition-colors"
@@ -335,8 +335,8 @@ export default function UnrespondedLogs() {
 
       {/* Procedure Rating Modal */}
       {selectedLog && (
-        <div 
-          className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50"
+        <div
+          className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50"
           onClick={() => {
             if (!isSubmitting) {
               setSelectedLog(null);
@@ -345,7 +345,7 @@ export default function UnrespondedLogs() {
             }
           }}
         >
-          <div 
+          <div
             className="bg-white rounded-lg p-6 max-w-2xl w-full max-h-[90vh] overflow-y-auto"
             onClick={(e) => e.stopPropagation()}
           >
@@ -363,7 +363,7 @@ export default function UnrespondedLogs() {
                 ×
               </button>
             </div>
-            <div 
+            <div
               className="mb-4 p-4 bg-blue-50 rounded-lg border-2 border-blue-200 cursor-pointer hover:bg-blue-100 transition-colors"
               onClick={() => {
                 // Show detailed modal
@@ -377,7 +377,7 @@ export default function UnrespondedLogs() {
               <p><strong>Procedure:</strong> {selectedLog.procedure}</p>
               <p><strong>Role:</strong> {selectedLog.surgery_role?.replace(/_/g, ' ')}</p>
             </div>
-            
+
             {/* Detailed Procedure Info (expandable) */}
             <div id="procedure-detail-modal" style={{ display: 'none' }} className="mb-4 p-4 bg-gray-50 rounded-lg border border-gray-300">
               <div className="flex justify-between items-start mb-3">
@@ -474,8 +474,8 @@ export default function UnrespondedLogs() {
 
       {/* Presentation Rating Modal */}
       {selectedPresentation && (
-        <div 
-          className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50"
+        <div
+          className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50"
           onClick={() => {
             if (!isSubmitting) {
               setSelectedPresentation(null);
@@ -484,7 +484,7 @@ export default function UnrespondedLogs() {
             }
           }}
         >
-          <div 
+          <div
             className="bg-white rounded-lg p-6 max-w-2xl w-full max-h-[90vh] overflow-y-auto"
             onClick={(e) => e.stopPropagation()}
           >
@@ -502,7 +502,7 @@ export default function UnrespondedLogs() {
                 ×
               </button>
             </div>
-            <div 
+            <div
               className="mb-4 p-4 bg-green-50 rounded-lg border-2 border-green-200 cursor-pointer hover:bg-green-100 transition-colors"
               onClick={() => {
                 // Show detailed modal
@@ -515,7 +515,7 @@ export default function UnrespondedLogs() {
               <p><strong>Title:</strong> {selectedPresentation.title}</p>
               <p><strong>Type:</strong> {selectedPresentation.presentation_type?.replace(/_/g, ' ')}</p>
             </div>
-            
+
             {/* Detailed Presentation Info (expandable) */}
             <div id="presentation-detail-modal" style={{ display: 'none' }} className="mb-4 p-4 bg-gray-50 rounded-lg border border-gray-300">
               <div className="flex justify-between items-start mb-3">

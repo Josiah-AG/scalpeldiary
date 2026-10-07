@@ -42,7 +42,7 @@ export default function ProgressDetailModal({ progress, onClose }: Props) {
   };
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-2 sm:p-4 z-50" onClick={onClose}>
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-2 sm:p-4 z-50" onClick={onClose}>
       <div className="bg-white rounded-xl md:rounded-2xl max-w-5xl w-full max-h-[90vh] overflow-hidden flex flex-col" onClick={(e) => e.stopPropagation()}>
         {/* Header */}
         <div className="bg-gradient-to-r from-blue-600 to-blue-700 p-4 md:p-6 flex justify-between items-center">
@@ -51,7 +51,7 @@ export default function ProgressDetailModal({ progress, onClose }: Props) {
               Year {progress.year} - Detailed Progress
             </h2>
             <p className="text-blue-100 mt-0.5 md:mt-1 text-xs md:text-base">
-              Overall: {progress.overallProgress.toFixed(1)}% 
+              Overall: {progress.overallProgress.toFixed(1)}%
               <span className="hidden sm:inline">
                 ({progress.totalAchieved} / {progress.totalRequired} procedures)
               </span>
@@ -73,7 +73,7 @@ export default function ProgressDetailModal({ progress, onClose }: Props) {
                 // Calculate category progress
                 let totalRequired = 0;
                 let totalAchieved = 0;
-                
+
                 procedures.forEach(proc => {
                   if (proc.requiredAssisted) {
                     totalRequired += proc.requiredAssisted;
@@ -84,33 +84,33 @@ export default function ProgressDetailModal({ progress, onClose }: Props) {
                     totalAchieved += Math.min(proc.achievedPerformed, proc.requiredPerformed);
                   }
                 });
-                
+
                 const categoryProgress = totalRequired > 0 ? (totalAchieved / totalRequired) * 100 : 0;
-                
+
                 return { category, procedures, categoryProgress, totalRequired, totalAchieved };
               })
               .sort((a, b) => b.categoryProgress - a.categoryProgress) // Sort by progress (highest first)
               .map(({ category, procedures, categoryProgress, totalRequired, totalAchieved }) => {
               const isExpanded = expandedCategories.has(category);
-              
+
               // Determine color based on progress
               const getProgressColor = (progress: number) => {
                 if (progress < 50) return 'bg-red-500';
                 if (progress < 80) return 'bg-blue-500';
                 return 'bg-green-500';
               };
-              
+
               const progressColor = getProgressColor(categoryProgress);
-              
+
               // Determine category circle color based on progress
               const getCategoryCircleColor = (progress: number) => {
                 if (progress < 50) return 'bg-red-500';
                 if (progress < 80) return 'bg-blue-500';
                 return 'bg-green-500';
               };
-              
+
               const categoryCircleColor = getCategoryCircleColor(categoryProgress);
-              
+
               return (
                 <div key={category} className="border-2 border-gray-200 rounded-lg md:rounded-xl overflow-hidden hover:border-blue-300 transition-colors">
                   {/* Category Header */}
@@ -133,7 +133,7 @@ export default function ProgressDetailModal({ progress, onClose }: Props) {
                         {isExpanded ? <ChevronUp size={20} className="md:w-6 md:h-6" /> : <ChevronDown size={20} className="md:w-6 md:h-6" />}
                       </div>
                     </button>
-                    
+
                     {/* Category Progress Bar */}
                     <div className="w-full">
                       <div className="flex justify-between text-xs md:text-sm mb-1.5 md:mb-2">
@@ -143,7 +143,7 @@ export default function ProgressDetailModal({ progress, onClose }: Props) {
                         </span>
                       </div>
                       <div className="w-full bg-gray-200 rounded-full h-3 md:h-4 overflow-hidden">
-                        <div 
+                        <div
                           className={`h-full rounded-full transition-all duration-500 ${progressColor}`}
                           style={{ width: `${Math.min(categoryProgress, 100)}%` }}
                         />
@@ -159,7 +159,7 @@ export default function ProgressDetailModal({ progress, onClose }: Props) {
                           // Calculate total required for each procedure
                           const aTotalRequired = (a.requiredAssisted || 0) + (a.requiredPerformed || 0);
                           const bTotalRequired = (b.requiredAssisted || 0) + (b.requiredPerformed || 0);
-                          
+
                           // Sort by total required (highest first)
                           return bTotalRequired - aTotalRequired;
                         })
@@ -170,7 +170,7 @@ export default function ProgressDetailModal({ progress, onClose }: Props) {
                             if (progress < 80) return 'bg-blue-500';
                             return 'bg-green-500';
                           };
-                          
+
                           // Calculate average progress for the procedure
                           let avgProgress = 0;
                           let progressCount = 0;
@@ -183,19 +183,19 @@ export default function ProgressDetailModal({ progress, onClose }: Props) {
                             progressCount++;
                           }
                           avgProgress = progressCount > 0 ? avgProgress / progressCount : 0;
-                          
+
                           // Determine circle color based on average progress
                           const getCircleColor = (progress: number) => {
                             if (progress < 50) return 'bg-red-500';
                             if (progress < 80) return 'bg-blue-500';
                             return 'bg-green-500';
                           };
-                          
+
                           const circleColor = getCircleColor(avgProgress);
-                          
+
                           return (
-                        <div 
-                          key={idx} 
+                        <div
+                          key={idx}
                           className={`border-l-4 ${
                             proc.isComplete ? 'border-green-500 bg-green-50' : 'border-blue-500 bg-blue-50'
                           } pl-3 md:pl-5 pr-3 md:pr-4 py-3 md:py-4 rounded-r-lg`}
@@ -214,7 +214,7 @@ export default function ProgressDetailModal({ progress, onClose }: Props) {
                               </div>
                             )}
                           </div>
-                          
+
                           {/* Assisted Progress */}
                           {proc.requiredAssisted !== null && (
                             <div className="mb-3">
@@ -228,7 +228,7 @@ export default function ProgressDetailModal({ progress, onClose }: Props) {
                                 </span>
                               </div>
                               <div className="w-full bg-gray-200 rounded-full h-3 overflow-hidden">
-                                <div 
+                                <div
                                   className={`h-full rounded-full transition-all duration-500 ${getBarColor(proc.assistedProgress)}`}
                                   style={{ width: `${Math.min(proc.assistedProgress, 100)}%` }}
                                 />
@@ -249,7 +249,7 @@ export default function ProgressDetailModal({ progress, onClose }: Props) {
                                 </span>
                               </div>
                               <div className="w-full bg-gray-200 rounded-full h-3 overflow-hidden">
-                                <div 
+                                <div
                                   className={`h-full rounded-full transition-all duration-500 ${getBarColor(proc.performedProgress)}`}
                                   style={{ width: `${Math.min(proc.performedProgress, 100)}%` }}
                                 />

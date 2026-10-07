@@ -136,7 +136,7 @@ export default function MonthlyActivities() {
     const monthLabel = format(currentDate, 'MMMM yyyy');
     const doc = new jsPDF('l', 'mm', 'a4');
     createPdfHeader(doc, 'Monthly Activity Schedule', monthLabel);
-    
+
     const mStart = startOfMonth(currentDate);
     const mEnd = endOfMonth(currentDate);
     const days = eachDayOfInterval({ start: mStart, end: mEnd });
@@ -259,13 +259,13 @@ export default function MonthlyActivities() {
       const dateObj = new Date(currentDate.getFullYear(), currentDate.getMonth(), date);
       const dayOfWeek = dateObj.getDay();
       const isWeekend = dayOfWeek === 0 || dayOfWeek === 6; // Sunday or Saturday
-      
+
       days.push(
-        <div 
-          key={date} 
+        <div
+          key={date}
           className={`min-h-[120px] border border-gray-200 p-2 cursor-pointer transition-colors ${
-            isWeekend 
-              ? 'bg-blue-50 hover:bg-blue-100' 
+            isWeekend
+              ? 'bg-blue-50 hover:bg-blue-100'
               : 'bg-white hover:bg-amber-50'
           }`}
           onClick={() => handleOpenAssignModal(date)}
@@ -362,14 +362,14 @@ export default function MonthlyActivities() {
   const handleOpenAssignModal = (date: number) => {
     setSelectedDate(date);
     const dayActivities = getActivitiesForDate(date);
-    
+
     // Pre-populate form with existing assignments (multiple residents per category)
     const formData: {[categoryId: number]: string[]} = {};
     categories.forEach(category => {
       const existingActivities = dayActivities.filter(a => a.activity_category_id === category.id);
       formData[category.id] = existingActivities.map(a => a.resident_id);
     });
-    
+
     setAssignFormData(formData);
     setShowAssignModal(true);
   };
@@ -378,26 +378,9 @@ export default function MonthlyActivities() {
     if (selectedDate === null) return;
 
     const dateStr = `${currentDate.getFullYear()}-${String(currentDate.getMonth() + 1).padStart(2, '0')}-${String(selectedDate).padStart(2, '0')}`;
-    
-    try {
-      // Delete existing activities for this date
-      const existingActivities = getActivitiesForDate(selectedDate);
-      for (const activity of existingActivities) {
-        await api.delete(`/activities/${activity.id}`);
-      }
 
-      // Create new assignments (multiple residents per category)
-      for (const [categoryId, residentIds] of Object.entries(assignFormData)) {
-        for (const residentId of (residentIds as string[])) {
-          if (residentId) {
-            await api.post('/activities/assign', {
-              resident_id: residentId,
-              activity_date: dateStr,
-              activity_category_id: parseInt(categoryId)
-            });
-          }
-        }
-      }
+    try {
+      await api.put(`/activities/day/${dateStr}`, {assignments:Object.entries(assignFormData).flatMap(([category,ids]) => (ids as string[]).filter(Boolean).map(id => ({category_id:Number(category),resident_id:id})))});
 
       setShowAssignModal(false);
       setSelectedDate(null);
@@ -412,14 +395,14 @@ export default function MonthlyActivities() {
 
   const handleAssignActivity = async (date: number, residentId: string, categoryId: number) => {
     const dateStr = `${currentDate.getFullYear()}-${String(currentDate.getMonth() + 1).padStart(2, '0')}-${String(date).padStart(2, '0')}`;
-    
+
     try {
       await api.post('/activities/assign', {
         resident_id: residentId,
         activity_date: dateStr,
         activity_category_id: categoryId
       });
-      
+
       fetchActivities();
     } catch (error: any) {
       console.error('Failed to assign activity:', error);
@@ -444,7 +427,7 @@ export default function MonthlyActivities() {
 
   const renderTableView = () => {
     const daysInMonth = getDaysInMonth();
-    
+
     return (
       <div className="bg-white rounded-xl shadow-md overflow-hidden">
         <div className="overflow-x-auto">
@@ -480,7 +463,7 @@ export default function MonthlyActivities() {
                   const dayName = dateObj.toLocaleDateString('en-US', { weekday: 'short' });
                   const dayOfWeek = dateObj.getDay();
                   const isWeekend = dayOfWeek === 0 || dayOfWeek === 6;
-                  
+
                   return (
                     <tr key={date} className={isWeekend ? 'bg-blue-50 hover:bg-blue-100' : 'bg-white hover:bg-gray-50'}>
                       <td className={`px-4 py-3 text-sm font-medium sticky left-0 ${
@@ -582,7 +565,7 @@ export default function MonthlyActivities() {
               <ChevronRight size={24} />
             </button>
           </div>
-          
+
           <div className="flex items-center space-x-3">
             {/* View Toggle */}
             <div className="flex bg-gray-100 rounded-lg p-1">
@@ -607,7 +590,7 @@ export default function MonthlyActivities() {
                 Calendar View
               </button>
             </div>
-            
+
             <button
               onClick={() => setShowCategoryModal(true)}
               className="flex items-center space-x-2 bg-amber-600 text-white px-4 py-2 rounded-lg hover:bg-amber-700"
@@ -641,12 +624,12 @@ export default function MonthlyActivities() {
 
       {/* Assignment Modal */}
       {showAssignModal && selectedDate !== null && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
           <div className="bg-white rounded-lg p-6 max-w-2xl w-full max-h-[90vh] overflow-y-auto">
             <h3 className="text-xl font-semibold mb-4">
               Assign Activities for {currentDate.toLocaleDateString('en-US', { month: 'long' })} {selectedDate}
             </h3>
-            
+
             <div className="space-y-4 mb-6">
               {categories.length === 0 ? (
                 <p className="text-gray-500 text-center py-4">
@@ -707,10 +690,10 @@ export default function MonthlyActivities() {
 
       {/* Category Management Modal */}
       {showCategoryModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
           <div className="bg-white rounded-lg p-6 max-w-3xl w-full max-h-[90vh] overflow-y-auto">
             <h3 className="text-xl font-semibold mb-6">Manage Activity Categories</h3>
-            
+
             {/* Add/Edit Form */}
             <div className="bg-amber-50 p-4 rounded-lg mb-6">
               <h4 className="font-semibold mb-3">

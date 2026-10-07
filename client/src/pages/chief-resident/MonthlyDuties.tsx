@@ -109,7 +109,7 @@ export default function MonthlyDuties() {
     const monthLabel = format(currentDate, 'MMMM yyyy');
     const doc = new jsPDF('l', 'mm', 'a4');
     createPdfHeader(doc, 'Monthly Duty Schedule', monthLabel);
-    
+
     const mStart = startOfMonth(currentDate);
     const mEnd = endOfMonth(currentDate);
     const days = eachDayOfInterval({ start: mStart, end: mEnd });
@@ -252,13 +252,13 @@ export default function MonthlyDuties() {
       const dateObj = new Date(currentDate.getFullYear(), currentDate.getMonth(), date);
       const dayOfWeek = dateObj.getDay();
       const isWeekend = dayOfWeek === 0 || dayOfWeek === 6; // Sunday or Saturday
-      
+
       days.push(
-        <div 
-          key={date} 
+        <div
+          key={date}
           className={`min-h-[120px] border border-gray-200 p-2 cursor-pointer transition-colors ${
-            isWeekend 
-              ? 'bg-blue-50 hover:bg-blue-100' 
+            isWeekend
+              ? 'bg-blue-50 hover:bg-blue-100'
               : 'bg-white hover:bg-amber-50'
           }`}
           onClick={() => handleOpenAssignModal(date)}
@@ -355,14 +355,14 @@ export default function MonthlyDuties() {
   const handleOpenAssignModal = (date: number) => {
     setSelectedDate(date);
     const dayDuties = getDutyForDate(date);
-    
+
     // Pre-populate form with existing assignments
     const formData: {[categoryId: number]: string | ''} = {};
     categories.forEach(category => {
       const existingDuty = dayDuties.find(d => d.duty_category_id === category.id);
       formData[category.id] = existingDuty ? existingDuty.resident_id : '';
     });
-    
+
     setAssignFormData(formData);
     setShowAssignModal(true);
   };
@@ -371,24 +371,9 @@ export default function MonthlyDuties() {
     if (selectedDate === null) return;
 
     const dateStr = `${currentDate.getFullYear()}-${String(currentDate.getMonth() + 1).padStart(2, '0')}-${String(selectedDate).padStart(2, '0')}`;
-    
-    try {
-      // Delete existing duties for this date
-      const existingDuties = getDutyForDate(selectedDate);
-      for (const duty of existingDuties) {
-        await api.delete(`/duties/${duty.id}`);
-      }
 
-      // Create new assignments
-      for (const [categoryId, residentId] of Object.entries(assignFormData)) {
-        if (residentId) {
-          await api.post('/duties/assign', {
-            resident_id: residentId,
-            duty_date: dateStr,
-            duty_category_id: parseInt(categoryId)
-          });
-        }
-      }
+    try {
+      await api.put(`/duties/day/${dateStr}`, {assignments:Object.entries(assignFormData).filter(([,id]) => id).map(([category,id]) => ({category_id:Number(category),resident_id:id}))});
 
       setShowAssignModal(false);
       setSelectedDate(null);
@@ -403,14 +388,14 @@ export default function MonthlyDuties() {
 
   const handleAssignDuty = async (date: number, residentId: string, categoryId: number) => {
     const dateStr = `${currentDate.getFullYear()}-${String(currentDate.getMonth() + 1).padStart(2, '0')}-${String(date).padStart(2, '0')}`;
-    
+
     try {
       await api.post('/duties/assign', {
         resident_id: residentId,
         duty_date: dateStr,
         duty_category_id: categoryId
       });
-      
+
       fetchDuties();
     } catch (error: any) {
       console.error('Failed to assign duty:', error);
@@ -436,7 +421,7 @@ export default function MonthlyDuties() {
 
   const renderTableView = () => {
     const daysInMonth = getDaysInMonth();
-    
+
     return (
       <div className="bg-white rounded-xl shadow-md overflow-hidden">
         <div className="overflow-x-auto">
@@ -472,7 +457,7 @@ export default function MonthlyDuties() {
                   const dayName = dateObj.toLocaleDateString('en-US', { weekday: 'short' });
                   const dayOfWeek = dateObj.getDay();
                   const isWeekend = dayOfWeek === 0 || dayOfWeek === 6;
-                  
+
                   return (
                     <tr key={date} className={isWeekend ? 'bg-blue-50 hover:bg-blue-100' : 'bg-white hover:bg-gray-50'}>
                       <td className={`px-4 py-3 text-sm font-medium sticky left-0 ${
@@ -570,7 +555,7 @@ export default function MonthlyDuties() {
               <ChevronRight size={24} />
             </button>
           </div>
-          
+
           <div className="flex items-center space-x-3">
             {/* View Toggle */}
             <div className="flex bg-gray-100 rounded-lg p-1">
@@ -595,7 +580,7 @@ export default function MonthlyDuties() {
                 Calendar View
               </button>
             </div>
-            
+
             <button
               onClick={() => setShowCategoryModal(true)}
               className="flex items-center space-x-2 bg-amber-600 text-white px-4 py-2 rounded-lg hover:bg-amber-700"
@@ -629,12 +614,12 @@ export default function MonthlyDuties() {
 
       {/* Assignment Modal */}
       {showAssignModal && selectedDate !== null && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
           <div className="bg-white rounded-lg p-6 max-w-2xl w-full max-h-[90vh] overflow-y-auto">
             <h3 className="text-xl font-semibold mb-4">
               Assign Duties for {currentDate.toLocaleDateString('en-US', { month: 'long' })} {selectedDate}
             </h3>
-            
+
             <div className="space-y-4 mb-6">
               {categories.length === 0 ? (
                 <p className="text-gray-500 text-center py-4">
@@ -693,10 +678,10 @@ export default function MonthlyDuties() {
 
       {/* Category Management Modal */}
       {showCategoryModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
           <div className="bg-white rounded-lg p-6 max-w-3xl w-full max-h-[90vh] overflow-y-auto">
             <h3 className="text-xl font-semibold mb-6">Manage Duty Categories</h3>
-            
+
             {/* Add/Edit Form */}
             <div className="bg-amber-50 p-4 rounded-lg mb-6">
               <h4 className="font-semibold mb-3">

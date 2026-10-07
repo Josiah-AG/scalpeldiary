@@ -1,3 +1,4 @@
+import { ratingRank } from '../../utils/ratingUtils';
 import { useEffect, useState } from 'react';
 import Layout from '../../components/Layout';
 import api from '../../api/axios';
@@ -63,7 +64,7 @@ export default function RatedLogs() {
   const fetchLogs = async () => {
     if (isReadOnlyMode && viewingResidentId) {
       if (years.length === 0) return; // Wait for years to load
-      const yearData = years.find(y => y.id === parseInt(selectedYear));
+      const yearData = years.find(y => String(y.id) === selectedYear);
       if (yearData) {
         const response = await api.get(`/logs/resident/${viewingResidentId}?year=${yearData.year}`);
         const ratedLogs = response.data.filter((log: any) => log.status !== 'PENDING');
@@ -85,8 +86,8 @@ export default function RatedLogs() {
   };
 
   const getRowColor = (log: any) => {
-    if (!log.rating) return 'bg-gray-50';
-    return log.rating > 50 ? 'bg-green-50' : 'bg-red-50';
+    if (log.rating == null) return 'bg-gray-50';
+    return ratingRank(log.rating) >= 50 ? 'bg-green-50' : 'bg-red-50';
   };
 
   return (
@@ -218,7 +219,7 @@ export default function RatedLogs() {
 
       {/* Detail Modal */}
       {selectedLog && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
           <div className="bg-white rounded-xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
             <div className="bg-gradient-to-r from-blue-600 to-blue-700 text-white px-4 sm:px-6 py-4 flex justify-between items-center sticky top-0">
               <h3 className="text-lg sm:text-xl font-bold">Log Details</h3>
@@ -271,7 +272,7 @@ export default function RatedLogs() {
                   <p className="text-gray-900">{selectedLog.surgery_role?.replace(/_/g, ' ')}</p>
                 </div>
               </div>
-              {selectedLog.rating && (
+              {selectedLog.rating != null && (
                 <>
                   <div>
                     <label className="text-sm font-semibold text-gray-600">Rating</label>
