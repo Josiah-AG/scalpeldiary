@@ -62,6 +62,7 @@ export default function NotificationPermission() {
       if (subscription) {
         const existing = subscription.options.applicationServerKey;
         if (!existing || Array.from(new Uint8Array(existing)).join(',') !== Array.from(applicationKey).join(',')) {
+          await api.post('/notifications/unsubscribe', {endpoint:subscription.endpoint});
           await subscription.unsubscribe(); subscription=null;
         }
       }
