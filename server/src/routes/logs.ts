@@ -75,10 +75,12 @@ router.get('/my-logs', authenticate, async (req: AuthRequest, res) => {
 const createLog = async (req: AuthRequest, res: any) => {
   try {
     const {
-      yearId, date, mrn, age, sex, diagnosis, procedure,
+      yearId, date, mrn, patientName, age, sex, diagnosis, procedure,
       procedureType, procedureCategory, placeOfPractice, surgeryRole, supervisorId, remark,
       isDetachment, detachmentType, externalSupervisorName
     } = req.body;
+
+    if (patientName != null && (typeof patientName !== 'string' || patientName.trim().length > 200)) return res.status(400).json({ error: 'Patient name must be at most 200 characters' });
 
     // Prevent self-assignment as supervisor
     if (supervisorId === req.user!.id) {
@@ -106,13 +108,13 @@ const createLog = async (req: AuthRequest, res: any) => {
       `INSERT INTO surgical_logs (
         resident_id, year_id, date, mrn, age, sex, diagnosis, procedure,
         procedure_type, procedure_category, place_of_practice, surgery_role, supervisor_id, remark,
-        is_detachment, detachment_type, external_supervisor_name
-      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17) RETURNING *`,
+        is_detachment, detachment_type, external_supervisor_name, patient_name
+      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18) RETURNING *`,
       [req.user!.id, yearId, date, mrn, age, sex, diagnosis, procedure,
        procedureType, procedureCategory || 'MINOR', placeOfPractice, surgeryRole,
        isDetachment && !supervisorId ? null : supervisorId,
        remark || null,
-       isDetachment || false, detachmentType || null, externalSupervisorName || null]
+       isDetachment || false, detachmentType || null, externalSupervisorName || null, patientName?.trim() || null]
     );
 
     // Send notification to supervisor if one is assigned (not external detachment)
@@ -466,9 +468,11 @@ router.put('/:logId', authenticate, supervisorAssignment, transactional(async (r
   try {
     const { logId } = req.params;
     const {
-      date, mrn, age, sex, diagnosis, procedure,
+      date, mrn, patientName, age, sex, diagnosis, procedure,
       procedureType, procedureCategory, placeOfPractice, surgeryRole, supervisorId, remark
     } = req.body;
+
+    if (patientName != null && (typeof patientName !== 'string' || patientName.trim().length > 200)) return res.status(400).json({ error: 'Patient name must be at most 200 characters' });
 
     const checkResult = await query(
       'SELECT rating, status, resident_id, year_id FROM surgical_logs WHERE id = $1 FOR UPDATE',
@@ -493,11 +497,11 @@ router.put('/:logId', authenticate, supervisorAssignment, transactional(async (r
       `UPDATE surgical_logs
        SET date = $1, mrn = $2, age = $3, sex = $4, diagnosis = $5, procedure = $6,
            procedure_type = $7, procedure_category = $8, place_of_practice = $9,
-           surgery_role = $10, supervisor_id = $11, remark = $12, updated_at = NOW()
+           surgery_role = $10, supervisor_id = $11, remark = $12, patient_name = CASE WHEN $14::boolean THEN $15 ELSE patient_name END, updated_at = NOW()
        WHERE id = $13
        RETURNING *`,
       [date, mrn, age, sex, diagnosis, procedure, procedureType, procedureCategory,
-       placeOfPractice, surgeryRole, supervisorId, remark || null, logId]
+       placeOfPractice, surgeryRole, supervisorId, remark || null, logId, patientName !== undefined, patientName?.trim() || null]
     );
 
     res.json(result.rows[0]);

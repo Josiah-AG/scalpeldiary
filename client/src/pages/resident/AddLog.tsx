@@ -31,6 +31,7 @@ export default function AddLog() {
     yearId: '',
     date: new Date().toISOString().split('T')[0],
     mrn: '',
+    patientName: '',
     age: '',
     sex: 'MALE',
     diagnosis: '',
@@ -196,6 +197,7 @@ export default function AddLog() {
       setPatientData({
         ...patientData,
         mrn: '',
+    patientName: '',
         age: '',
         diagnosis: '',
       });
@@ -262,6 +264,10 @@ export default function AddLog() {
                 />
               </div>
 
+              <div>
+                <label htmlFor="patient-name" className="block text-sm font-medium text-gray-700 mb-2">Patient Name</label>
+                <input id="patient-name" type="text" maxLength={200} value={patientData.patientName} onChange={(e) => setPatientData({ ...patientData, patientName: e.target.value })} className="w-full px-4 py-2 border border-gray-300 rounded-lg" autoComplete="off" />
+              </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">MRN</label>
                 <input

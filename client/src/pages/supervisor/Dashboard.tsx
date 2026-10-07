@@ -121,7 +121,7 @@ export default function SupervisorDashboard() {
   return (
     <Layout title="Supervisor Dashboard">
       {/* Metrics - Enhanced */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+      <div className="grid grid-cols-1 sm:grid-cols-2 2xl:grid-cols-4 gap-6 mb-8">
         <button
           onClick={() => navigate('/ratings-done')}
           className="bg-gradient-to-br from-blue-500 to-blue-600 text-white p-6 rounded-xl shadow-lg hover:shadow-2xl transition-all transform hover:scale-105"

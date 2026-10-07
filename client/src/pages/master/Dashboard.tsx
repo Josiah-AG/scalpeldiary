@@ -40,7 +40,7 @@ export default function MasterDashboard() {
   return (
     <Layout title="Master Dashboard">
       {/* Main Metrics */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6 mb-8">
+      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-5 gap-6 mb-8">
         {/* Residents Card */}
         <button
           onClick={() => navigate('/browse-residents')}
@@ -212,7 +212,7 @@ export default function MasterDashboard() {
       )}
 
       <div className="bg-white rounded-lg shadow overflow-hidden">
-        <div className="px-6 py-4 border-b flex justify-between items-center">
+        <div className="px-4 sm:px-6 py-4 border-b flex flex-wrap gap-3 justify-between items-center">
           <h3 className="text-lg font-semibold">All Users</h3>
           <div className="flex items-center space-x-2">
             <label className="text-sm text-gray-600">Sort by:</label>
@@ -226,7 +226,7 @@ export default function MasterDashboard() {
             </select>
           </div>
         </div>
-        <table className="min-w-full divide-y divide-gray-200">
+        <div className="overflow-x-auto"><table className="min-w-full divide-y divide-gray-200">
           <thead className="bg-gray-50">
             <tr>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Name</th>
@@ -253,7 +253,7 @@ export default function MasterDashboard() {
               </tr>
             ))}
           </tbody>
-        </table>
+        </table></div>
       </div>
 
       {/* Rotations Modal */}

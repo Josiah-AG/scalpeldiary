@@ -35,7 +35,7 @@ export default function Dashboard() {
   const [showEditModal, setShowEditModal] = useState(false);
   const [editingLog, setEditingLog] = useState<any>(null);
   const [editFormData, setEditFormData] = useState({
-    date: '', mrn: '', age: '', sex: 'MALE', diagnosis: '', procedure: '',
+    date: '', mrn: '', patientName: '', age: '', sex: 'MALE', diagnosis: '', procedure: '',
     procedureType: 'ELECTIVE', procedureCategory: 'GI Surgery', placeOfPractice: 'Y12HMC',
     surgeryRole: 'PRIMARY_SURGEON', supervisorId: '', remark: '',
   });
@@ -513,7 +513,7 @@ export default function Dashboard() {
     setEditingLog(surgery);
     setEditFormData({
       date: surgery.date?.split('T')[0] || surgery.date,
-      mrn: surgery.mrn, age: surgery.age?.toString() || '', sex: surgery.sex,
+      mrn: surgery.mrn, patientName: surgery.patient_name || '', age: surgery.age?.toString() || '', sex: surgery.sex,
       diagnosis: surgery.diagnosis, procedure: surgery.procedure,
       procedureType: surgery.procedure_type, procedureCategory: surgery.procedure_category || 'GI Surgery',
       placeOfPractice: surgery.place_of_practice, surgeryRole: surgery.surgery_role,
@@ -620,21 +620,21 @@ export default function Dashboard() {
 
           {/* Content Grid - Mobile Optimized */}
           <div className="p-4 md:p-8">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6">
+            <div className="grid grid-cols-1 xl:grid-cols-3 gap-4 xl:gap-6">
               {/* Current Rotation Card */}
               <div
                 onClick={handleRotationCardClick}
-                className="group relative bg-gradient-to-br from-blue-50 to-indigo-50 rounded-lg md:rounded-xl p-4 md:p-6 border-2 border-blue-200 hover:border-blue-400 transition-all hover:shadow-lg cursor-pointer"
+                className="group relative min-w-0 overflow-hidden bg-gradient-to-br from-blue-50 to-indigo-50 rounded-lg md:rounded-xl p-4 md:p-6 border-2 border-blue-200 hover:border-blue-400 transition-all hover:shadow-lg cursor-pointer"
               >
                 <div className="absolute top-0 right-0 w-24 h-24 md:w-32 md:h-32 bg-blue-200 rounded-full opacity-10 -mr-12 -mt-12 md:-mr-16 md:-mt-16"></div>
                 <div className="relative">
                   <div className="flex items-center space-x-2 md:space-x-3 mb-3 md:mb-4">
-                    <div className="bg-blue-600 rounded-lg p-1.5 md:p-2.5">
+                    <div className="bg-blue-600 rounded-lg shrink-0 p-1.5 md:p-2.5">
                       <svg className="w-4 h-4 md:w-5 md:h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
                       </svg>
                     </div>
-                    <h4 className="text-sm md:text-lg font-bold text-gray-800">Current Rotation</h4>
+                    <h4 className="min-w-0 break-words text-sm md:text-lg font-bold text-gray-800">Current Rotation</h4>
                   </div>
                   {todayOverview.rotation ? (
                     <div className="space-y-2">
@@ -663,17 +663,17 @@ export default function Dashboard() {
               {/* Today's Duty Card - Always show */}
               <div
                 onClick={handleDutyCardClick}
-                className="group relative bg-gradient-to-br from-amber-50 to-orange-50 rounded-lg md:rounded-xl p-4 md:p-6 border-2 border-amber-200 hover:border-amber-400 transition-all hover:shadow-lg cursor-pointer"
+                className="group relative min-w-0 overflow-hidden bg-gradient-to-br from-amber-50 to-orange-50 rounded-lg md:rounded-xl p-4 md:p-6 border-2 border-amber-200 hover:border-amber-400 transition-all hover:shadow-lg cursor-pointer"
               >
                 <div className="absolute top-0 right-0 w-24 h-24 md:w-32 md:h-32 bg-amber-200 rounded-full opacity-10 -mr-12 -mt-12 md:-mr-16 md:-mt-16"></div>
                 <div className="relative">
                   <div className="flex items-center space-x-2 md:space-x-3 mb-3 md:mb-4">
-                    <div className="bg-amber-600 rounded-lg p-1.5 md:p-2.5">
+                    <div className="bg-amber-600 rounded-lg shrink-0 p-1.5 md:p-2.5">
                       <svg className="w-4 h-4 md:w-5 md:h-5 text-white" fill="currentColor" viewBox="0 0 20 20">
                         <path fillRule="evenodd" d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z" clipRule="evenodd" />
                       </svg>
                     </div>
-                    <h4 className="text-sm md:text-lg font-bold text-gray-800">Today's Duty</h4>
+                    <h4 className="min-w-0 break-words text-sm md:text-lg font-bold text-gray-800">Today's Duty</h4>
                   </div>
 
                   <div className="space-y-2">
@@ -705,15 +705,15 @@ export default function Dashboard() {
               {/* Today's Activities Card */}
               <div
                 onClick={handleActivityCardClick}
-                className="group relative bg-gradient-to-br from-purple-50 to-pink-50 rounded-lg md:rounded-xl p-4 md:p-6 border-2 border-purple-200 hover:border-purple-400 transition-all hover:shadow-lg cursor-pointer"
+                className="group relative min-w-0 overflow-hidden bg-gradient-to-br from-purple-50 to-pink-50 rounded-lg md:rounded-xl p-4 md:p-6 border-2 border-purple-200 hover:border-purple-400 transition-all hover:shadow-lg cursor-pointer"
               >
                 <div className="absolute top-0 right-0 w-24 h-24 md:w-32 md:h-32 bg-purple-200 rounded-full opacity-10 -mr-12 -mt-12 md:-mr-16 md:-mt-16"></div>
                 <div className="relative">
                   <div className="flex items-center space-x-2 md:space-x-3 mb-3 md:mb-4">
-                    <div className="bg-purple-600 rounded-lg p-1.5 md:p-2.5">
+                    <div className="bg-purple-600 rounded-lg shrink-0 p-1.5 md:p-2.5">
                       <Activity className="w-4 h-4 md:w-5 md:h-5 text-white" />
                     </div>
-                    <h4 className="text-sm md:text-lg font-bold text-gray-800">Today's Activities</h4>
+                    <h4 className="min-w-0 break-words text-sm md:text-lg font-bold text-gray-800">Today's Activities</h4>
                   </div>
 
                   <div className="space-y-2">
@@ -752,7 +752,7 @@ export default function Dashboard() {
       )}
 
       {/* Stats Cards - Mobile Optimized: 1 col mobile, 3 cols tablet/desktop */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6 mb-6 md:mb-8">
+      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4 md:gap-6 mb-6 md:mb-8">
         <div className="bg-gradient-to-br from-blue-500 to-blue-600 rounded-lg md:rounded-xl shadow-lg p-4 md:p-6 text-white">
           <div className="flex items-center justify-between">
             <div>
@@ -1133,6 +1133,10 @@ export default function Dashboard() {
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">Date</label>
                   <input type="date" value={editFormData.date} onChange={(e) => setEditFormData({ ...editFormData, date: e.target.value })} className="w-full px-4 py-2 border border-gray-300 rounded-md" required />
+                </div>
+                <div>
+                  <label htmlFor="edit-patient-name" className="block text-sm font-medium text-gray-700 mb-2">Patient Name</label>
+                  <input id="edit-patient-name" type="text" maxLength={200} value={editFormData.patientName} onChange={(e) => setEditFormData({ ...editFormData, patientName: e.target.value })} className="w-full px-4 py-2 border border-gray-300 rounded-md" autoComplete="off" />
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">MRN</label>

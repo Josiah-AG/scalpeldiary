@@ -253,8 +253,9 @@ export default function Layout({ children, title }: LayoutProps) {
             <div className="flex items-center space-x-1 sm:space-x-2 md:space-x-4 flex-1 min-w-0">
               {/* Mobile Menu Button */}
               <button
+                aria-label="Open navigation"
                 onClick={() => setShowMobileSidebar(true)}
-                className="md:hidden p-1.5 sm:p-2 rounded-lg hover:bg-blue-800 transition-colors shrink-0"
+                className="lg:hidden p-1.5 sm:p-2 rounded-lg hover:bg-blue-800 transition-colors shrink-0"
               >
                 <svg className="w-5 h-5 sm:w-6 sm:h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
@@ -373,18 +374,18 @@ export default function Layout({ children, title }: LayoutProps) {
       {/* Role Switcher for dual-role users */}
       <RoleSwitcher />
 
-      <div className="flex flex-col md:flex-row">
+      <div className="flex flex-col lg:flex-row">
         {/* Mobile Sidebar Overlay */}
         {showMobileSidebar && (
           <>
             {/* Backdrop */}
             <div
-              className="fixed inset-0 bg-black/50 z-40 md:hidden"
+              className="fixed inset-0 bg-black/50 z-40 lg:hidden"
               onClick={() => setShowMobileSidebar(false)}
             />
 
             {/* Sidebar */}
-            <aside className="fixed top-0 left-0 h-full w-64 bg-white shadow-2xl z-50 md:hidden overflow-y-auto">
+            <aside className="fixed top-0 left-0 h-full w-64 bg-white shadow-2xl z-50 lg:hidden overflow-y-auto">
               {/* Close Button */}
               <div className="flex justify-between items-center p-4 border-b border-gray-200">
                 <div className="flex items-center space-x-2">
@@ -479,8 +480,8 @@ export default function Layout({ children, title }: LayoutProps) {
           </>
         )}
 
-        {/* Desktop Sidebar - Hidden on mobile, shown on md+ */}
-        <aside className="hidden md:block md:w-64 bg-white shadow-lg min-h-screen border-r border-gray-200">
+        {/* Desktop Sidebar - Drawer remains available below lg */}
+        <aside className="hidden lg:block lg:w-64 shrink-0 bg-white shadow-lg min-h-screen border-r border-gray-200">
           <nav className="mt-6 px-3">
             {getNavLinks().map((link) => {
               const Icon = link.icon;
@@ -544,7 +545,7 @@ export default function Layout({ children, title }: LayoutProps) {
         </aside>
 
         {/* Main Content */}
-        <main className="flex-1 p-4 sm:p-6 lg:p-8 overflow-y-auto">
+        <main className="flex-1 min-w-0 max-w-full p-4 sm:p-6 lg:p-8">
           <div className="max-w-7xl mx-auto">
             <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-4 sm:mb-6">
               {title}

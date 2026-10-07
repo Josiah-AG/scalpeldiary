@@ -77,6 +77,7 @@ export interface SurgicalLog {
   yearId: string;
   date: Date;
   mrn: string;
+  patient_name?: string | null;
   age: number;
   sex: 'MALE' | 'FEMALE';
   diagnosis: string;

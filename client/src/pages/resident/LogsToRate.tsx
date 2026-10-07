@@ -138,7 +138,7 @@ export default function LogsToRate() {
 
       {selectedLog && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
-          <div className="bg-white rounded-xl shadow-2xl max-w-2xl w-full">
+          <div className="bg-white rounded-xl shadow-2xl max-w-2xl w-full max-h-[90dvh] overflow-y-auto">
             <div className="bg-gradient-to-r from-blue-600 to-blue-700 text-white px-6 py-4 flex justify-between items-center">
               <h3 className="text-xl font-bold">Rate Procedure</h3>
               <button

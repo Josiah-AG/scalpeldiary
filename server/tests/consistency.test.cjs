@@ -64,6 +64,17 @@ test('supervisor and senior-resident surgery counts group MRN/date without losin
   } finally {await db.query('DELETE FROM surgical_logs WHERE id=ANY($1::uuid[])',[inserted]);}
  }
 });
+test('patient names round-trip through creation and editing without affecting legacy updates',async()=>{
+ const current=(await db.query('SELECT id FROM resident_years WHERE resident_id=$1 ORDER BY year DESC LIMIT 1',[ids.resident])).rows[0].id;
+ const body={...logBody(),yearId:current,patientName:'  Synthetic Patient  '};
+ const created=await request('POST','/logs',body);assert.equal(created.status,201);assert.equal(created.data.patient_name,'Synthetic Patient');
+ assert.equal((await request('PUT','/logs/'+created.data.id,{...body,patientName:'Synthetic Updated'})).data.patient_name,'Synthetic Updated');
+ const legacy={...body};delete legacy.patientName;
+ assert.equal((await request('PUT','/logs/'+created.data.id,legacy)).data.patient_name,'Synthetic Updated');
+ assert.equal((await request('POST','/logs',{...body,patientName:'x'.repeat(201)})).status,400);
+ assert.equal((await request('POST','/logs',{...body,patientName:{name:'invalid'}})).status,400);
+ await db.query('DELETE FROM surgical_logs WHERE id=$1',[created.data.id]);
+});
 test('deactivating supervisor preserves supervised records',async()=>{assert.equal((await request('DELETE','/users/'+ids.supervisor,undefined,'master')).status,200);assert.equal((await db.query('SELECT count(*) FROM surgical_logs WHERE id=$1',[log])).rows[0].count,'1');assert.equal((await request('GET','/users/me',undefined,'supervisor')).status,401);});
 test('database enforces one active academic year and score bounds',async()=>{await assert.rejects(db.query("INSERT INTO academic_years(year_name,start_month,start_year,is_active) VALUES('Synthetic',7,2099,true)"),{code:'23505'});await assert.rejects(db.query('UPDATE surgical_logs SET rating=101 WHERE id=$1',[log]),{code:'23514'});});
 test('readiness responds and HTTP migration surface is absent',async()=>{assert.equal((await fetch(base+'/ready')).status,200);assert.equal((await request('GET','/migrations')).status,404);});

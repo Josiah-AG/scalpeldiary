@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { groupSurgeries } from './surgeryGroups';
+import { groupSurgeries, surgeryGroupRepresentative } from './surgeryGroups';
 
 describe('supervised surgery grouping', () => {
   it('groups several residents and different procedure names by MRN and date, retaining every log', () => {
@@ -23,4 +23,15 @@ describe('supervised surgery grouping', () => {
       { id: '4', mrn: '123', date: '' },
     ])).toHaveLength(4);
   });
+});
+
+it('uses the most senior submitted year, then earliest submission, without reordering entries', () => {
+  const logs = [
+    { id: 'junior', mrn: '123', date: '2026-10-07', resident_year: 1, created_at: '2026-10-07T08:00:00Z' },
+    { id: 'senior-later', mrn: '123', date: '2026-10-07', resident_year: 3, created_at: '2026-10-07T10:00:00Z' },
+    { id: 'senior-first', mrn: '123', date: '2026-10-07', resident_year: 3, created_at: '2026-10-07T09:00:00Z' },
+  ];
+  expect(surgeryGroupRepresentative([logs[0]]).id).toBe('junior');
+  expect(surgeryGroupRepresentative(logs).id).toBe('senior-first');
+  expect(logs[0].id).toBe('junior');
 });
