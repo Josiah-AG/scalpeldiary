@@ -1,4 +1,5 @@
-import { Fragment } from 'react';
+import { Fragment, useState } from 'react';
+import { ChevronDown, ChevronRight } from 'lucide-react';
 import { groupSurgeries, surgeryGroupRepresentative, SurgeryIdentity } from '../utils/surgeryGroups';
 import { getSupervisorRatingBadge } from '../utils/ratingUtils';
 
@@ -12,6 +13,7 @@ export default function SurgeryGroups<T extends Entry>({ logs, onSelect, canSele
   logs: T[]; onSelect: (log: T) => void; canSelect?: (log: T) => boolean; action?: string;
 }) {
   const groups = groupSurgeries(logs);
+  const [expandedGroups, setExpandedGroups] = useState<Record<string, boolean>>({});
   return <div className="space-y-4">
     <p className="text-sm text-gray-600">{groups.length} {groups.length === 1 ? 'surgery' : 'surgeries'} · {logs.length} resident log {logs.length === 1 ? 'entry' : 'entries'}</p>
     <div className="max-w-full bg-white rounded-xl shadow overflow-x-auto">
@@ -22,22 +24,28 @@ export default function SurgeryGroups<T extends Entry>({ logs, onSelect, canSele
         <tbody className="divide-y divide-gray-200">
           {groups.map(group => {
             const representative = surgeryGroupRepresentative(group.logs);
+            const grouped = group.logs.length > 1;
+            const pending = group.logs.filter(log => !['RATED', 'COMMENTED', 'NOT_WITNESSED'].includes(log.status || '') || (log.status === 'RATED' && log.rating == null)).length;
+            const expanded = !grouped || (expandedGroups[group.key] ?? (pending > 0));
             return <Fragment key={group.key}>
-              {group.logs.length > 1 && <tr className="bg-blue-50">
-                <th colSpan={8} scope="rowgroup" className="px-4 py-3 text-left text-blue-900">
-                  <div className="flex flex-wrap items-center justify-between gap-2">
+              {grouped && <tr className="bg-blue-100/70">
+                <th colSpan={8} scope="rowgroup" className="p-0 text-left text-blue-900 border-2 border-blue-200">
+                  <button type="button" aria-expanded={expanded} onClick={() => setExpandedGroups(previous => ({ ...previous, [group.key]: !expanded }))} className="w-full px-4 py-3 flex items-center gap-3 text-left hover:bg-blue-100 focus-visible:outline-2 focus-visible:outline-blue-600">
+                    {expanded ? <ChevronDown className="w-5 h-5 shrink-0" /> : <ChevronRight className="w-5 h-5 shrink-0" />}
+                    <div className="flex flex-1 flex-wrap items-center justify-between gap-2">
                     <div>
                       <p className="font-semibold">MRN: {group.mrn || 'Not recorded'} · {representative.patient_name?.trim() || 'Patient name not recorded'} · {representative.procedure}</p>
                       <p className="text-xs font-normal mt-1">{group.date || 'Date not recorded'}{representative.resident_year ? ` · Year ${representative.resident_year}` : ''}</p>
                     </div>
-                    <span className="text-xs font-normal">{group.logs.length} resident log {group.logs.length === 1 ? 'entry' : 'entries'}</span>
-                  </div>
+                    <span className="text-xs font-normal">{group.logs.length} resident logs · {pending > 0 ? `${pending} awaiting rating` : 'All reviewed'}</span>
+                    </div>
+                  </button>
                 </th>
               </tr>}
-              {group.logs.map(log => {
+              {expanded && group.logs.map((log, index) => {
                 const allowed = !canSelect || canSelect(log);
                 const badge = getSupervisorRatingBadge(log.rating ?? null, log.status || 'PENDING');
-                return <tr key={log.id} className="hover:bg-gray-50">
+                return <tr key={log.id} className={grouped ? `bg-blue-50/60 hover:bg-blue-100/60 [&>td:first-child]:border-l-2 [&>td:last-child]:border-r-2 [&>td]:border-blue-200 ${index === group.logs.length - 1 ? '[&>td]:border-b-2' : ''}` : 'hover:bg-gray-50'}>
                   <td className="px-4 py-3 whitespace-nowrap">{group.date}</td>
                   <td className="px-4 py-3 font-medium">{log.resident_name || 'Resident'}</td>
                   <td className="px-4 py-3">{log.resident_year || '—'}</td>
