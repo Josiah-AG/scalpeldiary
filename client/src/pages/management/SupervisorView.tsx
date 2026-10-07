@@ -1,3 +1,5 @@
+import SurgeryGroups from '../../components/SurgeryGroups';
+import { groupSurgeries } from '../../utils/surgeryGroups';
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Layout from '../../components/Layout';
@@ -6,6 +8,7 @@ import { getSupervisorRatingBadge } from '../../utils/ratingUtils';
 import { ArrowLeft, FileText, Presentation, Calendar, User, Star, MessageSquare, X } from 'lucide-react';
 
 interface RatedProcedure {
+  mrn: string;
   id: number;
   date: string;
   procedure: string;
@@ -116,7 +119,7 @@ export default function SupervisorView() {
           <div className="flex flex-wrap items-center gap-2 text-sm md:text-base text-green-100">
             <span className="flex items-center space-x-1">
               <FileText className="w-4 h-4" />
-              <span>{procedures.length} procedures</span>
+              <span>{groupSurgeries(procedures).length} surgeries</span>
             </span>
             <span>•</span>
             <span className="flex items-center space-x-1">
@@ -141,8 +144,8 @@ export default function SupervisorView() {
                 <div className="flex items-center justify-center space-x-1 md:space-x-2">
                   <FileText className="w-4 h-4 md:w-5 md:h-5" />
                   <span className="text-sm md:text-base">
-                    <span>Procedures </span>
-                    ({procedures.length})
+                    <span>Surgeries </span>
+                    ({groupSurgeries(procedures).length})
                   </span>
                 </div>
               </button>
@@ -174,57 +177,7 @@ export default function SupervisorView() {
                   <p className="text-gray-500 text-sm md:text-base">No procedures found</p>
                 </div>
               ) : (
-                <div className="space-y-3 md:space-y-4">
-                  {procedures.map((proc) => (
-                    <div
-                      key={proc.id}
-                      onClick={() => setSelectedProcedure(proc)}
-                      className="border border-gray-200 rounded-lg p-3 md:p-4 hover:shadow-lg hover:border-blue-300 transition-all cursor-pointer bg-white"
-                    >
-                      <div className="flex items-start justify-between gap-3">
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-center space-x-2 md:space-x-3 mb-2">
-                            {proc.resident_profile_picture ? (
-                              <img
-                                src={proc.resident_profile_picture}
-                                alt={proc.resident_name}
-                                className="w-8 h-8 md:w-10 md:h-10 rounded-full object-cover shrink-0"
-                              />
-                            ) : (
-                              <div className="w-8 h-8 md:w-10 md:h-10 rounded-full bg-blue-100 flex items-center justify-center shrink-0">
-                                <User className="w-4 h-4 md:w-5 md:h-5 text-blue-600" />
-                              </div>
-                            )}
-                            <div className="min-w-0 flex-1">
-                              <h3 className="font-semibold text-gray-900 text-sm md:text-base truncate">{proc.procedure}</h3>
-                              <p className="text-xs md:text-sm text-gray-500 truncate">
-                                {proc.resident_name} • Year {proc.resident_year}
-                              </p>
-                            </div>
-                          </div>
-                          <div className="flex flex-wrap items-center gap-2 text-xs md:text-sm text-gray-600 mt-2">
-                            <span className="flex items-center space-x-1">
-                              <Calendar className="w-3 h-3 md:w-4 md:h-4" />
-                              <span>{formatDate(proc.date)}</span>
-                            </span>
-                            <span className="px-2 py-0.5 md:py-1 bg-blue-100 text-blue-800 rounded text-xs">
-                              {proc.procedure_type}
-                            </span>
-                            <span className="px-2 py-0.5 md:py-1 bg-purple-100 text-purple-800 rounded text-xs truncate max-w-[120px] md:max-w-none">
-                              {proc.surgery_role}
-                            </span>
-                          </div>
-                        </div>
-                        <div className="flex flex-col items-center space-y-1 shrink-0">
-                          <div className="flex items-center space-x-1 text-yellow-500">
-                            <Star className="w-5 h-5 md:w-6 md:h-6 fill-current" />
-                          </div>
-                          <span className="font-bold text-gray-900 text-sm md:text-base">{getSupervisorRatingBadge(proc.rating, proc.status).text}</span>
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
+                <SurgeryGroups logs={procedures} onSelect={setSelectedProcedure} />
               )
             ) : (
               presentations.length === 0 ? (

@@ -1,3 +1,4 @@
+import { groupSurgeries } from '../../utils/surgeryGroups';
 import { ratingRank } from '../../utils/ratingUtils';
 import { setModalContent } from '../../utils/safeModal';
 import { useEffect, useState } from 'react';
@@ -205,7 +206,7 @@ export default function Dashboard() {
   const fetchRatedLogsCount = async () => {
     try {
       const response = await api.get('/logs/rated');
-      setRatedLogsCount(response.data.length);
+      setRatedLogsCount(groupSurgeries(response.data).length);
     } catch (error) {
       console.error('Failed to fetch rated logs count');
     }
@@ -816,7 +817,7 @@ export default function Dashboard() {
           >
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-indigo-100 text-xs md:text-sm font-medium">Rated Logs</p>
+                <p className="text-indigo-100 text-xs md:text-sm font-medium">Surgeries Reviewed</p>
                 <p className="text-3xl md:text-4xl font-bold mt-1 md:mt-2">{ratedLogsCount}</p>
                 <p className="text-indigo-100 text-xs mt-1">As Supervisor</p>
               </div>

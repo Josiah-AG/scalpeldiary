@@ -40,6 +40,30 @@ test('disabled push delivery retains a retryable outbox row',async()=>{
 test('concurrent logins do not exhaust the transaction pool',{timeout:10000},async()=>{const replies=await Promise.all(Array.from({length:16},()=>request('POST','/auth/login',{email:ids.resident+'@example.invalid',password:'FixturePassword123'})));assert.ok(replies.every(x=>x.status===200));});
 test('suspension blocks existing token and login; master cannot be suspended',async()=>{assert.equal((await request('PUT','/users/'+ids.other+'/suspend',{},'master')).status,200);assert.equal((await request('GET','/users/me',undefined,'other')).status,401);const login=await request('POST','/auth/login',{email:ids.other+'@example.invalid',password:'FixturePassword123'});assert.equal(login.status,401);assert.notEqual((await request('PUT','/users/'+ids.master+'/suspend',{},'master')).status,200);});
 test('password reset revokes an already-issued token',async()=>{assert.equal((await request('POST','/users/reset-password/'+ids.other,{newPassword:'NewFixturePassword123'},'master')).status,200);await request('PUT','/users/'+ids.other+'/activate',{},'master');assert.equal((await request('GET','/users/me',undefined,'other')).status,401);});
+test('supervisor and senior-resident surgery counts group MRN/date without losing individual ratings',async()=>{
+ for(const who of ['supervisor','resident']) {
+  const before=(await request('GET','/analytics/supervisor',undefined,who)).data;
+  const prior=(await request('GET','/analytics/supervisor/resident/'+ids[who]+'?year=1',undefined,'master')).data.ratedLogs;
+  const mrn='GROUP-'+randomUUID();
+  const inserted=[];
+  try {
+   for(const [recordMrn,date,status,rating] of [[mrn,'2026-10-07','RATED',80],[mrn+' ','2026-10-07','RATED',0],[mrn,'2026-10-07','PENDING',null],[mrn,'2026-10-08','RATED',90],[mrn+'B','2026-10-07','RATED',70]]) {
+    const row=await db.query("INSERT INTO surgical_logs(resident_id,year_id,date,mrn,age,sex,diagnosis,procedure,procedure_type,procedure_category,place_of_practice,surgery_role,supervisor_id,status,rating) VALUES($1,$2,$3,$4,30,'MALE','Synthetic','Different procedure','ELECTIVE','Minor Surgery','Y12HMC','ASSISTANT',$5,$6,$7) RETURNING id",[ids.other,years.other,date,recordMrn,ids[who],status,rating]);
+    inserted.push(row.rows[0].id);
+   }
+   const result=(await request('GET','/analytics/supervisor',undefined,who)).data;
+   assert.equal(result.uniqueProcedures-before.uniqueProcedures,3);
+   assert.equal(result.totalSurgeries-before.totalSurgeries,3);
+   assert.equal(result.totalResidentLogs-before.totalResidentLogs,5);
+   assert.equal(result.pendingProcedures-before.pendingProcedures,1);
+   const reviewed=(await request('GET','/analytics/supervisor/resident/'+ids[who]+'?year=1',undefined,'master')).data;
+   if(who==='resident') assert.equal(reviewed.ratedLogs-prior,3);
+   const rows=(await request('GET','/logs/rated',undefined,who)).data.filter(x=>inserted.includes(x.id));
+   assert.equal(rows.length,4);
+   assert.ok(rows.some(x=>x.rating===0));
+  } finally {await db.query('DELETE FROM surgical_logs WHERE id=ANY($1::uuid[])',[inserted]);}
+ }
+});
 test('deactivating supervisor preserves supervised records',async()=>{assert.equal((await request('DELETE','/users/'+ids.supervisor,undefined,'master')).status,200);assert.equal((await db.query('SELECT count(*) FROM surgical_logs WHERE id=$1',[log])).rows[0].count,'1');assert.equal((await request('GET','/users/me',undefined,'supervisor')).status,401);});
 test('database enforces one active academic year and score bounds',async()=>{await assert.rejects(db.query("INSERT INTO academic_years(year_name,start_month,start_year,is_active) VALUES('Synthetic',7,2099,true)"),{code:'23505'});await assert.rejects(db.query('UPDATE surgical_logs SET rating=101 WHERE id=$1',[log]),{code:'23514'});});
 test('readiness responds and HTTP migration surface is absent',async()=>{assert.equal((await fetch(base+'/ready')).status,200);assert.equal((await request('GET','/migrations')).status,404);});

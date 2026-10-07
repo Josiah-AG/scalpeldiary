@@ -1,3 +1,4 @@
+import { surgeryCountSql } from '../utils/surgeryGroups';
 import { transactional } from '../database/transaction';
 import { Router } from 'express';
 import bcrypt from 'bcryptjs';
@@ -218,7 +219,7 @@ router.get('/supervisors/stats', authenticate, async (req: AuthRequest, res) => 
         u.institution,
         u.specialty,
         COALESCE(u.is_senior, false) as is_senior,
-        (SELECT COUNT(*) FROM (SELECT DISTINCT mrn, date FROM surgical_logs WHERE supervisor_id = u.id AND status != 'PENDING') sub) as total_procedures_rated,
+        (SELECT ${surgeryCountSql()} FROM surgical_logs WHERE supervisor_id = u.id AND status != 'PENDING') as total_procedures_rated,
         COUNT(DISTINCT p.id) as total_presentations_rated,
         COALESCE((SELECT AVG(rating) FROM surgical_logs WHERE supervisor_id = u.id AND rating IS NOT NULL), 0) as avg_procedure_rating,
         COALESCE(AVG(p.rating), 0) as avg_presentation_rating

@@ -1,3 +1,5 @@
+import SurgeryGroups from '../../components/SurgeryGroups';
+import { groupSurgeries } from '../../utils/surgeryGroups';
 import { useEffect, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import Layout from '../../components/Layout';
@@ -133,7 +135,7 @@ export default function UnrespondedLogs() {
                 : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
             }`}
           >
-            Procedures ({logs.length})
+            Surgeries ({groupSurgeries(logs).length})
           </button>
           <button
             onClick={() => setActiveTab('presentations')}
@@ -148,96 +150,7 @@ export default function UnrespondedLogs() {
         </nav>
       </div>
 
-      {/* Procedures Tab */}
-      {activeTab === 'procedures' && (
-        <div className="bg-white rounded-lg shadow overflow-hidden">
-          {/* Desktop Table View */}
-          <div className="hidden md:block overflow-x-auto">
-            <table className="min-w-full divide-y divide-gray-200">
-              <thead className="bg-gray-50">
-                <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Date</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Resident</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Year</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Procedure</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Diagnosis</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Actions</th>
-                </tr>
-              </thead>
-              <tbody className="bg-white divide-y divide-gray-200">
-                {logs.map((log) => (
-                  <tr
-                    key={log.id}
-                    onClick={() => setSelectedLog(log)}
-                    className="cursor-pointer hover:bg-blue-50 transition-colors"
-                  >
-                    <td className="px-6 py-4 whitespace-nowrap text-sm">{new Date(log.date).toLocaleDateString()}</td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm">{log.resident_name}</td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm">Year {log.resident_year}</td>
-                    <td className="px-6 py-4 text-sm">{log.procedure}</td>
-                    <td className="px-6 py-4 text-sm">{log.diagnosis}</td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm">
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setSelectedLog(log);
-                        }}
-                        className="text-blue-600 hover:text-blue-900 font-semibold"
-                      >
-                        Rate
-                      </button>
-                    </td>
-                  </tr>
-                ))}
-                {logs.length === 0 && (
-                  <tr>
-                    <td colSpan={6} className="px-6 py-12 text-center text-gray-500">
-                      No unresponded procedures
-                    </td>
-                  </tr>
-                )}
-              </tbody>
-            </table>
-          </div>
-
-          {/* Mobile Card View */}
-          <div className="md:hidden divide-y divide-gray-200">
-            {logs.map((log) => (
-              <div
-                key={log.id}
-                onClick={() => setSelectedLog(log)}
-                className="p-4 hover:bg-blue-50 cursor-pointer transition-colors"
-              >
-                <div className="flex justify-between items-start mb-2">
-                  <div className="flex-1">
-                    <p className="font-semibold text-gray-900">{log.resident_name}</p>
-                    <p className="text-xs text-gray-500">Year {log.resident_year}</p>
-                  </div>
-                  <span className="text-xs text-gray-500">{new Date(log.date).toLocaleDateString()}</span>
-                </div>
-                <div className="space-y-1">
-                  <p className="text-sm text-gray-700"><span className="font-medium">Procedure:</span> {log.procedure}</p>
-                  <p className="text-sm text-gray-700"><span className="font-medium">Diagnosis:</span> {log.diagnosis}</p>
-                </div>
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    setSelectedLog(log);
-                  }}
-                  className="mt-3 w-full bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 transition-colors font-semibold text-sm"
-                >
-                  Rate Procedure
-                </button>
-              </div>
-            ))}
-            {logs.length === 0 && (
-              <div className="px-6 py-12 text-center text-gray-500">
-                No unresponded procedures
-              </div>
-            )}
-          </div>
-        </div>
-      )}
+      {activeTab === 'procedures' && <SurgeryGroups logs={logs} onSelect={setSelectedLog} action="Rate" />}
 
       {/* Presentations Tab */}
       {activeTab === 'presentations' && (

@@ -1,3 +1,4 @@
+import SurgeryGroups from '../../components/SurgeryGroups';
 import { useEffect, useState } from 'react';
 import Layout from '../../components/Layout';
 import api from '../../api/axios';
@@ -132,58 +133,7 @@ export default function LogsToRate() {
         <div className="bg-gradient-to-r from-blue-600 to-blue-700 px-6 py-4">
           <h3 className="text-xl font-bold text-white">Procedures Awaiting Your Rating</h3>
         </div>
-        <div className="overflow-x-auto">
-          <table className="min-w-full divide-y divide-gray-200">
-            <thead className="bg-gray-50">
-              <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Date</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Resident</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Year</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Procedure</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Category</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Actions</th>
-              </tr>
-            </thead>
-            <tbody className="bg-white divide-y divide-gray-200">
-              {logs.map((log) => {
-                const canRate = canRateProcedure(log);
-                return (
-                  <tr key={log.id} className={!canRate ? 'bg-gray-50 opacity-60' : 'hover:bg-blue-50'}>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm">{format(new Date(log.date), 'MMM dd, yyyy')}</td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">{log.resident_name}</td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm">Year {log.resident_year}</td>
-                    <td className="px-6 py-4 text-sm">{log.procedure}</td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm">
-                      <span className={`px-2 py-1 rounded text-xs font-semibold ${getCategoryBadge(log.procedure_category || 'GENERAL_SURGERY')}`}>
-                        {getCategoryLabel(log.procedure_category || 'GENERAL_SURGERY')}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm">
-                      <button
-                        onClick={() => handleSelectLog(log)}
-                        className={`font-medium ${
-                          canRate
-                            ? 'text-blue-600 hover:text-blue-900'
-                            : 'text-gray-400 cursor-not-allowed'
-                        }`}
-                        disabled={!canRate}
-                      >
-                        {canRate ? 'Rate' : 'Restricted'}
-                      </button>
-                    </td>
-                  </tr>
-                );
-              })}
-              {logs.length === 0 && (
-                <tr>
-                  <td colSpan={6} className="px-6 py-12 text-center text-gray-500">
-                    No procedures awaiting your rating.
-                  </td>
-                </tr>
-              )}
-            </tbody>
-          </table>
-        </div>
+        <div className="p-4"><SurgeryGroups logs={logs} onSelect={handleSelectLog} canSelect={canRateProcedure} action="Rate" /></div>
       </div>
 
       {selectedLog && (

@@ -132,12 +132,12 @@ export default function SupervisorDashboard() {
             </div>
             <TrendingUp className="w-6 h-6 opacity-70" />
           </div>
-          <h3 className="text-sm font-medium opacity-90 mb-1">Procedures Supervised</h3>
-          <p className="text-4xl font-bold mb-1">{analytics?.totalSurgeries || 0}</p>
+          <h3 className="text-sm font-medium opacity-90 mb-1">Surgeries Supervised</h3>
+          <p className="text-4xl font-bold mb-1">{analytics?.uniqueProcedures || 0}</p>
           <div className="flex items-center gap-3 text-xs opacity-90 mb-1">
-            <span className="bg-white/20 px-2 py-0.5 rounded">{analytics?.ratedProcedures || 0} rated</span>
+            <span className="bg-white/20 px-2 py-0.5 rounded">{analytics?.ratedProcedures || 0} logs rated</span>
             {(analytics?.pendingProcedures || 0) > 0 && (
-              <span className="bg-orange-400/40 px-2 py-0.5 rounded">{analytics?.pendingProcedures || 0} pending</span>
+              <span className="bg-orange-400/40 px-2 py-0.5 rounded">{analytics?.pendingProcedures || 0} logs pending</span>
             )}
           </div>
           <p className="text-xs opacity-75">Click to view all ratings done →</p>

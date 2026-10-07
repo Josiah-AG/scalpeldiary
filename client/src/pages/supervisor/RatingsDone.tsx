@@ -1,3 +1,5 @@
+import SurgeryGroups from '../../components/SurgeryGroups';
+import { groupSurgeries } from '../../utils/surgeryGroups';
 import { useEffect, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import Layout from '../../components/Layout';
@@ -129,7 +131,7 @@ export default function RatingsDone() {
             }`}
           >
             <FileText size={20} />
-            <span>Procedures ({procedures.length})</span>
+            <span>Surgeries ({groupSurgeries(procedures).length})</span>
           </button>
           <button
             onClick={() => setActiveTab('presentations')}
@@ -145,99 +147,7 @@ export default function RatingsDone() {
         </div>
       </div>
 
-      {/* Procedures Tab */}
-      {activeTab === 'procedures' && (
-        <div className="bg-white rounded-lg shadow overflow-hidden">
-          {/* Desktop Table View */}
-          <div className="hidden md:block overflow-x-auto">
-            <table className="w-full">
-              <thead className="bg-gradient-to-r from-blue-600 to-blue-700 text-white">
-                <tr>
-                  <th className="px-4 py-3 text-left text-sm font-semibold">Date</th>
-                  <th className="px-4 py-3 text-left text-sm font-semibold">Resident</th>
-                  <th className="px-4 py-3 text-left text-sm font-semibold">Year</th>
-                  <th className="px-4 py-3 text-left text-sm font-semibold">Procedure</th>
-                  <th className="px-4 py-3 text-left text-sm font-semibold">Type</th>
-                  <th className="px-4 py-3 text-left text-sm font-semibold">Role</th>
-                  <th className="px-4 py-3 text-left text-sm font-semibold">Rating</th>
-                  <th className="px-4 py-3 text-left text-sm font-semibold">Actions</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-200">
-                {procedures.map((proc) => (
-                  <tr key={proc.id} className="hover:bg-gray-50">
-                    <td className="px-4 py-3 text-sm">{new Date(proc.date).toLocaleDateString()}</td>
-                    <td className="px-4 py-3 text-sm font-medium">{proc.resident_name}</td>
-                    <td className="px-4 py-3 text-sm">Year {proc.resident_year}</td>
-                    <td className="px-4 py-3 text-sm">{proc.procedure}</td>
-                    <td className="px-4 py-3 text-sm">{proc.procedure_type}</td>
-                    <td className="px-4 py-3 text-sm">{proc.surgery_role}</td>
-                    <td className="px-4 py-3 text-sm">
-                      {proc.status === 'NOT_WITNESSED' ? (
-                        <span className="px-2 py-1 bg-gray-100 text-gray-600 rounded font-semibold">
-                          N/A
-                        </span>
-                      ) : (
-                        <span className="px-2 py-1 bg-green-100 text-green-800 rounded font-semibold">
-                          {proc.rating}
-                        </span>
-                      )}
-                    </td>
-                    <td className="px-4 py-3 text-sm">
-                      <button
-                        onClick={() => viewProcedureDetails(proc)}
-                        className="text-blue-600 hover:text-blue-800 flex items-center space-x-1"
-                      >
-                        <Eye size={16} />
-                        <span>View</span>
-                      </button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-
-          {/* Mobile Card View */}
-          <div className="md:hidden divide-y divide-gray-200">
-            {procedures.map((proc) => (
-              <div
-                key={proc.id}
-                onClick={() => viewProcedureDetails(proc)}
-                className="p-4 hover:bg-gray-50 cursor-pointer"
-              >
-                <div className="flex justify-between items-start mb-2">
-                  <div className="flex-1">
-                    <h3 className="font-semibold text-gray-900">{proc.procedure}</h3>
-                    <p className="text-sm text-gray-600">{proc.resident_name} - Year {proc.resident_year}</p>
-                  </div>
-                  {proc.status === 'NOT_WITNESSED' ? (
-                    <span className="px-2 py-1 bg-gray-100 text-gray-600 rounded text-sm font-semibold ml-2">
-                      N/A
-                    </span>
-                  ) : (
-                    <span className="px-2 py-1 bg-green-100 text-green-800 rounded text-sm font-semibold ml-2">
-                      {proc.rating}
-                    </span>
-                  )}
-                </div>
-                <div className="space-y-1 text-sm text-gray-600">
-                  <p><span className="font-medium">Date:</span> {new Date(proc.date).toLocaleDateString()}</p>
-                  <p><span className="font-medium">Type:</span> {proc.procedure_type}</p>
-                  <p><span className="font-medium">Role:</span> {proc.surgery_role}</p>
-                </div>
-              </div>
-            ))}
-          </div>
-
-          {procedures.length === 0 && (
-            <div className="p-12 text-center text-gray-500">
-              <FileText size={48} className="mx-auto mb-4 text-gray-300" />
-              <p>No rated procedures yet</p>
-            </div>
-          )}
-        </div>
-      )}
+      {activeTab === 'procedures' && <SurgeryGroups logs={procedures} onSelect={viewProcedureDetails} action="View" />}
 
       {/* Presentations Tab */}
       {activeTab === 'presentations' && (

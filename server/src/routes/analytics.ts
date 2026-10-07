@@ -1,3 +1,4 @@
+import { surgeryCountSql } from '../utils/surgeryGroups';
 import { residentScope, ownedYear, validRating } from '../security/policy';
 import { Router } from 'express';
 import { query } from '../database/db';
@@ -305,7 +306,7 @@ router.get('/supervisor', authenticate, async (req: AuthRequest, res) => {
 
     // Unique procedures: distinct (mrn, date) combinations
     const uniqueProceduresResult = await query(
-      'SELECT COUNT(*) as count FROM (SELECT DISTINCT mrn, date FROM surgical_logs WHERE supervisor_id = $1) sub',
+      `SELECT ${surgeryCountSql()} as count FROM surgical_logs WHERE supervisor_id = $1`,
       [req.user!.id]
     );
 
@@ -340,7 +341,8 @@ router.get('/supervisor', authenticate, async (req: AuthRequest, res) => {
     );
 
     res.json({
-      totalSurgeries: parseInt(totalSurgeriesResult.rows[0].count),
+      totalResidentLogs: parseInt(totalSurgeriesResult.rows[0].count),
+      totalSurgeries: parseInt(uniqueProceduresResult.rows[0].count),
       uniqueProcedures: parseInt(uniqueProceduresResult.rows[0].count),
       pendingProcedures: parseInt(pendingProceduresResult.rows[0].count),
       ratedProcedures: parseInt(ratedProceduresResult.rows[0].count),
@@ -377,8 +379,8 @@ router.get('/supervisor/residents', authenticate, authorize('SUPERVISOR', 'MASTE
         (SELECT AVG(rating) FROM presentations p
          JOIN resident_years ry ON p.year_id = ry.id
          WHERE p.resident_id = u.id AND ry.year = $1 AND p.rating IS NOT NULL) as avg_presentation_rating,
-        (SELECT COUNT(*) FROM surgical_logs sl
-         WHERE sl.supervisor_id = u.id AND sl.rating IS NOT NULL) as rated_logs
+        (SELECT ${surgeryCountSql('sl')} FROM surgical_logs sl
+         WHERE sl.supervisor_id = u.id AND sl.status != 'PENDING') as rated_logs
        FROM users u
        WHERE u.role = 'RESIDENT'
        AND (SELECT MAX(year) FROM resident_years WHERE resident_id = u.id) = $1
@@ -454,7 +456,7 @@ router.get('/supervisor/resident/:residentId', authenticate, authorize('SUPERVIS
 
     // Rated logs (procedures this resident has rated as a supervisor)
     const ratedLogsResult = await query(
-      'SELECT COUNT(*) as count FROM surgical_logs WHERE supervisor_id = $1 AND rating IS NOT NULL',
+      `SELECT ${surgeryCountSql()} as count FROM surgical_logs WHERE supervisor_id = $1 AND status != 'PENDING'`,
       [residentId]
     );
 

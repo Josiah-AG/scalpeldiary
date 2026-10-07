@@ -1,3 +1,4 @@
+import SurgeryGroups from '../../components/SurgeryGroups';
 import { ratingRank } from '../../utils/ratingUtils';
 import { useEffect, useState } from 'react';
 import Layout from '../../components/Layout';
@@ -147,6 +148,7 @@ export default function RatedLogs() {
         )}
       </div>
 
+      {!isReadOnlyMode ? <SurgeryGroups logs={logs} onSelect={setSelectedLog} /> : <>
       {/* Mobile Card View */}
       <div className="block sm:hidden space-y-4">
         {logs.map((log) => (
@@ -218,6 +220,8 @@ export default function RatedLogs() {
       </div>
 
       {/* Detail Modal */}
+      </>}
+
       {selectedLog && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
           <div className="bg-white rounded-xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">

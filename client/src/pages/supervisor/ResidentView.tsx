@@ -159,7 +159,7 @@ export default function ResidentView() {
           <div className="bg-white p-6 rounded-lg shadow">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-gray-500 text-sm">Rated Logs</p>
+                <p className="text-gray-500 text-sm">Surgeries Reviewed</p>
                 <p className="text-3xl font-bold text-indigo-600">{analytics?.ratedLogs || 0}</p>
               </div>
               <Award className="w-10 h-10 text-indigo-600 opacity-20" />

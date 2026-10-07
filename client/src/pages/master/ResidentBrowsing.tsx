@@ -213,7 +213,7 @@ export default function ResidentBrowsing() {
                         <div className="bg-indigo-50 p-3 rounded-lg">
                           <div className="flex items-center space-x-2 mb-1">
                             <Star className="w-4 h-4 text-indigo-600" />
-                            <span className="text-xs text-gray-600 font-medium">Rated Logs</span>
+                            <span className="text-xs text-gray-600 font-medium">Surgeries Reviewed</span>
                           </div>
                           <p className="text-2xl font-bold text-indigo-600">{resident.ratedLogs || 0}</p>
                           <p className="text-xs text-gray-500 mt-1">As Supervisor</p>
