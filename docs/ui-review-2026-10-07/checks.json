@@ -1,0 +1,354 @@
+[
+  {
+    "label": "master desktop",
+    "heading": "Master Dashboard",
+    "path": "/",
+    "viewport": 1800,
+    "whiteOnWhite": 0,
+    "width": 1800
+  },
+  {
+    "label": "master mobile",
+    "heading": "Master Dashboard",
+    "path": "/",
+    "viewport": 390,
+    "whiteOnWhite": 0,
+    "width": 390
+  },
+  {
+    "label": "master mobile",
+    "heading": "Account Management",
+    "path": "/accounts",
+    "viewport": 390,
+    "whiteOnWhite": 0,
+    "width": 390
+  },
+  {
+    "label": "master mobile",
+    "heading": "Activity Monitor",
+    "path": "/activity-monitor",
+    "viewport": 390,
+    "whiteOnWhite": 0,
+    "width": 390
+  },
+  {
+    "label": "master mobile",
+    "heading": "Browse Residents",
+    "path": "/browse-residents",
+    "viewport": 390,
+    "whiteOnWhite": 0,
+    "width": 390
+  },
+  {
+    "label": "master mobile",
+    "heading": "Browse Supervisors",
+    "path": "/browse-supervisors",
+    "viewport": 390,
+    "whiteOnWhite": 0,
+    "width": 390
+  },
+  {
+    "label": "master mobile",
+    "heading": "Detachment Logs",
+    "path": "/detachment-logs",
+    "viewport": 390,
+    "whiteOnWhite": 0,
+    "width": 390
+  },
+  {
+    "label": "resident mobile",
+    "heading": "Dashboard",
+    "path": "/",
+    "viewport": 390,
+    "whiteOnWhite": 0,
+    "width": 390
+  },
+  {
+    "label": "resident mobile",
+    "heading": "Add Surgical Log",
+    "path": "/add-log",
+    "viewport": 390,
+    "whiteOnWhite": 0,
+    "width": 390
+  },
+  {
+    "label": "resident mobile",
+    "heading": "Logs to Rate",
+    "path": "/logs-to-rate",
+    "viewport": 390,
+    "whiteOnWhite": 0,
+    "width": 390
+  },
+  {
+    "label": "resident mobile",
+    "heading": "Rated Logs",
+    "path": "/rated-logs",
+    "viewport": 390,
+    "whiteOnWhite": 0,
+    "width": 390
+  },
+  {
+    "label": "resident mobile",
+    "heading": "All Procedures",
+    "path": "/all-procedures",
+    "viewport": 390,
+    "whiteOnWhite": 0,
+    "width": 390
+  },
+  {
+    "label": "resident mobile",
+    "heading": "Analytics",
+    "path": "/analytics",
+    "viewport": 390,
+    "whiteOnWhite": 0,
+    "width": 390
+  },
+  {
+    "label": "resident mobile",
+    "heading": "All Supervisor Comments",
+    "path": "/all-comments",
+    "viewport": 390,
+    "whiteOnWhite": 0,
+    "width": 390
+  },
+  {
+    "label": "resident mobile",
+    "heading": "Presentations",
+    "path": "/presentations",
+    "viewport": 390,
+    "whiteOnWhite": 0,
+    "width": 390
+  },
+  {
+    "label": "resident mobile",
+    "heading": "Settings",
+    "path": "/settings",
+    "viewport": 390,
+    "whiteOnWhite": 0,
+    "width": 390
+  },
+  {
+    "label": "chief mobile",
+    "heading": "Yearly Rotations",
+    "path": "/chief/yearly-rotations",
+    "viewport": 390,
+    "whiteOnWhite": 0,
+    "width": 390
+  },
+  {
+    "label": "chief mobile",
+    "heading": "Monthly Duties",
+    "path": "/chief/monthly-duties",
+    "viewport": 390,
+    "whiteOnWhite": 0,
+    "width": 390
+  },
+  {
+    "label": "chief mobile",
+    "heading": "Monthly Activities",
+    "path": "/chief/monthly-activities",
+    "viewport": 390,
+    "whiteOnWhite": 0,
+    "width": 390
+  },
+  {
+    "label": "chief mobile",
+    "heading": "Assign Presentation",
+    "path": "/chief/assign-presentation",
+    "viewport": 390,
+    "whiteOnWhite": 0,
+    "width": 390
+  },
+  {
+    "label": "supervisor/management mobile",
+    "heading": "Supervisor Dashboard",
+    "path": "/",
+    "viewport": 390,
+    "whiteOnWhite": 0,
+    "width": 390
+  },
+  {
+    "label": "supervisor/management mobile",
+    "heading": "Unresponded Logs",
+    "path": "/unresponded-logs",
+    "viewport": 390,
+    "whiteOnWhite": 0,
+    "width": 390
+  },
+  {
+    "label": "supervisor/management mobile",
+    "heading": "Ratings Done",
+    "path": "/ratings-done",
+    "viewport": 390,
+    "whiteOnWhite": 0,
+    "width": 390
+  },
+  {
+    "label": "supervisor/management mobile",
+    "heading": "Settings",
+    "path": "/settings",
+    "viewport": 390,
+    "whiteOnWhite": 0,
+    "width": 390
+  },
+  {
+    "label": "supervisor/management mobile",
+    "heading": "All Rated Procedures",
+    "path": "/rated-procedures",
+    "viewport": 390,
+    "whiteOnWhite": 0,
+    "width": 390
+  },
+  {
+    "label": "supervisor/management mobile",
+    "heading": "All Rated Presentations",
+    "path": "/rated-presentations",
+    "viewport": 390,
+    "whiteOnWhite": 0,
+    "width": 390
+  },
+  {
+    "label": "supervisor/management mobile",
+    "heading": "Assign Presentation",
+    "path": "/assign-presentation",
+    "viewport": 390,
+    "whiteOnWhite": 0,
+    "width": 390
+  },
+  {
+    "label": "supervisor/management mobile",
+    "heading": "General Comments",
+    "path": "/general-comments",
+    "viewport": 390,
+    "whiteOnWhite": 0,
+    "width": 390
+  },
+  {
+    "label": "supervisor/management mobile",
+    "heading": "Management Dashboard",
+    "path": "/management",
+    "viewport": 390,
+    "whiteOnWhite": 0,
+    "width": 390
+  },
+  {
+    "label": "supervisor/management mobile",
+    "heading": "Browse Residents",
+    "path": "/management/browse-residents",
+    "viewport": 390,
+    "whiteOnWhite": 0,
+    "width": 390
+  },
+  {
+    "label": "supervisor/management mobile",
+    "heading": "Browse Supervisors",
+    "path": "/management/browse-supervisors",
+    "viewport": 390,
+    "whiteOnWhite": 0,
+    "width": 390
+  },
+  {
+    "label": "management supervisor profile mobile",
+    "heading": "Test supervisor's Rated Items",
+    "path": "/management/supervisor-view",
+    "viewport": 390,
+    "whiteOnWhite": 0,
+    "width": 390
+  },
+  {
+    "label": "corrected management profile mobile",
+    "heading": "Test supervisor's Rated Items",
+    "path": "/management/supervisor-view",
+    "viewport": 390,
+    "whiteOnWhite": 0,
+    "width": 390
+  },
+  {
+    "label": "procedure detail mobile",
+    "heading": "Test supervisor's Rated Items",
+    "path": "/management/supervisor-view",
+    "viewport": 390,
+    "whiteOnWhite": 0,
+    "width": 390
+  },
+  {
+    "label": "selected year card mobile",
+    "heading": "Browse Residents",
+    "path": "/management/browse-residents",
+    "viewport": 390,
+    "whiteOnWhite": 0,
+    "width": 390
+  },
+  {
+    "label": "resident read-only mobile",
+    "heading": "Dashboard",
+    "path": "/resident-view/dashboard",
+    "viewport": 390,
+    "whiteOnWhite": 0,
+    "width": 390
+  },
+  {
+    "label": "resident read-only mobile",
+    "heading": "All Procedures",
+    "path": "/resident-view/all-procedures",
+    "viewport": 390,
+    "whiteOnWhite": 0,
+    "width": 390
+  },
+  {
+    "label": "resident read-only mobile",
+    "heading": "Presentations",
+    "path": "/resident-view/presentations",
+    "viewport": 390,
+    "whiteOnWhite": 0,
+    "width": 390
+  },
+  {
+    "label": "resident read-only mobile",
+    "heading": "Analytics",
+    "path": "/resident-view/analytics",
+    "viewport": 390,
+    "whiteOnWhite": 0,
+    "width": 390
+  },
+  {
+    "label": "resident read-only mobile",
+    "heading": "All Supervisor Comments",
+    "path": "/resident-view/all-comments",
+    "viewport": 390,
+    "whiteOnWhite": 0,
+    "width": 390
+  },
+  {
+    "label": "resident read-only mobile",
+    "heading": "Rated Logs",
+    "path": "/resident-view/rated-logs",
+    "viewport": 390,
+    "whiteOnWhite": 0,
+    "width": 390
+  },
+  {
+    "label": "master supervisor profile desktop",
+    "heading": "Test supervisor's Rated Items",
+    "path": "/supervisor-view",
+    "viewport": 1800,
+    "whiteOnWhite": 0,
+    "width": 1800
+  },
+  {
+    "label": "master supervisor records preserves pending",
+    "heading": "Test supervisor's Supervised Records",
+    "path": "/supervisor-view",
+    "viewport": 1800,
+    "whiteOnWhite": 0,
+    "width": 1800
+  },
+  {
+    "label": "management pending and rated record labels",
+    "heading": "Test supervisor's Supervised Records",
+    "path": "/management/supervisor-view",
+    "viewport": 1800,
+    "whiteOnWhite": 0,
+    "width": 1800
+  }
+]

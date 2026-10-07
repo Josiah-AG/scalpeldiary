@@ -47,7 +47,7 @@ export default function MasterDashboard() {
           className="bg-gradient-to-br from-blue-500 to-blue-600 text-white p-6 rounded-xl shadow-lg hover:shadow-2xl transition-all transform hover:scale-105 cursor-pointer"
         >
           <div className="flex items-center justify-between mb-4">
-            <div className="p-3 bg-white bg-opacity-20 rounded-lg">
+            <div className="p-3 bg-white/20 rounded-lg">
               <Users className="w-8 h-8" />
             </div>
             <TrendingUp className="w-6 h-6 opacity-70" />
@@ -63,7 +63,7 @@ export default function MasterDashboard() {
           className="bg-gradient-to-br from-green-500 to-green-600 text-white p-6 rounded-xl shadow-lg hover:shadow-2xl transition-all transform hover:scale-105 cursor-pointer"
         >
           <div className="flex items-center justify-between mb-4">
-            <div className="p-3 bg-white bg-opacity-20 rounded-lg">
+            <div className="p-3 bg-white/20 rounded-lg">
               <UserCheck className="w-8 h-8" />
             </div>
             <Activity className="w-6 h-6 opacity-70" />
@@ -79,7 +79,7 @@ export default function MasterDashboard() {
           className="bg-gradient-to-br from-purple-500 to-purple-600 text-white p-6 rounded-xl shadow-lg hover:shadow-2xl transition-all transform hover:scale-105 cursor-pointer"
         >
           <div className="flex items-center justify-between mb-4">
-            <div className="p-3 bg-white bg-opacity-20 rounded-lg">
+            <div className="p-3 bg-white/20 rounded-lg">
               <CalendarDays className="w-8 h-8" />
             </div>
             <ChevronRight className="w-6 h-6 opacity-70" />
@@ -95,7 +95,7 @@ export default function MasterDashboard() {
           className="bg-gradient-to-br from-amber-500 to-amber-600 text-white p-6 rounded-xl shadow-lg hover:shadow-2xl transition-all transform hover:scale-105 cursor-pointer"
         >
           <div className="flex items-center justify-between mb-4">
-            <div className="p-3 bg-white bg-opacity-20 rounded-lg">
+            <div className="p-3 bg-white/20 rounded-lg">
               <ClipboardCheck className="w-8 h-8" />
             </div>
             <ChevronRight className="w-6 h-6 opacity-70" />
@@ -111,7 +111,7 @@ export default function MasterDashboard() {
           className="bg-gradient-to-br from-purple-500 to-purple-600 text-white p-6 rounded-xl shadow-lg hover:shadow-2xl transition-all transform hover:scale-105 cursor-pointer"
         >
           <div className="flex items-center justify-between mb-4">
-            <div className="p-3 bg-white bg-opacity-20 rounded-lg">
+            <div className="p-3 bg-white/20 rounded-lg">
               <Shield className="w-8 h-8" />
             </div>
             <Activity className="w-6 h-6 opacity-70" />
@@ -129,7 +129,7 @@ export default function MasterDashboard() {
           className="w-full bg-gradient-to-r from-indigo-600 to-indigo-700 text-white p-5 rounded-xl shadow-lg hover:shadow-2xl transition-all cursor-pointer flex items-center justify-between"
         >
           <div className="flex items-center space-x-4">
-            <div className="p-3 bg-white bg-opacity-20 rounded-lg">
+            <div className="p-3 bg-white/20 rounded-lg">
               <Activity className="w-7 h-7" />
             </div>
             <div className="text-left">

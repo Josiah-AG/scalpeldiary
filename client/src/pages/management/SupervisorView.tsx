@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Layout from '../../components/Layout';
 import api from '../../api/axios';
+import { getSupervisorRatingBadge } from '../../utils/ratingUtils';
 import { ArrowLeft, FileText, Presentation, Calendar, User, Star, MessageSquare, X } from 'lucide-react';
 
 interface RatedProcedure {
@@ -11,7 +12,8 @@ interface RatedProcedure {
   procedure_type: string;
   diagnosis: string;
   surgery_role: string;
-  rating: number;
+  rating: number | null;
+  status: string;
   comment: string;
   rated_at: string;
   resident_name: string;
@@ -26,7 +28,8 @@ interface RatedPresentation {
   venue: string;
   presentation_type: string;
   description: string;
-  rating: number;
+  rating: number | null;
+  status: string;
   comment: string;
   resident_name: string;
   resident_profile_picture: string | null;
@@ -55,18 +58,13 @@ export default function SupervisorView() {
 
   const fetchData = async () => {
     try {
-      console.log('Fetching data for supervisor:', supervisorId);
 
       // Fetch procedures using api instance (has auth interceptor)
       const procResponse = await api.get(`/logs/supervisor/${supervisorId}/rated`);
-      console.log('Procedures data:', procResponse.data);
-      console.log('Number of procedures:', procResponse.data.length);
       setProcedures(Array.isArray(procResponse.data) ? procResponse.data : []);
 
       // Fetch presentations using api instance (has auth interceptor)
       const presResponse = await api.get(`/presentations/supervisor/${supervisorId}/rated`);
-      console.log('Presentations data:', presResponse.data);
-      console.log('Number of presentations:', presResponse.data.length);
       setPresentations(Array.isArray(presResponse.data) ? presResponse.data : []);
     } catch (error) {
       console.error('Failed to fetch data:', error);
@@ -84,6 +82,7 @@ export default function SupervisorView() {
   };
 
   const formatDate = (dateString: string) => {
+    if (!dateString || Number.isNaN(new Date(dateString).getTime())) return 'Not recorded';
     return new Date(dateString).toLocaleDateString('en-US', {
       year: 'numeric',
       month: 'short',
@@ -102,7 +101,7 @@ export default function SupervisorView() {
   }
 
   return (
-    <Layout title={`${supervisorName}'s Rated Items`}>
+    <Layout title={`${supervisorName}'s Supervised Records`}>
       <div className="space-y-4 md:space-y-6">
         {/* Header */}
         <div className="bg-gradient-to-r from-green-500 to-teal-600 text-white p-4 md:p-6 rounded-lg shadow-lg">
@@ -142,7 +141,7 @@ export default function SupervisorView() {
                 <div className="flex items-center justify-center space-x-1 md:space-x-2">
                   <FileText className="w-4 h-4 md:w-5 md:h-5" />
                   <span className="text-sm md:text-base">
-                    <span className="hidden sm:inline">Procedures </span>
+                    <span>Procedures </span>
                     ({procedures.length})
                   </span>
                 </div>
@@ -158,7 +157,7 @@ export default function SupervisorView() {
                 <div className="flex items-center justify-center space-x-1 md:space-x-2">
                   <Presentation className="w-4 h-4 md:w-5 md:h-5" />
                   <span className="text-sm md:text-base">
-                    <span className="hidden sm:inline">Presentations </span>
+                    <span>Presentations </span>
                     ({presentations.length})
                   </span>
                 </div>
@@ -172,7 +171,7 @@ export default function SupervisorView() {
               procedures.length === 0 ? (
                 <div className="text-center py-12">
                   <FileText className="w-12 h-12 md:w-16 md:h-16 text-gray-300 mx-auto mb-3" />
-                  <p className="text-gray-500 text-sm md:text-base">No procedures rated yet</p>
+                  <p className="text-gray-500 text-sm md:text-base">No procedures found</p>
                 </div>
               ) : (
                 <div className="space-y-3 md:space-y-4">
@@ -189,10 +188,10 @@ export default function SupervisorView() {
                               <img
                                 src={proc.resident_profile_picture}
                                 alt={proc.resident_name}
-                                className="w-8 h-8 md:w-10 md:h-10 rounded-full object-cover flex-shrink-0"
+                                className="w-8 h-8 md:w-10 md:h-10 rounded-full object-cover shrink-0"
                               />
                             ) : (
-                              <div className="w-8 h-8 md:w-10 md:h-10 rounded-full bg-blue-100 flex items-center justify-center flex-shrink-0">
+                              <div className="w-8 h-8 md:w-10 md:h-10 rounded-full bg-blue-100 flex items-center justify-center shrink-0">
                                 <User className="w-4 h-4 md:w-5 md:h-5 text-blue-600" />
                               </div>
                             )}
@@ -216,11 +215,11 @@ export default function SupervisorView() {
                             </span>
                           </div>
                         </div>
-                        <div className="flex flex-col items-center space-y-1 flex-shrink-0">
+                        <div className="flex flex-col items-center space-y-1 shrink-0">
                           <div className="flex items-center space-x-1 text-yellow-500">
                             <Star className="w-5 h-5 md:w-6 md:h-6 fill-current" />
                           </div>
-                          <span className="font-bold text-gray-900 text-sm md:text-base">{proc.rating}/5</span>
+                          <span className="font-bold text-gray-900 text-sm md:text-base">{getSupervisorRatingBadge(proc.rating, proc.status).text}</span>
                         </div>
                       </div>
                     </div>
@@ -231,7 +230,7 @@ export default function SupervisorView() {
               presentations.length === 0 ? (
                 <div className="text-center py-12">
                   <Presentation className="w-12 h-12 md:w-16 md:h-16 text-gray-300 mx-auto mb-3" />
-                  <p className="text-gray-500 text-sm md:text-base">No presentations rated yet</p>
+                  <p className="text-gray-500 text-sm md:text-base">No presentations found</p>
                 </div>
               ) : (
                 <div className="space-y-3 md:space-y-4">
@@ -248,10 +247,10 @@ export default function SupervisorView() {
                               <img
                                 src={pres.resident_profile_picture}
                                 alt={pres.resident_name}
-                                className="w-8 h-8 md:w-10 md:h-10 rounded-full object-cover flex-shrink-0"
+                                className="w-8 h-8 md:w-10 md:h-10 rounded-full object-cover shrink-0"
                               />
                             ) : (
-                              <div className="w-8 h-8 md:w-10 md:h-10 rounded-full bg-green-100 flex items-center justify-center flex-shrink-0">
+                              <div className="w-8 h-8 md:w-10 md:h-10 rounded-full bg-green-100 flex items-center justify-center shrink-0">
                                 <User className="w-4 h-4 md:w-5 md:h-5 text-green-600" />
                               </div>
                             )}
@@ -273,11 +272,11 @@ export default function SupervisorView() {
                             <span className="text-gray-500 truncate max-w-[150px] md:max-w-none">{pres.venue}</span>
                           </div>
                         </div>
-                        <div className="flex flex-col items-center space-y-1 flex-shrink-0">
+                        <div className="flex flex-col items-center space-y-1 shrink-0">
                           <div className="flex items-center space-x-1 text-yellow-500">
                             <Star className="w-5 h-5 md:w-6 md:h-6 fill-current" />
                           </div>
-                          <span className="font-bold text-gray-900 text-sm md:text-base">{pres.rating}/5</span>
+                          <span className="font-bold text-gray-900 text-sm md:text-base">{getSupervisorRatingBadge(pres.rating, pres.status).text}</span>
                         </div>
                       </div>
                     </div>
@@ -352,8 +351,7 @@ export default function SupervisorView() {
 
               <div className="flex items-center justify-center space-x-2 py-4 bg-gradient-to-r from-yellow-50 to-orange-50 rounded-lg border-2 border-yellow-200">
                 <Star className="w-7 h-7 md:w-8 md:h-8 text-yellow-500 fill-current" />
-                <span className="text-3xl md:text-4xl font-bold text-gray-900">{selectedProcedure.rating}</span>
-                <span className="text-lg md:text-xl text-gray-500">/ 5</span>
+                <span className="text-3xl md:text-4xl font-bold text-gray-900">{getSupervisorRatingBadge(selectedProcedure.rating, selectedProcedure.status).text}</span>
               </div>
 
               {selectedProcedure.comment && (
@@ -432,8 +430,7 @@ export default function SupervisorView() {
 
               <div className="flex items-center justify-center space-x-2 py-4 bg-gradient-to-r from-yellow-50 to-orange-50 rounded-lg border-2 border-yellow-200">
                 <Star className="w-7 h-7 md:w-8 md:h-8 text-yellow-500 fill-current" />
-                <span className="text-3xl md:text-4xl font-bold text-gray-900">{selectedPresentation.rating}</span>
-                <span className="text-lg md:text-xl text-gray-500">/ 5</span>
+                <span className="text-3xl md:text-4xl font-bold text-gray-900">{getSupervisorRatingBadge(selectedPresentation.rating, selectedPresentation.status).text}</span>
               </div>
 
               {selectedPresentation.comment && (

@@ -228,7 +228,7 @@ export default function NotificationPopup() {
         {/* Header */}
         <div className="bg-gradient-to-r from-blue-600 to-blue-700 px-6 py-4 flex items-center justify-between">
           <div className="flex items-center space-x-3">
-            <div className="bg-white/20 backdrop-blur-sm rounded-lg p-2">
+            <div className="bg-white/20 backdrop-blur-xs rounded-lg p-2">
               <Bell className="w-5 h-5 text-white" />
             </div>
             <div>

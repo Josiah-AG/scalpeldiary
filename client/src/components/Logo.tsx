@@ -27,7 +27,7 @@ export default function Logo({ className = '', size = 'md', color = 'white', sho
         alt="ScalpelDiary Logo" 
         width={dimensions.icon} 
         height={dimensions.icon}
-        className="flex-shrink-0"
+        className="shrink-0"
       />
       <div>
         <div className={`font-bold ${dimensions.text} ${colors.text} leading-tight`}>

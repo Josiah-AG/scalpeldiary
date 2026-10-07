@@ -47,7 +47,7 @@ export default function Login() {
         <div className="absolute top-0 right-0 w-64 h-64 bg-blue-500 rounded-full opacity-10 -mr-32 -mt-32"></div>
         <div className="relative z-10">
           <div className="flex items-center justify-between mb-6">
-            <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-4 inline-block border border-white/20">
+            <div className="bg-white/10 backdrop-blur-xs rounded-2xl p-4 inline-block border border-white/20">
               <div className="flex items-center space-x-3">
                 <div className="bg-white rounded-xl p-2 shadow-lg">
                   <img
@@ -55,7 +55,7 @@ export default function Login() {
                     alt="ScalpelDiary Logo"
                     width="40"
                     height="40"
-                    className="flex-shrink-0"
+                    className="shrink-0"
                   />
                 </div>
                 <div>
@@ -95,7 +95,7 @@ export default function Login() {
           </button>
 
           {/* Enhanced Logo Container */}
-          <div className="bg-white/10 backdrop-blur-sm rounded-3xl p-8 inline-block border border-white/20 shadow-2xl cursor-pointer hover:bg-white/15 transition-all" onClick={() => navigate('/')}>
+          <div className="bg-white/10 backdrop-blur-xs rounded-3xl p-8 inline-block border border-white/20 shadow-2xl cursor-pointer hover:bg-white/15 transition-all" onClick={() => navigate('/')}>
             <div className="flex items-center space-x-4">
               <div className="bg-white rounded-2xl p-4 shadow-lg">
                 <img
@@ -103,7 +103,7 @@ export default function Login() {
                   alt="ScalpelDiary Logo"
                   width="64"
                   height="64"
-                  className="flex-shrink-0"
+                  className="shrink-0"
                 />
               </div>
               <div>
@@ -144,7 +144,7 @@ export default function Login() {
             <form onSubmit={handleSubmit} className="space-y-6">
               {error && (
                 <div className="bg-red-50 border border-red-200 text-red-700 p-4 rounded-lg text-sm flex items-start">
-                  <svg className="w-5 h-5 mr-2 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+                  <svg className="w-5 h-5 mr-2 shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
                     <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
                   </svg>
                   <span>{error}</span>
@@ -159,7 +159,7 @@ export default function Login() {
                   type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all outline-none"
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all outline-hidden"
                   placeholder="your.email@example.com"
                   required
                 />
@@ -174,7 +174,7 @@ export default function Login() {
                     type={showPassword ? 'text' : 'password'}
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all outline-none pr-12"
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all outline-hidden pr-12"
                     placeholder="Enter your password"
                     required
                   />

@@ -111,7 +111,7 @@ export default function ResidentBrowsing() {
               }`}
             >
               <div className={`p-3 rounded-lg mb-3 mx-auto w-fit ${
-                isSelected ? 'bg-white bg-opacity-20' : 'bg-gray-100'
+                isSelected ? 'bg-white/20' : 'bg-gray-100'
               }`}>
                 <Users className={`w-10 h-10 ${isSelected ? 'text-white' : colors.text}`} />
               </div>

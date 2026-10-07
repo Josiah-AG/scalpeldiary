@@ -226,7 +226,7 @@ export default function AddLog() {
       <div className="max-w-4xl bg-white p-8 rounded-lg shadow">
         {success && (
           <div className="mb-6 bg-green-50 border-l-4 border-green-500 text-green-700 p-4 rounded-md flex items-start">
-            <AlertCircle className="w-5 h-5 mr-2 flex-shrink-0 mt-0.5" />
+            <AlertCircle className="w-5 h-5 mr-2 shrink-0 mt-0.5" />
             <div>
               <p className="font-semibold">Success!</p>
               <p className="text-sm">{procedures.length} procedure log(s) created successfully!</p>
@@ -316,7 +316,7 @@ export default function AddLog() {
                   ))}
                 </datalist>
                 <p className="text-xs text-blue-600 mt-1 flex items-start">
-                  <AlertCircle className="w-3 h-3 mr-1 mt-0.5 flex-shrink-0" />
+                  <AlertCircle className="w-3 h-3 mr-1 mt-0.5 shrink-0" />
                   Write full diagnosis of the patient
                 </p>
               </div>
@@ -581,7 +581,7 @@ function ProcedureForm({
             ))}
           </select>
           <p className="text-xs text-blue-600 mt-1 flex items-start">
-            <AlertCircle className="w-3 h-3 mr-1 mt-0.5 flex-shrink-0" />
+            <AlertCircle className="w-3 h-3 mr-1 mt-0.5 shrink-0" />
             Choose the most close procedure done for the patient. If procedure is not found, choose "Other {procedure.procedureCategory} Procedure" and add the correct procedure in remark.
           </p>
         </div>

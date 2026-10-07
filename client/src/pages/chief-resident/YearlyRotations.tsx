@@ -421,7 +421,7 @@ export default function YearlyRotations() {
                 onClick={() => setViewMode('assign')}
                 className={`px-4 py-2 rounded text-sm font-medium transition-colors ${
                   viewMode === 'assign'
-                    ? 'bg-white text-amber-600 shadow-sm'
+                    ? 'bg-white text-amber-600 shadow-xs'
                     : 'text-gray-600 hover:text-gray-900'
                 }`}
               >
@@ -431,7 +431,7 @@ export default function YearlyRotations() {
                 onClick={() => setViewMode('overview')}
                 className={`px-4 py-2 rounded text-sm font-medium transition-colors ${
                   viewMode === 'overview'
-                    ? 'bg-white text-amber-600 shadow-sm'
+                    ? 'bg-white text-amber-600 shadow-xs'
                     : 'text-gray-600 hover:text-gray-900'
                 }`}
               >
@@ -656,7 +656,7 @@ export default function YearlyRotations() {
                         <td className="px-6 py-4 sticky left-0 bg-inherit z-10 border-r border-gray-200">
                           <div className="flex items-center space-x-3">
                             <div
-                              className="w-5 h-5 rounded-md shadow-sm flex-shrink-0"
+                              className="w-5 h-5 rounded-md shadow-xs shrink-0"
                               style={{ backgroundColor: category.color }}
                             />
                             <span className="text-sm font-semibold text-gray-900">{category.name}</span>
@@ -673,7 +673,7 @@ export default function YearlyRotations() {
                           return (
                             <td
                               key={monthIdx}
-                              className="px-2 py-3 text-center cursor-pointer hover:bg-opacity-80 transition-all"
+                              className="px-2 py-3 text-center cursor-pointer hover:brightness-95 transition-all"
                               onClick={() => {
                                 setSelectedMonth(monthIdx + 1);
                                 setSelectedMonthName(months[monthIdx]);
@@ -684,7 +684,7 @@ export default function YearlyRotations() {
                               {residentCount > 0 ? (
                                 <div className="flex flex-col items-center space-y-1">
                                   <div
-                                    className="px-3 py-2 rounded-lg font-bold text-sm shadow-sm hover:shadow-md transition-shadow min-w-[60px]"
+                                    className="px-3 py-2 rounded-lg font-bold text-sm shadow-xs hover:shadow-md transition-shadow min-w-[60px]"
                                     style={{
                                       backgroundColor: category.color,
                                       color: 'white'

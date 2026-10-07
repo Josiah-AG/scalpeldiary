@@ -563,7 +563,7 @@ export default function MonthlyDuties() {
                 onClick={() => setViewMode('table')}
                 className={`px-4 py-2 rounded text-sm font-medium transition-colors ${
                   viewMode === 'table'
-                    ? 'bg-white text-amber-600 shadow-sm'
+                    ? 'bg-white text-amber-600 shadow-xs'
                     : 'text-gray-600 hover:text-gray-900'
                 }`}
               >
@@ -573,7 +573,7 @@ export default function MonthlyDuties() {
                 onClick={() => setViewMode('calendar')}
                 className={`px-4 py-2 rounded text-sm font-medium transition-colors ${
                   viewMode === 'calendar'
-                    ? 'bg-white text-amber-600 shadow-sm'
+                    ? 'bg-white text-amber-600 shadow-xs'
                     : 'text-gray-600 hover:text-gray-900'
                 }`}
               >
@@ -629,10 +629,10 @@ export default function MonthlyDuties() {
                 categories.map(category => (
                   <div key={category.id} className="flex items-center space-x-3">
                     <div
-                      className="w-4 h-4 rounded flex-shrink-0"
+                      className="w-4 h-4 rounded shrink-0"
                       style={{ backgroundColor: category.color }}
                     />
-                    <label className="text-sm font-medium text-gray-700 w-32 flex-shrink-0">
+                    <label className="text-sm font-medium text-gray-700 w-32 shrink-0">
                       {category.name}:
                     </label>
                     <select

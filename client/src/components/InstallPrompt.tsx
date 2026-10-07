@@ -60,14 +60,14 @@ export default function InstallPrompt() {
       <div className="bg-white rounded-xl shadow-2xl border-2 border-blue-500 overflow-hidden">
         <div className="bg-gradient-to-r from-blue-500 to-blue-600 p-4 flex items-center justify-between">
           <div className="flex items-center space-x-3">
-            <div className="p-2 bg-white bg-opacity-20 rounded-lg">
+            <div className="p-2 bg-white/20 rounded-lg">
               <Download className="w-5 h-5 text-white" />
             </div>
             <h3 className="text-white font-bold text-lg">Install ScalpelDiary</h3>
           </div>
           <button
             onClick={handleDismiss}
-            className="text-white hover:bg-white hover:bg-opacity-20 rounded-lg p-1 transition-colors"
+            className="text-white hover:bg-white/20 rounded-lg p-1 transition-colors"
           >
             <X className="w-5 h-5" />
           </button>

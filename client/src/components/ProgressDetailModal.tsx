@@ -59,7 +59,7 @@ export default function ProgressDetailModal({ progress, onClose }: Props) {
           </div>
           <button
             onClick={onClose}
-            className="text-white hover:text-blue-100 transition-colors flex-shrink-0"
+            className="text-white hover:text-blue-100 transition-colors shrink-0"
           >
             <X size={24} className="md:w-7 md:h-7" />
           </button>
@@ -120,13 +120,13 @@ export default function ProgressDetailModal({ progress, onClose }: Props) {
                       className="w-full flex justify-between items-center mb-2 md:mb-3"
                     >
                       <div className="flex items-center space-x-2 md:space-x-3 flex-1 min-w-0">
-                        <div className={`w-4 h-4 md:w-6 md:h-6 rounded-full ${categoryCircleColor} flex-shrink-0`}></div>
+                        <div className={`w-4 h-4 md:w-6 md:h-6 rounded-full ${categoryCircleColor} shrink-0`}></div>
                         <span className="font-bold text-base md:text-xl text-gray-900 truncate">{category}</span>
-                        <span className="text-xs md:text-sm text-gray-600 flex-shrink-0">
+                        <span className="text-xs md:text-sm text-gray-600 shrink-0">
                           ({procedures.filter(p => p.isComplete).length}/{procedures.length})
                         </span>
                       </div>
-                      <div className="flex items-center space-x-1 md:space-x-2 flex-shrink-0 ml-2">
+                      <div className="flex items-center space-x-1 md:space-x-2 shrink-0 ml-2">
                         <span className="text-xs md:text-sm text-gray-600 hidden sm:inline">
                           {isExpanded ? 'Collapse' : 'Expand'}
                         </span>
@@ -202,13 +202,13 @@ export default function ProgressDetailModal({ progress, onClose }: Props) {
                         >
                           <div className="flex justify-between items-start mb-2 md:mb-3">
                             <div className="flex items-center space-x-2 md:space-x-3 flex-1 min-w-0">
-                              <div className={`w-3 h-3 md:w-4 md:h-4 rounded-full ${circleColor} flex-shrink-0`}></div>
+                              <div className={`w-3 h-3 md:w-4 md:h-4 rounded-full ${circleColor} shrink-0`}></div>
                               <p className="font-semibold text-gray-900 text-xs sm:text-sm md:text-base lg:text-lg break-words">
                                 {proc.procedureGroup.join(', ')}
                               </p>
                             </div>
                             {proc.isComplete && (
-                              <div className="flex items-center space-x-1 md:space-x-2 bg-green-600 text-white px-2 md:px-3 py-0.5 md:py-1 rounded-full flex-shrink-0 ml-2">
+                              <div className="flex items-center space-x-1 md:space-x-2 bg-green-600 text-white px-2 md:px-3 py-0.5 md:py-1 rounded-full shrink-0 ml-2">
                                 <CheckCircle size={14} className="md:w-4 md:h-4" />
                                 <span className="text-xs md:text-sm font-bold">Done</span>
                               </div>

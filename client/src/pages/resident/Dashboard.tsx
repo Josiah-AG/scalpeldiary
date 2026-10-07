@@ -605,7 +605,7 @@ export default function Dashboard() {
           {/* Header */}
           <div className="bg-gradient-to-r from-blue-600 via-blue-700 to-indigo-700 px-4 py-4 md:px-8 md:py-6">
             <div className="flex items-center space-x-3 md:space-x-4">
-              <div className="bg-white/20 backdrop-blur-sm rounded-lg md:rounded-xl p-2 md:p-3">
+              <div className="bg-white/20 backdrop-blur-xs rounded-lg md:rounded-xl p-2 md:p-3">
                 <Calendar className="w-5 h-5 md:w-8 md:h-8 text-white" />
               </div>
               <div>
@@ -638,7 +638,7 @@ export default function Dashboard() {
                   {todayOverview.rotation ? (
                     <div className="space-y-2">
                       <div
-                        className="inline-block px-3 py-1.5 md:px-4 md:py-2 rounded-lg font-bold text-sm md:text-lg shadow-sm"
+                        className="inline-block px-3 py-1.5 md:px-4 md:py-2 rounded-lg font-bold text-sm md:text-lg shadow-xs"
                         style={{
                           backgroundColor: todayOverview.rotation.color || '#3B82F6',
                           color: 'white'

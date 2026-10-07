@@ -127,7 +127,7 @@ export default function SupervisorDashboard() {
           className="bg-gradient-to-br from-blue-500 to-blue-600 text-white p-6 rounded-xl shadow-lg hover:shadow-2xl transition-all transform hover:scale-105"
         >
           <div className="flex items-center justify-between mb-4">
-            <div className="p-3 bg-white bg-opacity-20 rounded-lg">
+            <div className="p-3 bg-white/20 rounded-lg">
               <FileText className="w-8 h-8" />
             </div>
             <TrendingUp className="w-6 h-6 opacity-70" />
@@ -148,7 +148,7 @@ export default function SupervisorDashboard() {
           className="bg-gradient-to-br from-green-500 to-green-600 text-white p-6 rounded-xl shadow-lg hover:shadow-2xl transition-all transform hover:scale-105"
         >
           <div className="flex items-center justify-between mb-4">
-            <div className="p-3 bg-white bg-opacity-20 rounded-lg">
+            <div className="p-3 bg-white/20 rounded-lg">
               <Presentation className="w-8 h-8" />
             </div>
             <Activity className="w-6 h-6 opacity-70" />
@@ -169,7 +169,7 @@ export default function SupervisorDashboard() {
           className="bg-gradient-to-br from-purple-500 to-purple-600 text-white p-6 rounded-xl shadow-lg hover:shadow-2xl transition-all transform hover:scale-105"
         >
           <div className="flex items-center justify-between mb-4">
-            <div className="p-3 bg-white bg-opacity-20 rounded-lg">
+            <div className="p-3 bg-white/20 rounded-lg">
               <CalendarDays className="w-8 h-8" />
             </div>
             <ChevronRight className="w-6 h-6 opacity-70" />
@@ -184,7 +184,7 @@ export default function SupervisorDashboard() {
           className="bg-gradient-to-br from-amber-500 to-amber-600 text-white p-6 rounded-xl shadow-lg hover:shadow-2xl transition-all transform hover:scale-105"
         >
           <div className="flex items-center justify-between mb-4">
-            <div className="p-3 bg-white bg-opacity-20 rounded-lg">
+            <div className="p-3 bg-white/20 rounded-lg">
               <ClipboardCheck className="w-8 h-8" />
             </div>
             <ChevronRight className="w-6 h-6 opacity-70" />
@@ -217,7 +217,7 @@ export default function SupervisorDashboard() {
               const color = dutyColors[duty.duty_category_name] || duty.duty_color || '#6366F1';
               return (
               <div key={idx} className="flex items-center space-x-3 p-3 rounded-lg" style={{ backgroundColor: color + '15' }}>
-                <div className="w-3 h-3 rounded-full flex-shrink-0" style={{ backgroundColor: color }}></div>
+                <div className="w-3 h-3 rounded-full shrink-0" style={{ backgroundColor: color }}></div>
                 <div>
                   <p className="font-semibold text-gray-900 text-sm">{duty.resident_name}</p>
                   <p className="text-xs font-medium" style={{ color: color }}>{duty.duty_category_name}</p>
@@ -258,7 +258,7 @@ export default function SupervisorDashboard() {
               }`}
             >
               <div className={`p-3 rounded-lg mb-3 mx-auto w-fit ${
-                isSelected ? 'bg-white bg-opacity-20' : 'bg-gray-100'
+                isSelected ? 'bg-white/20' : 'bg-gray-100'
               }`}>
                 <Users className={`w-10 h-10 ${isSelected ? 'text-white' : colors.text}`} />
               </div>

@@ -254,16 +254,16 @@ export default function Layout({ children, title }: LayoutProps) {
               {/* Mobile Menu Button */}
               <button
                 onClick={() => setShowMobileSidebar(true)}
-                className="md:hidden p-1.5 sm:p-2 rounded-lg hover:bg-blue-800 transition-colors flex-shrink-0"
+                className="md:hidden p-1.5 sm:p-2 rounded-lg hover:bg-blue-800 transition-colors shrink-0"
               >
                 <svg className="w-5 h-5 sm:w-6 sm:h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
                 </svg>
               </button>
 
-              <div className="bg-white/10 backdrop-blur-sm rounded-lg sm:rounded-xl px-2 py-1 sm:px-3 sm:py-1.5 border border-white/20 flex-shrink-0">
+              <div className="bg-white/10 backdrop-blur-xs rounded-lg sm:rounded-xl px-2 py-1 sm:px-3 sm:py-1.5 border border-white/20 shrink-0">
                 <div className="flex items-center space-x-1.5 sm:space-x-2">
-                  <div className="bg-white rounded-md sm:rounded-lg p-1 sm:p-1.5 shadow-md flex-shrink-0">
+                  <div className="bg-white rounded-md sm:rounded-lg p-1 sm:p-1.5 shadow-md shrink-0">
                     <img
                       src="/logo-sd.svg?v=2"
                       alt="SD"
@@ -278,12 +278,12 @@ export default function Layout({ children, title }: LayoutProps) {
                 </div>
               </div>
               {isReadOnlyMode && (
-                <span className="hidden sm:inline-block px-2 sm:px-3 py-0.5 sm:py-1 bg-yellow-500 text-white text-xs font-semibold rounded-full flex-shrink-0">
+                <span className="hidden sm:inline-block px-2 sm:px-3 py-0.5 sm:py-1 bg-yellow-500 text-white text-xs font-semibold rounded-full shrink-0">
                   READ ONLY
                 </span>
               )}
             </div>
-            <div className="flex items-center space-x-1 sm:space-x-2 md:space-x-4 flex-shrink-0">
+            <div className="flex items-center space-x-1 sm:space-x-2 md:space-x-4 shrink-0">
               {isReadOnlyMode && (
                 <button
                   onClick={handleBackToSupervisor}
@@ -394,7 +394,7 @@ export default function Layout({ children, title }: LayoutProps) {
                       alt="ScalpelDiary Logo"
                       width="28"
                       height="28"
-                      className="flex-shrink-0"
+                      className="shrink-0"
                     />
                   </div>
                   <div>

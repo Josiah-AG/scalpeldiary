@@ -350,7 +350,7 @@ function CalendarGrid({ days, dataMap, color, categoryKey, colorOverride, orderO
                     <div className="text-sm font-bold mb-1" style={{ color: data.color }}>{cat}</div>
                     <div className="flex flex-wrap gap-1">
                       {data.residents.map((r, i) => (
-                        <span key={i} className={`text-xs bg-white rounded px-2 py-1 shadow-sm ${r.isMe ? 'ring-1 ring-black font-bold' : ''}`}>
+                        <span key={i} className={`text-xs bg-white rounded px-2 py-1 shadow-xs ${r.isMe ? 'ring-1 ring-black font-bold' : ''}`}>
                           {r.name}{r.isMe ? ' ★' : ''}
                         </span>
                       ))}

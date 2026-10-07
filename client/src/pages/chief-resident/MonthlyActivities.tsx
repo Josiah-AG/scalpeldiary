@@ -486,7 +486,7 @@ export default function MonthlyActivities() {
                                   </span>
                                   <button
                                     onClick={() => handleDeleteActivity(activity.id)}
-                                    className="text-xs text-red-500 hover:text-red-700 ml-1 flex-shrink-0"
+                                    className="text-xs text-red-500 hover:text-red-700 ml-1 shrink-0"
                                   >
                                     ×
                                   </button>
@@ -573,7 +573,7 @@ export default function MonthlyActivities() {
                 onClick={() => setViewMode('table')}
                 className={`px-4 py-2 rounded text-sm font-medium transition-colors ${
                   viewMode === 'table'
-                    ? 'bg-white text-amber-600 shadow-sm'
+                    ? 'bg-white text-amber-600 shadow-xs'
                     : 'text-gray-600 hover:text-gray-900'
                 }`}
               >
@@ -583,7 +583,7 @@ export default function MonthlyActivities() {
                 onClick={() => setViewMode('calendar')}
                 className={`px-4 py-2 rounded text-sm font-medium transition-colors ${
                   viewMode === 'calendar'
-                    ? 'bg-white text-amber-600 shadow-sm'
+                    ? 'bg-white text-amber-600 shadow-xs'
                     : 'text-gray-600 hover:text-gray-900'
                 }`}
               >
@@ -639,7 +639,7 @@ export default function MonthlyActivities() {
                 categories.map(category => (
                   <div key={category.id} className="border rounded-lg p-3">
                     <div className="flex items-center space-x-2 mb-2">
-                      <div className="w-4 h-4 rounded flex-shrink-0" style={{ backgroundColor: category.color }} />
+                      <div className="w-4 h-4 rounded shrink-0" style={{ backgroundColor: category.color }} />
                       <span className="text-sm font-semibold text-gray-700">{category.name}</span>
                     </div>
                     <div className="space-y-1 mb-2">

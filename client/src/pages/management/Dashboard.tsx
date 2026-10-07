@@ -39,7 +39,7 @@ export default function ManagementDashboard() {
           className="bg-gradient-to-br from-blue-500 to-blue-600 text-white p-6 md:p-8 rounded-xl shadow-lg hover:shadow-2xl transition-all transform hover:scale-105 cursor-pointer"
         >
           <div className="flex items-center justify-between mb-4">
-            <div className="p-3 bg-white bg-opacity-20 rounded-lg">
+            <div className="p-3 bg-white/20 rounded-lg">
               <Users className="w-8 h-8 md:w-10 md:h-10" />
             </div>
             <TrendingUp className="w-6 h-6 opacity-70" />
@@ -55,7 +55,7 @@ export default function ManagementDashboard() {
           className="bg-gradient-to-br from-green-500 to-green-600 text-white p-6 md:p-8 rounded-xl shadow-lg hover:shadow-2xl transition-all transform hover:scale-105 cursor-pointer"
         >
           <div className="flex items-center justify-between mb-4">
-            <div className="p-3 bg-white bg-opacity-20 rounded-lg">
+            <div className="p-3 bg-white/20 rounded-lg">
               <UserCheck className="w-8 h-8 md:w-10 md:h-10" />
             </div>
             <Activity className="w-6 h-6 opacity-70" />
