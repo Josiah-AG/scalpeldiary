@@ -23,7 +23,7 @@ export default function SurgeryGroups<T extends Entry>({ logs, onSelect, canSele
           {groups.map(group => {
             const representative = surgeryGroupRepresentative(group.logs);
             return <Fragment key={group.key}>
-              <tr className="bg-blue-50">
+              {group.logs.length > 1 && <tr className="bg-blue-50">
                 <th colSpan={8} scope="rowgroup" className="px-4 py-3 text-left text-blue-900">
                   <div className="flex flex-wrap items-center justify-between gap-2">
                     <div>
@@ -33,7 +33,7 @@ export default function SurgeryGroups<T extends Entry>({ logs, onSelect, canSele
                     <span className="text-xs font-normal">{group.logs.length} resident log {group.logs.length === 1 ? 'entry' : 'entries'}</span>
                   </div>
                 </th>
-              </tr>
+              </tr>}
               {group.logs.map(log => {
                 const allowed = !canSelect || canSelect(log);
                 const badge = getSupervisorRatingBadge(log.rating ?? null, log.status || 'PENDING');
@@ -41,7 +41,7 @@ export default function SurgeryGroups<T extends Entry>({ logs, onSelect, canSele
                   <td className="px-4 py-3 whitespace-nowrap">{group.date}</td>
                   <td className="px-4 py-3 font-medium">{log.resident_name || 'Resident'}</td>
                   <td className="px-4 py-3">{log.resident_year || '—'}</td>
-                  <td className="px-4 py-3"><p>{log.procedure}</p>{log.procedure_category && <p className="text-xs text-gray-500">{log.procedure_category}</p>}{log.diagnosis && <p className="text-xs text-gray-500">{log.diagnosis}</p>}</td>
+                  <td className="px-4 py-3"><p>{log.procedure}</p>{group.logs.length === 1 && <p className="text-xs text-gray-600">MRN: {group.mrn || 'Not recorded'} · {log.patient_name?.trim() || 'Patient name not recorded'}</p>}{log.procedure_category && <p className="text-xs text-gray-500">{log.procedure_category}</p>}{log.diagnosis && <p className="text-xs text-gray-500">{log.diagnosis}</p>}</td>
                   <td className="px-4 py-3">{log.procedure_type?.replace(/_/g, ' ') || '—'}</td>
                   <td className="px-4 py-3">{log.surgery_role?.replace(/_/g, ' ') || '—'}</td>
                   <td className="px-4 py-3"><span className={`text-xs px-2 py-1 rounded whitespace-nowrap ${badge.className}`}>{badge.text}</span></td>

@@ -244,3 +244,9 @@ Dr. Beimnet has five recorded successful logins and 16 procedure-rating activity
 **Deployment:** Pushing code and additive migration through existing integrations; live verification pending.
 
 **Release verified:** Application revision 00bbf6b is live. Railway 660c95f0-a99b-4b65-828e-f4d2cd08ae72 succeeded and deployment logs confirm Applied migration: 20261007_patient_name.sql. Cloudflare 50fc617d-ea0a-4cb5-b45f-7eb28760588e succeeded; CI 37626281950 passed. Public-domain entry bundle matches the production build; readiness is 200. Isolated UI and PostgreSQL services stopped after checks; retained test evidence and backups.
+
+## 2026-10-07 — Show single surgery logs as ordinary rows
+
+**Request/change:** Only display a group header when more than one log shares MRN and surgery date. Updated the shared SurgeryGroups table used by supervisor, senior-resident and administrative review lists. Single logs now render directly as ordinary rows, with MRN and patient name retained in the procedure cell. Multi-log headers, representative selection, per-resident actions and distinct-surgery counts are unchanged.
+
+**Validation:** Extended the existing render regression case to include a standalone surgery beside a multi-log group: exactly one group header, all three action buttons retained, and standalone patient/MRN visible without a header. All eight frontend tests, production build and whitespace check pass. No backend/schema/data changes; no additional device audit was needed for this conditional table-row change. Deployment verification follows.
