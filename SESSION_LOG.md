@@ -250,3 +250,5 @@ Dr. Beimnet has five recorded successful logins and 16 procedure-rating activity
 **Request/change:** Only display a group header when more than one log shares MRN and surgery date. Updated the shared SurgeryGroups table used by supervisor, senior-resident and administrative review lists. Single logs now render directly as ordinary rows, with MRN and patient name retained in the procedure cell. Multi-log headers, representative selection, per-resident actions and distinct-surgery counts are unchanged.
 
 **Validation:** Extended the existing render regression case to include a standalone surgery beside a multi-log group: exactly one group header, all three action buttons retained, and standalone patient/MRN visible without a header. All eight frontend tests, production build and whitespace check pass. No backend/schema/data changes; no additional device audit was needed for this conditional table-row change. Deployment verification follows.
+
+**Deployment verified:** UI revision cee6518 deployed successfully on Cloudflare (028fad69-5782-4771-a7f1-79f5a9a3f7ec) and Railway (c89eaf2f-2275-4203-bc8b-b501139c59bd); CI run 37628590845 passed.
